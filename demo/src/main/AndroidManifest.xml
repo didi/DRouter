@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.didi.drouter.demo">
+
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+
+    <application
+        android:name="com.didi.demo.Application"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+        <activity android:name="com.didi.demo.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity android:name="com.didi.demo.activity.ActivityTest1" />
+        <activity android:name="com.didi.demo.activity.ActivityTest2" />
+        <activity android:name="com.didi.demo.activity.ActivityTest3" />
+        <activity android:name="com.didi.demo.web.WebActivity" />
+        <activity android:name="com.didi.demo.activity.ActivityResultActivity" >
+            <intent-filter>
+                <action android:name="com.intent.activity" />
+                <category android:name="android.intent.category.DEFAULT"/>
+
+            </intent-filter>
+        </activity>
+
+        <activity android:name="com.didi.demo.plugin.PluginActivity" />
+
+        <activity android:name="com.didi.demo.web.SchemeActivity">
+            <intent-filter>
+                <data android:scheme="didi" />
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+
+        <provider
+            android:authorities="com.didi.drouter.remote.demo.host"
+            android:name="com.didi.demo.remote.DemoHostProvider"
+            android:multiprocess="false"
+            android:exported="true"/>
+        <provider
+            android:authorities="com.didi.drouter.remote.demo.remote"
+            android:name="com.didi.demo.remote.DemoRemoteProvider"
+            android:process=":remote"
+            android:multiprocess="false" />
+
+        <activity
+            android:name="com.didi.demo.remote.RemoteActivity"
+            android:process=":remote"/>
+
+        <activity android:name="com.didi.demo.handler.DynamicActivity" />
+        <activity android:name="com.didi.demo.fragment.RouterPageViewPagerActivity" />
+        <activity android:name="com.didi.demo.fragment.RouterPageSingleActivity" />
+        <activity android:name="com.didi.demo.fragment.RouterPageStackActivity" />
+    </application>
+
+</manifest>

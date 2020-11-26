@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/load_plugin"
+            android:onClick="onClick"
+            android:layout_marginTop="20dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="安装插件1" />
+
+        <Button
+            android:id="@+id/load_router"
+            android:onClick="onClick"
+            android:layout_marginTop="20dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="加载路由表" />
+
+        <Button
+            android:id="@+id/start_activity1"
+            android:onClick="onClick"
+            android:layout_marginTop="20dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="启动插件Activity1" />
+
+        <Button
+            android:id="@+id/start_fragment1"
+            android:onClick="onClick"
+            android:layout_marginTop="20dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="启动插件Fragment1" />
+
+        <Button
+            android:id="@+id/start_view1"
+            android:onClick="onClick"
+            android:layout_marginTop="20dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="启动插件view1" />
+
+        <Button
+            android:id="@+id/start_service1"
+            android:onClick="onClick"
+            android:layout_marginTop="20dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="启动插件Service1" />
+    </LinearLayout>
+</ScrollView>

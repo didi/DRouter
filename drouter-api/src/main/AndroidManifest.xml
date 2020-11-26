@@ -1,0 +1,11 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.didi.drouter" >
+
+    <application>
+        <provider
+            android:authorities="${applicationId}.drouter.init.provider"
+            android:name=".store.LoadProvider"
+            android:exported="false"
+            android:multiprocess="true"/>
+    </application>
+</manifest>

@@ -1,0 +1,58 @@
+apply plugin: 'com.android.application'
+apply plugin: 'com.didi.drouter'
+
+drouter {
+    //incremental = false
+    //debug = true
+    //supportNoAnnotationActivity = true
+}
+
+android {
+    compileSdkVersion 29
+    defaultConfig {
+        applicationId "com.didi.drouter.demo"
+        minSdkVersion 15
+        targetSdkVersion 29
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        multiDexEnabled true
+    }
+
+    signingConfigs {
+        sign {
+            storeFile file("../drouter.sign")
+            storePassword "drouter"
+            keyAlias "drouter"
+            keyPassword "drouter"
+        }
+    }
+
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.sign
+        }
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.sign
+        }
+    }
+
+    allprojects {
+        gradle.projectsEvaluated {
+            tasks.withType(JavaCompile) {
+                options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+            }
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+
+    api project(':demo-base')
+}

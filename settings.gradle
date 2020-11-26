@@ -1,0 +1,3 @@
+include ':drouter-plugin', ':drouter-plugin-proxy', ':drouter-api', ':drouter-api-stub'
+include ':demo-base', ':demo-remote'
+include ':demo'

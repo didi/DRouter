@@ -1,0 +1,30 @@
+//apply plugin: 'groovy'
+//
+//repositories {
+//    mavenCentral()
+//    google()
+//    jcenter()
+//}
+//
+//dependencies {
+//    implementation fileTree(dir: 'libs', include: ['*.jar'])
+//
+//    implementation gradleApi()
+//    implementation localGroovy()
+//    implementation 'org.javassist:javassist:3.18.2-GA'
+//    implementation 'com.android.tools.build:gradle:3.2.1'
+//}
+//
+//sourceSets {
+//    main {
+//        groovy.srcDirs = ['src/main/groovy', '../drouter-plugin/src/main/groovy']
+//        java.srcDirs = ['src/main/java', '../drouter-plugin/src/main/java']
+//        resources.srcDirs = ['src/main/resources', '../drouter-plugin/src/main/resources']
+//    }
+//
+////    main {
+////        groovy.srcDirs = ['src/main/groovy', '../drouter-plugin-proxy/src/main/groovy']
+////        java.srcDirs = ['src/main/java', '../drouter-plugin-proxy/src/main/java']
+////        resources.srcDirs = ['src/main/resources', '../drouter-plugin-proxy/src/main/resources']
+////    }
+//}

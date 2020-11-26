@@ -1,0 +1,48 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 29
+
+    defaultConfig {
+        applicationId "com.didi.drouter.remote"
+        minSdkVersion 15
+        targetSdkVersion 29
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+    }
+
+    signingConfigs {
+        sign {
+            storeFile file("../drouter.sign")
+            storePassword "drouter"
+            keyAlias "drouter"
+            keyPassword "drouter"
+        }
+    }
+
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.sign
+        }
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.sign
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+
+    api project(':demo-base')
+
+}

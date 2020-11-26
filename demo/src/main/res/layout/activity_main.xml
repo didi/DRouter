@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="50dp">
+
+        <TextView
+            android:layout_marginTop="15dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="打开Activity"/>
+
+        <Button
+            android:id="@+id/start_activity1"
+            android:onClick="onClick"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="uri= /activity/test1" />
+
+        <Button
+            android:id="@+id/start_activity2"
+            android:onClick="onClick"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="uri= didi://router/activity/test2" />
+
+        <Button
+            android:id="@+id/start_activity3"
+            android:onClick="onClick"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="uri= /activity/test3 hold()" />
+
+        <Button
+            android:id="@+id/start_activity_no"
+            android:onClick="onClick"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="uri= /activity/no" />
+
+        <Button
+            android:id="@+id/start_activity_for_result"
+            android:onClick="onClick"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="获取ActivityResult, uri= /activity/result" />
+
+        <Button
+            android:id="@+id/start_activity_result_intent"
+            android:onClick="onClick"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="兼容intent跳转" />
+
+        <TextView
+            android:layout_marginTop="15dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="获取Fragment/View实例"/>
+
+        <Button
+            android:id="@+id/start_fragment1"
+            android:onClick="onClick"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="uri= /fragment/first" />
+
+        <Button
+            android:id="@+id/start_view1"
+            android:onClick="onClick"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="uri= /view/headview" />
+
+        <TextView
+            android:layout_marginTop="15dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="页面路由"/>
+
+        <Button
+            android:id="@+id/start_router_page_viewpager"
+            android:onClick="onClick"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="uri= /activity/router_page_viewpager" />
+
+        <Button
+            android:id="@+id/start_router_page_single"
+            android:onClick="onClick"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="uri= /activity/router_page_single" />
+
+        <Button
+            android:id="@+id/start_router_page_stack"
+            android:onClick="onClick"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="uri= /activity/router_page_stack" />
+
+        <TextView
+            android:layout_marginTop="15dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="执行Handler"/>
+
+        <Button
+            android:id="@+id/start_handler1"
+            android:onClick="onClick"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="uri= /hander/test1" />
+
+        <Button
+            android:id="@+id/start_handler2"
+            android:onClick="onClick"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="uri= didi://router/hander/test2" />
+
+        <Button
+            android:id="@+id/start_handler3"
+            android:onClick="onClick"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="异步结果, uri= /hander/test3 hold()" />
+
+        <TextView
+            android:layout_marginTop="15dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="模拟端外跳转端内"/>
+
+        <Button
+            android:id="@+id/start_webview"
+            android:onClick="onClick"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="WebView" />
+
+        <TextView
+            android:layout_marginTop="15dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="以接口获取Service实现"/>
+
+        <Button
+            android:id="@+id/start_service"
+            android:onClick="onClick"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="IServiceTest.class" />
+
+        <Button
+            android:id="@+id/start_service_feature"
+            android:onClick="onClick"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="特征过滤 IServiceTest.class" />
+
+        <Button
+            android:id="@+id/start_service_call"
+            android:onClick="onClick"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="内置方法服务, ICallService.class" />
+
+        <Button
+            android:id="@+id/start_service_any"
+            android:onClick="onClick"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="全遍历接口, AnyAbility.class" />
+
+        <TextView
+            android:layout_marginTop="15dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="动态注册"/>
+
+        <Button
+            android:id="@+id/start_dynamic_register"
+            android:onClick="onClick"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="注册动态 Handler Service" />
+
+        <TextView
+            android:layout_marginTop="15dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="跨进程"/>
+
+        <Button
+            android:id="@+id/start_remote_page"
+            android:onClick="onClick"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="打开子进程测试页面" />
+
+        <Button
+            android:id="@+id/start_remote_test"
+            android:onClick="onClick"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="执行子进程方法" />
+    </LinearLayout>
+</ScrollView>

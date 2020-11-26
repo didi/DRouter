@@ -1,0 +1,34 @@
+apply plugin: 'java'
+apply plugin: 'groovy'
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    implementation gradleApi()
+    implementation localGroovy()
+    implementation 'org.javassist:javassist:3.18.2-GA'
+    //noinspection GradleDependency
+    compileOnly 'com.android.tools.build:gradle:3.2.1'
+}
+
+
+sourceCompatibility = "1.7"
+targetCompatibility = "1.7"
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+artifacts {
+    archives sourcesJar
+}
+
+version = '1.0.0'
+
+jar {
+    manifest {
+        attributes("proxy-version" : version)
+    }
+}
+
+apply from : "../upload.gradle"

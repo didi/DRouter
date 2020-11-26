@@ -1,0 +1,74 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 29
+
+    defaultConfig {
+        minSdkVersion 14
+        targetSdkVersion 29
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            consumerProguardFiles 'proguard-drouter.txt'
+        }
+    }
+
+    sourceSets {
+        main.resources.srcDirs += new File(buildDir, "/generated/drouter")
+    }
+
+    allprojects {
+        gradle.projectsEvaluated {
+            tasks.withType(JavaCompile) {
+                options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+            }
+        }
+    }
+}
+
+task generateVersion {
+    doLast {
+        File file = new File(buildDir, "/generated/drouter/META-INF")
+        file.mkdirs()
+        file = new File(file, "drouter")
+        file.text = "api-version : ${version}" + "\n" + "plugin-min-support : 1.0.0"
+    }
+}
+
+afterEvaluate {
+    tasks["generateDebugResources"].dependsOn(generateVersion)
+    tasks["generateReleaseResources"].dependsOn(generateVersion)
+}
+
+
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+
+    //noinspection GradleCompatible
+    api 'com.android.support:appcompat-v7:26.1.0'
+    api "android.arch.lifecycle:runtime:1.1.1"
+    implementation 'com.google.code.gson:gson:2.8.5'
+    compileOnly project(':drouter-api-stub')
+}
+
+task androidSourcesJar(type: Jar) {
+    classifier = 'sources'
+    from android.sourceSets.main.java.sourceFiles
+}
+artifacts {
+    archives androidSourcesJar
+}
+
+version = '1.0.0'
+
+apply from : "../upload.gradle"
