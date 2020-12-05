@@ -7,7 +7,7 @@
  <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" align=left />
 </div>
 <br/>
-DRouter是滴滴乘客端自研的一套Android路由框架，基于平台化解耦的思想，为组件间通信服务。该项目以功能全面、易用为原则，支持各种路由场景，同时在服务获取和过滤、跨进程及应用、页面路由、VirtualApk插件支持方面都能提供更为多样化的服务。目前已在滴滴乘客端、顺风车、单车、国际化、滴滴定制车等十多个滴滴的app内使用，得到各种场景的验证。
+DRouter是滴滴乘客端自研的一套Android路由框架，基于平台化解耦的思想，为组件间通信服务。该项目以功能全面、易用为原则，支持各种路由场景，在页面路由、服务获取和过滤、跨进程及应用、VirtualApk插件支持等方面都能提供多样化的服务。目前已在滴滴乘客端、顺风车、单车、国际化、滴滴定制车等十多个滴滴的app内使用，得到各种场景的验证。
 
 <img src="https://github.com/didi/DRouter/blob/master/img/DRouter_Architecture.jpg" width="700px" align="center" alt="DRouter架构图"/>
 
@@ -33,7 +33,7 @@ DRouter是滴滴乘客端自研的一套Android路由框架，基于平台化解
 2. 完整的Router功能
 3. 强大的ServiceLoader能力
 4. 简单高效的跨进程通信机制，就像调用本地方法
-5.  框架内部尽可能减少使用反射，提升性能
+5. 框架内部尽可能减少使用反射，提升性能
 6. 动态下载与api匹配的plugin，无需升级plugin版本
 7. 无需手动添加混淆规则
 
@@ -48,12 +48,14 @@ Page | 支持单Page、栈Page、ViewPager三种形式的Fragment加载
 
 ## 使用文档
 
-API文档请移步 [WIKI](https://github.com/didi/DRouter/wiki)
+接入方式及文档请移步 [Wiki](https://github.com/didi/DRouter/wiki)
 
-## QQ交流群
+## 微信交流群
 
-<img src="https://github.com/didi/DRouter/blob/master/img/DRouter_Contact.jpg" width="200px" align="center" alt="DRouter官方交流群"/>
+微信群二维码有期限，请搜索 gwball 加我微信入群，可备注 DRouter
 
 ## License
 
-DRouter is licensed under the Apache License 2.0. See the [LICENSE](LICENSE) file.
+<img alt="Apache-2.0 license" src="https://www.apache.org/img/ASF20thAnniversary.jpg" width="128">
+
+DRouter 基于 Apache-2.0 协议进行分发和使用，更多信息参见 [协议文件](LICENSE)
