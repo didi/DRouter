@@ -9,7 +9,7 @@
 <br/>
 DRouter是滴滴乘客端自研的一套Android路由框架，基于平台化解耦的思想，为组件间通信服务。该项目以功能全面、易用为原则，支持各种路由场景，在页面路由、服务获取和过滤、跨进程及应用、VirtualApk插件支持等方面都能提供多样化的服务。目前已在滴滴乘客端、顺风车、单车、国际化、滴滴定制车等十多个滴滴的app内使用，得到各种场景的验证。
 
-<img src="https://github.com/didi/DRouter/blob/master/img/DRouter_Architecture.jpg" width="700px" align="center" alt="DRouter架构图"/>
+<img src="https://czp.s3.didiyunapi.com/image/drouter/DRouter_Architecture.jpg" width="700px" align="center" alt="DRouter架构图"/>
 
 ## 提供功能
 
