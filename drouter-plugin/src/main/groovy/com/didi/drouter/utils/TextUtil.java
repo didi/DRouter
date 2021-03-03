@@ -16,7 +16,7 @@ public class TextUtil {
         return s2 == null;
     }
 
-    public static boolean exclude(String name) {
+    public static boolean excludeClass(String name) {
         return  name.startsWith("android.") ||
                 name.startsWith("com.google.") ||
                 name.startsWith("org.apache.") ||
@@ -24,11 +24,24 @@ public class TextUtil {
                 name.startsWith("javax.");
     }
 
-    public static boolean exclude2(String name) {
+    public static boolean excludeJarFile(String name) {
+        return  name.equals("android.jar") ||
+                name.startsWith("kotlin-stdlib-") ||
+                name.startsWith("appcompat-") ||
+                name.startsWith("multidex-") ||
+                name.startsWith("animated-vector-") ||
+                name.startsWith("gson-") ||
+                name.startsWith("support-");
+    }
+
+    public static boolean excludeJarEntry(String name) {
         return  name.startsWith("android/") ||
+                name.startsWith("androidx/") ||
                 name.startsWith("com/google/") ||
                 name.startsWith("org/apache/") ||
+                name.startsWith("org/intellij/") ||
                 name.startsWith("java/") ||
-                name.startsWith("javax/");
+                name.startsWith("javax/") ||
+                name.startsWith("kotlin/");
     }
 }

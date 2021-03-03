@@ -76,6 +76,6 @@ public class JarUtils {
         String min = metaInfo.get("plugin-min-support");
         Logger.w("Please first make sure plugin-version " + metaInfo.get("plugin-version") +
                 "(current) >= " + min + "(min support)");
-        Logger.w("Any question you can also put in \"qq group 1017780981\"");
+        Logger.w("Any question you can also join weixin \"122525660\"");
     }
 }

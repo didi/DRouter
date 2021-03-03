@@ -163,32 +163,51 @@ public class RouterTask {
     private void resolveClass(File file) throws IOException {
         count.incrementAndGet();
         FileInputStream stream = new FileInputStream(file);
-        CtClass ctClass = pool.makeClass(stream);
-        if (!TextUtil.exclude(ctClass.getName())) {
+        CtClass ctClass;
+        try {
+            ctClass = pool.makeClass(stream);
+        } catch (Exception e) {
+            Logger.e("drouter resolve class error, file=" + file.getAbsolutePath());
+            return;
+        } finally {
+            stream.close();
+        }
+        if (!TextUtil.excludeClass(ctClass.getName())) {
             if (classClassify.doClassify(ctClass)) {
                 cachePath.add(file.getAbsolutePath());
             } else if (useCache) {
                 cachePath.remove(file.getAbsolutePath());
             }
         }
-        stream.close();
     }
 
     private void resolveJar(File file) throws IOException {
-        JarFile jar = new JarFile(file);
-        Enumeration<JarEntry> entries = jar.entries();
-        while (entries.hasMoreElements()) {
-            final JarEntry entry = entries.nextElement();
-            if (entry.getName().endsWith(".class")) {
-                count.incrementAndGet();
-                if (!TextUtil.exclude2(entry.getName())) {
-                    InputStream stream = jar.getInputStream(entry);
-                    String path = "jar:file:" + file.getAbsolutePath() + "!/" + entry.getName();
-                    if (classClassify.doClassify(pool.makeClass(stream))) {
-                        cachePath.add(path);
+        if (!TextUtil.excludeJarFile(file.getName())) {
+            JarFile jar = new JarFile(file);
+            Enumeration<JarEntry> entries = jar.entries();
+            while (entries.hasMoreElements()) {
+                final JarEntry entry = entries.nextElement();
+                if (entry.getName().endsWith(".class")) {
+                    count.incrementAndGet();
+                    if (!TextUtil.excludeJarEntry(entry.getName())) {
+                        InputStream stream = jar.getInputStream(entry);
+                        String path = "jar:file:" + file.getAbsolutePath() + "!/" + entry.getName();
+                        CtClass clz;
+                        try {
+                            clz = pool.makeClass(stream);
+                        } catch (Exception e) {
+                            Logger.e("drouter resolve jar error," +
+                                    " jar=" + file.getAbsolutePath() +
+                                    " entry=" + entry.getName());
+                            continue;
+                        } finally {
+                            stream.close();
+                        }
+                        if (classClassify.doClassify(clz)) {
+                            cachePath.add(path);
+                        }
+                        // no need to remove, as removed by handleJar
                     }
-                    // no need to remove, as removed by handleJar
-                    stream.close();
                 }
             }
         }
