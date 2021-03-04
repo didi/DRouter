@@ -3,7 +3,7 @@
 <div align="center">
  <img src="https://img.shields.io/badge/license-Apache2.0-brightgreen.svg" align=left />
  <img src="https://img.shields.io/badge/drouter--plugin--proxy-1.0.0-red.svg" align=left />
- <img src="https://img.shields.io/badge/drouter--api-1.0.1-blue.svg" align=left />
+ <img src="https://img.shields.io/badge/drouter--api-1.0.2-blue.svg" align=left />
  <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" align=left />
 </div>
 <br/>

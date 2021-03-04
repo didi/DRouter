@@ -1,24 +1,12 @@
 package com.didi.drouter.utils
 
 import com.android.build.gradle.api.ApplicationVariant
-
 import org.gradle.api.Project
 
-import java.io.BufferedReader
-import java.io.File
-import java.io.InputStreamReader
-import java.net.URL
-import java.util.Collection
-import java.util.Enumeration
-import java.util.HashMap
-import java.util.HashSet
-import java.util.Map
-import java.util.Set
 import java.util.jar.Attributes
 import java.util.jar.Manifest
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
-
 /**
  * Created by gaowei on 2018/11/27.
  */
@@ -104,7 +92,7 @@ class JarUtils {
         connection.setRequestMethod("GET")
         connection.setConnectTimeout(15000)
         connection.setReadTimeout(60000)
-//        def response = connection.inputStream.text
-//        Logger.w(response)
+        def response = connection.inputStream.text
+        Logger.d("compile statistic response = " + response)
     }
 }

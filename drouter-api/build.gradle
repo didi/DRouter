@@ -37,7 +37,7 @@ task generateVersion {
         File file = new File(buildDir, "/generated/drouter/META-INF")
         file.mkdirs()
         file = new File(file, "drouter")
-        file.text = "api-version : ${version}" + "\n" + "plugin-min-support : 1.0.1"
+        file.text = "api-version : ${version}" + "\n" + "plugin-min-support : 1.0.2"
     }
 }
 
@@ -69,6 +69,6 @@ artifacts {
     archives androidSourcesJar
 }
 
-version = '1.0.1'
+version = '1.0.2'
 
 apply from : "../upload.gradle"
