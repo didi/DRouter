@@ -50,6 +50,12 @@ Page | 支持单Page、栈Page、ViewPager三种形式的Fragment加载
 
 接入方式及文档请移步 [Wiki](https://github.com/didi/DRouter/wiki)
 
+``` java
+/** 最新版本 **/
+classpath "com.didi.drouter:drouter-plugin-proxy:1.0.0"
+api "com.didi.drouter:drouter-api:1.0.2"
+```
+
 ## 微信交流群
 
 微信群二维码有期限，请搜索 gwball 加我微信入群，可备注 DRouter
