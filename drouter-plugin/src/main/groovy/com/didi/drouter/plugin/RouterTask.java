@@ -7,6 +7,7 @@ import com.didi.drouter.utils.StoreUtil;
 import com.didi.drouter.utils.TextUtil;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.Project;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -36,6 +37,7 @@ import javassist.CtClass;
  */
 public class RouterTask {
 
+    private Project project;
     private Queue<File> compileClassPath;
     private Set<String> cachePath; //.class | .jar | .jar!/class
     private boolean useCache;
@@ -48,8 +50,10 @@ public class RouterTask {
     private int CPU_COUNT = Runtime.getRuntime().availableProcessors();
     private AtomicInteger count = new AtomicInteger();
 
-    RouterTask(Queue<File> compileClassPath, Set<String> cachePath, boolean useCache,
+    RouterTask(Project project, Queue<File> compileClassPath,
+               Set<String> cachePath, boolean useCache,
                File routerDir, RouterSetting setting) {
+        this.project = project;
         this.compileClassPath = compileClassPath;
         this.cachePath = cachePath;
         this.useCache = useCache;
@@ -59,7 +63,7 @@ public class RouterTask {
 
     void run() {
         StoreUtil.clear();
-        JarUtils.printVersion(compileClassPath);
+        JarUtils.printVersion(project, compileClassPath);
         pool = new ClassPool();
         classClassify = new ClassClassify(pool, setting);
         startExecute();

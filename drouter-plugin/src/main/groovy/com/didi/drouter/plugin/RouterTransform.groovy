@@ -1,12 +1,15 @@
 package com.didi.drouter.plugin
 
 import com.android.build.api.transform.*
+import com.android.build.gradle.api.ApplicationVariant
+import com.android.build.gradle.api.BaseVariant
 import com.android.build.gradle.internal.pipeline.TransformManager
 import com.didi.drouter.utils.Logger
 import com.didi.drouter.utils.SystemUtil
 import com.google.common.collect.ImmutableSet
 import org.apache.commons.io.FileUtils
 import org.gradle.api.Project
+import org.gradle.api.internal.DefaultDomainObjectCollection
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -49,7 +52,6 @@ class RouterTransform extends Transform {
     @Override
     void transform(TransformInvocation invocation) throws TransformException, InterruptedException, IOException {
         long timeStart = System.currentTimeMillis()
-
         Logger.debug = project.drouter.debug
         boolean configChanged = SystemUtil.configChanged(project)
         boolean readCache = invocation.incremental && project.drouter.cache && cacheFile.exists() && !configChanged
@@ -71,7 +73,7 @@ class RouterTransform extends Transform {
         }
         File dest = invocation.outputProvider.getContentLocation("DRouterTable", TransformManager.CONTENT_CLASS,
                 ImmutableSet.of(QualifiedContent.Scope.PROJECT), Format.DIRECTORY)
-        (new RouterTask(compilePath, cachePath, readCache, dest, project.drouter)).run()
+        (new RouterTask(project, compilePath, cachePath, readCache, dest, project.drouter)).run()
         FileUtils.writeLines(cacheFile, cachePath)
         Logger.v("Link: https://github.com/didi/DRouter")
         Logger.v("DRouterTask done, time used: " + (System.currentTimeMillis() - timeStart) / 1000f  + "s")
