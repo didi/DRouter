@@ -163,13 +163,13 @@ public class ServiceCollect extends AbsRouterCollect {
                         }
                     }
 
-                    CtClass proxyCc = null;
-                    String method1 = null;
-                    String method2 = null;
+                    CtClass methodProxyCc = null;
+                    String constructorMethod = null;
+                    String executeMethod = null;
                     try {
                         CtConstructor constructor = serviceCc.getDeclaredConstructor(null);
                         if (constructor != null) {
-                            method1 = String.format(
+                            constructorMethod = String.format(
                                     "public java.lang.Object newInstance(android.content.Context context) {" +
                                     "{  return new %s();} }",
                                     serviceCc.getName());
@@ -215,7 +215,7 @@ public class ServiceCollect extends AbsRouterCollect {
                                 }
                             }
                         }
-                        method2 = String.format(
+                        executeMethod = String.format(
                                 "public java.lang.Object execute(Object instance, String methodName, Object[] " +
                                 "args) {" +
                                 "%s" +
@@ -224,15 +224,16 @@ public class ServiceCollect extends AbsRouterCollect {
                                 "}",
                                 allIfStr);
                     }
-                    if (method1 != null || method2 != null) {
+                    if (constructorMethod != null || executeMethod != null) {
                         CtClass proxyInterface = pool.get("com.didi.drouter.store.IRouterProxy");
                         String path = PROXY + serviceCc.getName().replace(".", "_");
-                        if (pool.getOrNull(path) == null) {
-                            proxyCc = pool.makeClass(path);
-                            proxyCc.addInterface(proxyInterface);
-                            generatorClass(routerDir, proxyCc,
-                                    method1 == null ? METHOD1 : method1,
-                                    method2 == null ? METHOD2 : method2);
+                        methodProxyCc = pool.getOrNull(path);
+                        if (methodProxyCc == null) {
+                            methodProxyCc = pool.makeClass(path);
+                            methodProxyCc.addInterface(proxyInterface);
+                            generatorClass(routerDir, methodProxyCc,
+                                    constructorMethod == null ? METHOD1 : constructorMethod,
+                                    executeMethod == null ? METHOD2 : executeMethod);
                         }
                     }
 
@@ -244,7 +245,7 @@ public class ServiceCollect extends AbsRouterCollect {
                     itemBuilder.append(".assembleService(");
                     itemBuilder.append(serviceCc.getName());
                     itemBuilder.append(".class, ");
-                    itemBuilder.append(proxyCc != null ? "new " + proxyCc.getName() + "()" : "null");
+                    itemBuilder.append(methodProxyCc != null ? "new " + methodProxyCc.getName() + "()" : "null");
                     itemBuilder.append(", \"");
                     itemBuilder.append(alias);
                     itemBuilder.append("\",");
