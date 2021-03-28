@@ -22,16 +22,16 @@ public class RouterPageSingle extends RouterPageAbs {
     @Override
     public void showPage(@NonNull IPageBean bean) {
         fragment = newFragment(bean.getPageUri());
-        addArgsForFragment(fragment, bean.getPageInfo());
+        putArgsForFragment(fragment, bean.getPageInfo());
         manager.beginTransaction().replace(containerId, fragment).commitAllowingStateLoss();
-        notifyPageChanged(bean);
+        notifyPageChanged(bean, IPageObserver.CHANGED_BY_REPLACE);
     }
 
     @Override
     public void popPage() {
         if (fragment != null) {
             manager.beginTransaction().remove(fragment).commitAllowingStateLoss();
-            notifyPageChanged(new IPageBean.EmptyPageBean());
+            notifyPageChanged(new IPageBean.EmptyPageBean(), IPageObserver.CHANGED_BY_POP);
             fragment = null;
         }
     }

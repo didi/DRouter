@@ -32,12 +32,6 @@ public class RouterPageViewPagerActivity extends AppCompatActivity {
         ((ViewGroup)findViewById(R.id.fragment_container)).addView(viewPager);
 
         pageRouter = new RouterPageViewPager(getSupportFragmentManager(), viewPager);
-        pageRouter.addPageObserver(new IPageRouter.IPageObserver() {
-            @Override
-            public void onPageChange(@NonNull IPageBean from, @NonNull IPageBean to) {
-                RouterLogger.getAppLogger().d(from.getPageUri() +  " -> " + to.getPageUri());
-            }
-        }, this);
         DRouter.register(
                 ServiceKey.build(IPageRouter.class).setAlias("router_page_viewpager").setLifecycleOwner(this),
                 pageRouter);
@@ -45,11 +39,18 @@ public class RouterPageViewPagerActivity extends AppCompatActivity {
 
         pageRouter.update(
                 new IPageBean.DefPageBean("/fragment/first/1"),
-                new IPageBean.DefPageBean("/fragment/first/2"),
+                new IPageBean.DefPageBean(""),
                 new IPageBean.DefPageBean("/fragment/first/3"),
                 new IPageBean.DefPageBean("/fragment/first/4"),
                 new IPageBean.DefPageBean("/fragment/first/5"),
                 new IPageBean.DefPageBean("/fragment/first/6"));
+
+        pageRouter.addPageObserver(new IPageRouter.IPageObserver() {
+            @Override
+            public void onPageChange(@NonNull IPageBean from, @NonNull IPageBean to, int type) {
+                RouterLogger.getAppLogger().d(from.getPageUri() +  " -> " + to.getPageUri() + "  type:" + type);
+            }
+        }, true, this);
 
         ((TextView)findViewById(R.id.btn1)).setText("修改数据");
         ((TextView)findViewById(R.id.btn2)).setText("切换页面");

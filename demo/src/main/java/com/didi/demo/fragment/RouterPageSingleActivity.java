@@ -28,10 +28,10 @@ public class RouterPageSingleActivity extends AppCompatActivity {
         RouterPageSingle pageRouter = new RouterPageSingle(getSupportFragmentManager(), R.id.fragment_container);
         pageRouter.addPageObserver(new IPageRouter.IPageObserver() {
             @Override
-            public void onPageChange(@NonNull IPageBean from, @NonNull IPageBean to) {
-                RouterLogger.getAppLogger().d(from.getPageUri() +  " -> " + to.getPageUri());
+            public void onPageChange(@NonNull IPageBean from, @NonNull IPageBean to, int type) {
+                RouterLogger.getAppLogger().d(from.getPageUri() +  " -> " + to.getPageUri() + "  type:" + type);
             }
-        }, this);
+        }, true, this);
         DRouter.register(
                 ServiceKey.build(IPageRouter.class).setAlias("router_page_single").setLifecycleOwner(this),
                 pageRouter);

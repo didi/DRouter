@@ -20,14 +20,15 @@ import java.util.List;
 public class RouterPageViewPager extends RouterPageAbs {
 
     private final ViewPager viewPager;
-    private final FragmentManager manager;
+    private final FragmentManager fragmentManager;
     private final ViewPagerAdapter adapter;
     private final List<String> curUriList = new ArrayList<>();
     private final List<IPageBean> curInfoList = new ArrayList<>();
     private List<String> lastUriList = new ArrayList<>();
+    private boolean showFlag = false;
 
     public RouterPageViewPager(FragmentManager manager, ViewPager container) {
-        this.manager = manager;
+        fragmentManager = manager;
         adapter = new ViewPagerAdapter(manager);
         viewPager = container;
         viewPager.setAdapter(adapter);
@@ -39,7 +40,9 @@ public class RouterPageViewPager extends RouterPageAbs {
 
             @Override
             public void onPageSelected(int position) {
-                notifyPageChanged(position);
+                // position changed once except empty to non-empty for first time.
+                notifyPageChangedFromIndex(position, false,
+                        showFlag ? IPageObserver.CHANGED_BY_SHOW : IPageObserver.CHANGED_BY_SCROLL_TOUCH);
             }
 
             @Override
@@ -53,6 +56,7 @@ public class RouterPageViewPager extends RouterPageAbs {
     }
 
     @SuppressWarnings("unchecked")
+    // bean uri may be empty
     public void update(@NonNull List<IPageBean> uriList) {
         lastUriList = (List<String>) ((ArrayList<String>) curUriList).clone();
         curUriList.clear();
@@ -61,21 +65,38 @@ public class RouterPageViewPager extends RouterPageAbs {
             curUriList.add(uriList.get(i).getPageUri());
             curInfoList.add(uriList.get(i));
         }
-        // sync method to getCurrentItem, no trigger onPageSelected, so active it.
+        int lastPosition = viewPager.getCurrentItem();
+        showFlag = true;
         adapter.notifyDataSetChanged();
-        notifyPageChanged(viewPager.getCurrentItem());
+        showFlag = false;
+        int curPosition = viewPager.getCurrentItem();
+
+        // Notify is a sync method for getCurrentItem, instantiateItem, onPageSelected,
+        // If position not changed, no trigger onPageSelected, so active it.
+        if (lastPosition == curPosition) {
+            // For fragment may be not changed when uri and position is all same, so filter it.
+            notifyPageChangedFromIndex(viewPager.getCurrentItem(), true, 1);
+        }
     }
 
-    private void notifyPageChanged(int position) {
-        notifyPageChanged(position < curInfoList.size() ?
-                curInfoList.get(position) : new IPageBean.EmptyPageBean());
+    private void notifyPageChangedFromIndex(int position, boolean filter, int changeType) {
+        String lastUri = position < lastUriList.size() ? lastUriList.get(position) : "";
+        IPageBean toBean = curInfoList.get(position);
+        if (!filter || !lastUri.equals(toBean.getPageUri())) {
+            notifyPageChanged(toBean, changeType);
+        }
     }
 
     @Override
+    // It works as long as uri match success.
     public void showPage(@NonNull IPageBean bean) {
-        int index;
-        if ((index = curUriList.indexOf(bean.getPageUri())) != -1) {
-            viewPager.setCurrentItem(index, false);
+        int position;
+        if ((position = curUriList.indexOf(bean.getPageUri())) != -1) {
+            // if same with last, no trigger onPageSelected.
+            showFlag = true;
+            // This is a sync method for onPageSelected.
+            viewPager.setCurrentItem(position, false);
+            showFlag = false;
         }
     }
 
@@ -86,23 +107,24 @@ public class RouterPageViewPager extends RouterPageAbs {
         }
 
         @Override
-        public Fragment getItem(final int position) {
+        public Fragment getItem(int position) {
             Fragment fragment = newFragment(curUriList.get(position));
             Bundle info = null;
             if (curInfoList.get(position) != null && curInfoList.get(position).getPageInfo() != null) {
                 info = curInfoList.get(position).getPageInfo();
             }
-            addArgsForFragment(fragment, info);
+            putArgsForFragment(fragment, info);
             return fragment;
         }
 
         @Override
         public Object instantiateItem(ViewGroup container, int position) {
+            // Update difference uri (page), for the same position. We should remove it first.
             if (position < curUriList.size() && position < lastUriList.size()
                     && !curUriList.get(position).equals(lastUriList.get(position))) {
-                FragmentTransaction transaction = manager.beginTransaction();
+                FragmentTransaction transaction = fragmentManager.beginTransaction();
                 String name = makeFragmentName(container.getId(), position);
-                Fragment fragment = manager.findFragmentByTag(name);
+                Fragment fragment = fragmentManager.findFragmentByTag(name);
                 if (fragment != null) {
                     transaction.remove(fragment);
                     transaction.commitNowAllowingStateLoss();
@@ -122,7 +144,7 @@ public class RouterPageViewPager extends RouterPageAbs {
         }
     }
 
-    private static String makeFragmentName(int viewId, long id) {
-        return "android:switcher:" + viewId + ":" + id;
+    private static String makeFragmentName(int viewId, long position) {
+        return "android:switcher:" + viewId + ":" + position;
     }
 }
