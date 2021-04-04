@@ -1,6 +1,5 @@
 package com.didi.drouter.router;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
@@ -11,11 +10,14 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.util.Pair;
+import android.util.SparseArray;
 
 import com.didi.drouter.api.Extend;
 import com.didi.drouter.utils.RouterLogger;
 
-import java.util.WeakHashMap;
+import java.lang.ref.WeakReference;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by gaowei on 2018/9/12
@@ -26,7 +28,10 @@ public class HolderFragment extends Fragment {
     private static final String TAG = "DRouterEmptyFragment";
 
     private boolean attached;
-    private static final WeakHashMap<Activity, RouterCallback.ActivityCallback> callback = new WeakHashMap<>();
+    private int cur;
+    private static AtomicInteger sCount = new AtomicInteger(0);
+    private static SparseArray<Pair<WeakReference<FragmentActivity>, RouterCallback.ActivityCallback>>
+            sCallbackMap = new SparseArray<>();
 
     public HolderFragment() {
         //RouterLogger.getCoreLogger().d("HoldFragment constructor");
@@ -35,25 +40,27 @@ public class HolderFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //RouterLogger.getCoreLogger().d("HoldFragment onCreate");
         if (savedInstanceState != null) {
             attached = savedInstanceState.getBoolean("attached");
+            cur = savedInstanceState.getInt("cur");
         }
+        //RouterLogger.getCoreLogger().d("HoldFragment onCreate cur:" + cur);
     }
 
     public static void start(@NonNull FragmentActivity activity, @NonNull Intent intent, int requestCode,
                              RouterCallback.ActivityCallback callback) {
         HolderFragment holdFragment = new HolderFragment();
-        HolderFragment.callback.put(activity, callback);
+        holdFragment.cur = sCount.incrementAndGet();
+        sCallbackMap.put(holdFragment.cur, new Pair<>(new WeakReference<>(activity), callback));
+        //RouterLogger.getCoreLogger().d("HoldFragment start, sCallbackMap.put:" + holdFragment.cur);
 
         FragmentManager fragmentManager = activity.getSupportFragmentManager();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.add(holdFragment, TAG);
         transaction.commit();
-        RouterLogger.getCoreLogger().d("ActivityResult HoldFragment commit attach");
+        //RouterLogger.getCoreLogger().d("HoldFragment commit attach");
         fragmentManager.executePendingTransactions();
 
-        //RouterLogger.getCoreLogger().d("HoldFragment startActivityForResult");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
             holdFragment.startActivityForResult(intent, requestCode,
                     intent.getBundleExtra(Extend.START_ACTIVITY_OPTIONS));
@@ -66,13 +73,17 @@ public class HolderFragment extends Fragment {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         RouterCallback.ActivityCallback cb;
-        if ((cb = callback.get(getActivity())) != null) {
-            RouterLogger.getCoreLogger().d("ActivityResult callback");
+        Pair<WeakReference<FragmentActivity>, RouterCallback.ActivityCallback> pair = sCallbackMap.get(cur);
+        if (pair != null && (cb = pair.second) != null) {
+            RouterLogger.getCoreLogger().d("HoldFragment ActivityResult callback success");
             cb.onActivityResult(resultCode, data);
-        } else {
-            RouterLogger.getCoreLogger().d("ActivityResult callback fail for host activity destroyed");
         }
-        callback.clear();
+        if (pair == null || pair.first == null || pair.first.get() != getActivity()) {
+            RouterLogger.getCoreLogger().e("HoldFragment onActivityResult warn, " +
+                    "for host activity changed, but still callback last host");
+        }
+        sCallbackMap.remove(cur);
+//        RouterLogger.getCoreLogger().d("HoldFragment sCallbackMap.remove:" + cur);
     }
 
     @Override
@@ -80,14 +91,15 @@ public class HolderFragment extends Fragment {
         super.onResume();
         //RouterLogger.getCoreLogger().d("HoldFragment onResume");
         if (attached) {
-            // second time
+            // 2. back to front again, used to remove this hold fragment
             FragmentManager fragmentManager = getFragmentManager();
             FragmentTransaction transaction = fragmentManager.beginTransaction();
             transaction.remove(this);
             transaction.commit();
             attached = false;
-            RouterLogger.getCoreLogger().d("ActivityResult HoldFragment commit remove");
+            //RouterLogger.getCoreLogger().d("HoldFragment commit remove");
         }
+        // 1. set tag
         attached = true;
     }
 
@@ -95,6 +107,7 @@ public class HolderFragment extends Fragment {
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putBoolean("attached", attached);
+        outState.putInt("cur", cur);
     }
 
     @Override
