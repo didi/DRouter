@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.view.View;
 
 import com.didi.drouter.api.Extend;
@@ -56,11 +55,12 @@ class RouterDispatcher {
         }
         intent.putExtra(ResultAgent.FIELD_START_ACTIVITY_REQUEST_NUMBER, request.getNumber());
         intent.putExtras(request.getExtra());
-        if (context instanceof FragmentActivity && callback instanceof RouterCallback.ActivityCallback) {
-            HolderFragment.start((FragmentActivity) context, intent,
-                    1024, (RouterCallback.ActivityCallback) callback);
-        } else if (context instanceof Activity && request.getExtra().containsKey(Extend.START_ACTIVITY_REQUEST_CODE)) {
-            int requestCode = request.getInt(Extend.START_ACTIVITY_REQUEST_CODE);
+        boolean hasRequestCode = request.getExtra().containsKey(Extend.START_ACTIVITY_REQUEST_CODE);
+        int requestCode = hasRequestCode? request.getInt(Extend.START_ACTIVITY_REQUEST_CODE) : 1024;
+        if (context instanceof Activity && callback instanceof RouterCallback.ActivityCallback) {
+            ActivityCompat2.startActivityForResult((Activity) context, intent,
+                    requestCode, (RouterCallback.ActivityCallback) callback);
+        } else if (context instanceof Activity && hasRequestCode) {
             ActivityCompat.startActivityForResult((Activity) context, intent,
                     requestCode, intent.getBundleExtra(Extend.START_ACTIVITY_OPTIONS));
         } else {

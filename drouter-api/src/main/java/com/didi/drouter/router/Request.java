@@ -47,6 +47,11 @@ public class Request extends DataExtras<Request> {
         start(context, null);
     }
 
+    /**
+     * @param context If you want to return ActivityResult,
+     *                please use Activity for context and ActivityCallback for RouterCallback.
+     * @param callback Result to return.
+     */
     public void start(Context context, RouterCallback callback) {
         this.context = context == null ? DRouter.getContext() : context;
         RouterLoader.build(this, callback).start();
