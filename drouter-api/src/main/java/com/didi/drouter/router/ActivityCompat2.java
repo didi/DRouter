@@ -173,6 +173,7 @@ public class ActivityCompat2 {
         }
     }
 
+    @Deprecated
     public static class HolderFragment extends android.app.Fragment implements Active {
 
         private ActivityCompat2 activityCompat2;

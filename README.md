@@ -13,7 +13,7 @@ DRouter是滴滴乘客端自研的一套Android路由框架，基于平台化解
 
 ## 提供功能
 
-- 使用URI字符串导航Activity、Fragment、View、RouterHandler，支持正则表达式
+- 使用URI字符串导航Activity、Fragment、View、RouterHandler，注解支持正则表达式、占位符
 - 回调式onActivityResult
 - RouterHandler、Activity支持等待异步完成(hold)，并可设置超时时间
 - RouterHandler指定执行线程

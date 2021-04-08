@@ -2,15 +2,20 @@ package com.didi.drouter.store;
 
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RestrictTo;
 
-import com.didi.drouter.router.IRouterInterceptor;
 import com.didi.drouter.router.IRouterHandler;
+import com.didi.drouter.router.IRouterInterceptor;
 import com.didi.drouter.router.RouterType;
 import com.didi.drouter.service.IFeatureMatcher;
+import com.didi.drouter.utils.RouterLogger;
 import com.didi.drouter.utils.TextUtils;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by gaowei on 2018/8/30
@@ -25,6 +30,8 @@ public class RouterMeta {
     public static int HANDLER     = RouterType.HANDLER;
     public static int INTERCEPTOR = RouterType.HANDLER + 1;
     public static int SERVICE     = RouterType.HANDLER + 2;
+    private static String PLACE_HOLDER_REGEX = "<[a-zA-Z_]+\\w*>";
+    private static Pattern pattern = Pattern.compile(PLACE_HOLDER_REGEX);
 
     private int routerType;
     private Class<?> routerClass;       // fragment, view, static handler, static service, interceptor
@@ -36,6 +43,7 @@ public class RouterMeta {
     private @NonNull String scheme;
     private @NonNull String host;
     private @NonNull String path;    // If path is not "" or RegExp, must start with "/"
+    private Boolean[] hasPlaceholder = new Boolean[3];
     private String activityName;
     private @Nullable Class<? extends IRouterInterceptor>[] interceptors;   //impl
     private int thread;
@@ -186,17 +194,92 @@ public class RouterMeta {
         return intent;
     }
 
-    // scheme host path anyone is Regex
+    // check whether it matches when any of scheme host path in annotation or router key is regex
     public boolean isRegexMatch(Uri uri) {
         String s = uri.getScheme();
         String h = uri.getHost();
         String p = uri.getPath();
-        return s != null && s.matches(scheme) && h != null && h.matches(host) && p != null && p.matches(path);
+        String schemeRegex = hasPlaceholder(0, scheme) ?
+                scheme.replaceAll(PLACE_HOLDER_REGEX, ".*") : scheme;
+        String hostRegex = hasPlaceholder(1, host) ?
+                host.replaceAll(PLACE_HOLDER_REGEX, ".*") : host;
+        String pathRegex = hasPlaceholder(2, path) ?
+                path.replaceAll(PLACE_HOLDER_REGEX, ".*") : path;
+        return  s != null && s.matches(schemeRegex) &&
+                h != null && h.matches(hostRegex) &&
+                p != null && p.matches(pathRegex);
     }
 
-    // 标识符和/以外的字符
+    // check whether router key is regex
     public boolean isRegexUri() {
         return TextUtils.isRegex(scheme) || TextUtils.isRegex(host) || TextUtils.isRegex(path);
+    }
+
+    private boolean hasPlaceholder(int index, String annotation) {
+        if (hasPlaceholder[index] != null && hasPlaceholder[index] == false) {
+            return false;
+        }
+        return hasPlaceholder[index] = pattern.matcher(annotation).find();
+    }
+
+    // no holder or inject success
+    public boolean injectPlaceHolder(Uri uri, Bundle bundle) {
+        return  analyseOne(0, scheme, uri.getScheme(), bundle) &&
+                analyseOne(1, host, uri.getHost(), bundle) &&
+                analyseOne(2, path, uri.getPath(), bundle);
+    }
+
+    private boolean analyseOne(int index, @NonNull String oriAnnoPart, @Nullable String oriUriPart, Bundle bundle) {
+        if (!hasPlaceholder(index, oriAnnoPart) || oriUriPart == null) {
+            return true;
+        }
+        Bundle b = new Bundle();
+        String annoPart = oriAnnoPart;
+        String uriPart = oriUriPart;
+        annoPart = "&&" + annoPart + "$$";
+        uriPart = "&&" + uriPart + "$$";
+
+        String key, value;
+        String[] splits = annoPart.split(PLACE_HOLDER_REGEX);
+
+        for (int i = 0; i < splits.length; i++) {
+            if (i + 1 < splits.length) {
+                String annoSplit = splits[i];
+                annoPart = annoPart.substring(annoSplit.length());
+                if (!uriPart.startsWith(annoSplit)) {
+                    break;
+                }
+                uriPart = uriPart.substring(annoSplit.length());
+
+                Matcher matcher = pattern.matcher(annoPart);
+                String holder = "";
+                if (matcher.find()) {
+                    holder = matcher.group();
+                }
+                key = holder.replace("<", "").replace(">", "");
+
+                String annoNextSplit = splits[i + 1];
+                int nextSplitStart = uriPart.indexOf(annoNextSplit);
+                value = uriPart.substring(0, nextSplitStart);
+
+                if (TextUtils.isEmpty(key)) {
+                    break;
+                }
+                b.putString(key, value);
+
+                annoPart = annoPart.substring(holder.length());
+                uriPart = uriPart.substring(nextSplitStart);
+            } else if (uriPart.equals(annoPart)) {
+                RouterLogger.getCoreLogger().d(
+                        "inject <> success, annoPart=%s, uriPart=%s, result=%s",
+                        oriAnnoPart, oriUriPart, b);
+                bundle.putAll(b);
+                return true;
+            }
+        }
+        RouterLogger.getCoreLogger().e(
+                "inject place holder error, annoPart=%s, uriPart=%s", oriAnnoPart, oriUriPart);
+        return false;
     }
 
     public String getLegalUri() {

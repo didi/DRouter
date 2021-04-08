@@ -33,8 +33,3 @@ proguard/
 #mac specific file
 .DS_Store
 
-/bugly
-/.aar
-/host
-/DRouter
-/DRouter.wiki

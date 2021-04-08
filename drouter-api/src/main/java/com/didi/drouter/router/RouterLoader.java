@@ -125,6 +125,14 @@ class RouterLoader {
             Set<RouterMeta> metas = getAllRouterMetas();
             int index = 0;
             for (RouterMeta routerMeta : metas) {
+                // inject placeholder value
+                if (!routerMeta.injectPlaceHolder(primaryRequest.getUri(), primaryRequest.extra)) {
+                    RouterLogger.getCoreLogger().e(
+                            "inject place holder error, class=%s, uri=%s",
+                            routerMeta.getSimpleClassName(),
+                            primaryRequest.getUri());
+                    continue;
+                }
                 Request request = createBranchRequest(
                         this.primaryRequest, metas.size() > 1, routerMeta.getRouterType(), index++);
                 RouterLogger.getCoreLogger().d(
