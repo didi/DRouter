@@ -32,9 +32,9 @@ public class ActivityCompat2 {
     private static SparseArray<Pair<WeakReference<Activity>, RouterCallback.ActivityCallback>>
             sCallbackMap = new SparseArray<>();
 
-    private Active active;
-    private boolean attached;
+    // start index, will not change when rotation or recycle
     private int cur;
+    private Active active;
 
     private ActivityCompat2(Active active) {
         this.active = active;
@@ -51,8 +51,8 @@ public class ActivityCompat2 {
         } else {
             active = new HolderFragment();
         }
-        RouterLogger.getCoreLogger().d("HoldFragment start, sCallbackMap.put:" + cur +
-                " | isV4:" + (active instanceof HolderFragmentV4));
+        RouterLogger.getCoreLogger().d("HoldFragment start, put %s callback and page | isV4:",
+                cur, active instanceof HolderFragmentV4);
         active.getCompat().cur = cur;
         active.attach(activity);
 //        RouterLogger.getCoreLogger().d("HoldFragment commit attach");
@@ -61,7 +61,6 @@ public class ActivityCompat2 {
 
     public void onCreate(@Nullable Bundle savedInstanceState) {
         if (savedInstanceState != null) {
-            attached = savedInstanceState.getBoolean("attached");
             cur = savedInstanceState.getInt("cur");
         }
 //        RouterLogger.getCoreLogger().d("HoldFragment onCreate cur:" + cur);
@@ -78,24 +77,12 @@ public class ActivityCompat2 {
             RouterLogger.getCoreLogger().e("HoldFragment onActivityResult warn, " +
                     "for host activity changed, but still callback last host");
         }
+        RouterLogger.getCoreLogger().d("HoldFragment remove %s callback and page", cur);
         sCallbackMap.remove(cur);
-        RouterLogger.getCoreLogger().d("HoldFragment sCallbackMap.remove:" + cur);
-    }
-
-    private void onResume() {
-//        RouterLogger.getCoreLogger().d("HoldFragment onResume");
-        if (attached) {
-            // 2. back to front again, used to remove this hold fragment
-            active.remove();
-            attached = false;
-//            RouterLogger.getCoreLogger().d("HoldFragment commit remove");
-        }
-        // 1. set tag
-        attached = true;
+        active.remove();
     }
 
     private void onSaveInstanceState(Bundle outState) {
-        outState.putBoolean("attached", attached);
         outState.putInt("cur", cur);
     }
 
@@ -130,8 +117,7 @@ public class ActivityCompat2 {
             FragmentManager fragmentManager = ((FragmentActivity)activity).getSupportFragmentManager();
             FragmentTransaction transaction = fragmentManager.beginTransaction();
             transaction.add(this, TAG);
-            transaction.commit();
-            fragmentManager.executePendingTransactions();
+            transaction.commitNow();
         }
 
         @Override
@@ -146,12 +132,6 @@ public class ActivityCompat2 {
         public void onCreate(@Nullable Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
             activityCompat2.onCreate(savedInstanceState);
-        }
-
-        @Override
-        public void onResume() {
-            super.onResume();
-            activityCompat2.onResume();
         }
 
         @Override
@@ -201,8 +181,7 @@ public class ActivityCompat2 {
             android.app.FragmentManager fragmentManager = activity.getFragmentManager();
             android.app.FragmentTransaction transaction = fragmentManager.beginTransaction();
             transaction.add(this, TAG);
-            transaction.commit();
-            fragmentManager.executePendingTransactions();
+            transaction.commitNow();
         }
 
         @Override
@@ -217,12 +196,6 @@ public class ActivityCompat2 {
         public void onCreate(@Nullable Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
             activityCompat2.onCreate(savedInstanceState);
-        }
-
-        @Override
-        public void onResume() {
-            super.onResume();
-            activityCompat2.onResume();
         }
 
         @Override
