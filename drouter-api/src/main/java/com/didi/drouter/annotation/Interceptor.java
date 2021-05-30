@@ -14,6 +14,8 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.CLASS)
 public @interface Interceptor {
 
+    String name() default "";
+
     // from large to small
     int priority() default 0;
 

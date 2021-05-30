@@ -43,6 +43,8 @@ public @interface Router {
      */
     Class<? extends IRouterInterceptor>[] interceptor() default {};
 
+    String[] interceptorName() default {};
+
     /**
      * Used for IRouterHandler
      */

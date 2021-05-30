@@ -6,7 +6,7 @@ apply plugin: 'com.didi.drouter'
 
 drouter {
     //incremental = false
-    //debug = true
+    debug = true
     //supportNoAnnotationActivity = true
 }
 

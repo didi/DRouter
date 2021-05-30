@@ -16,7 +16,6 @@ import com.didi.drouter.loader.host.InterceptorLoader;
 import com.didi.drouter.loader.host.RouterLoader;
 import com.didi.drouter.loader.host.ServiceLoader;
 import com.didi.drouter.router.IRouterHandler;
-import com.didi.drouter.router.IRouterInterceptor;
 import com.didi.drouter.utils.ReflectUtil;
 import com.didi.drouter.utils.RouterLogger;
 
@@ -40,8 +39,8 @@ public class RouterStore {
     // key is uriKey，value is meta, with dynamic
     // key is REGEX_ROUTER，value is map<uriKey, meta>
     private static final Map<String, Object> routerMetas = new ConcurrentHashMap<>();
-    // key is interceptor impl
-    private static final Map<Class<? extends IRouterInterceptor>, RouterMeta> interceptorMetas = new ConcurrentHashMap<>();
+    // key is interceptor impl or string name
+    private static Map<Object, RouterMeta> interceptorMetas = new ConcurrentHashMap<>();
     // key is interface，value is set, with dynamic
     private static final Map<Class<?>, Set<RouterMeta>> serviceMetas = new ConcurrentHashMap<>();
 
@@ -147,7 +146,7 @@ public class RouterStore {
     }
 
     @NonNull
-    public static Map<Class<? extends IRouterInterceptor>, RouterMeta> getInterceptors() {
+    public static Map<Object, RouterMeta> getInterceptors() {
         check();
         return interceptorMetas;
     }
@@ -172,7 +171,8 @@ public class RouterStore {
         boolean success = false;
         RouterMeta meta = RouterMeta.build(RouterMeta.HANDLER).assembleRouter(
                 key.uri.getScheme(), key.uri.getHost(), key.uri.getPath(),
-                (Class<?>) null, null, key.interceptor, key.thread, 0, key.hold);
+                (Class<?>) null, null, key.interceptor, key.interceptorName,
+                key.thread, 0, key.hold);
         meta.setHandler(key, handler);
         if (meta.isRegexUri()) {
             Map<String, RouterMeta> regexMap = (Map<String, RouterMeta>) routerMetas.get(REGEX_ROUTER);
@@ -211,7 +211,7 @@ public class RouterStore {
             RouterMeta meta = RouterMeta.build(RouterMeta.HANDLER).assembleRouter(
                     key.uri.getScheme(), key.uri.getHost(), key.uri.getPath(),
                     (Class<?>) null, null,
-                    key.interceptor, key.thread, 0, key.hold);
+                    key.interceptor, key.interceptorName, key.thread, 0, key.hold);
             boolean success = false;
             if (meta.isRegexUri()) {
                 Map<String, RouterMeta> regexMap = (Map<String, RouterMeta>) routerMetas.get(REGEX_ROUTER);

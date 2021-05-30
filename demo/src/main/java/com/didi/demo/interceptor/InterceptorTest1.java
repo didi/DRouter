@@ -2,6 +2,7 @@ package com.didi.demo.interceptor;
 
 import android.support.annotation.NonNull;
 
+import com.didi.drouter.annotation.Interceptor;
 import com.didi.drouter.router.IRouterInterceptor;
 import com.didi.drouter.router.Request;
 import com.didi.drouter.utils.RouterLogger;
@@ -9,6 +10,7 @@ import com.didi.drouter.utils.RouterLogger;
 /**
  * Created by gaowei on 2018/9/10
  */
+@Interceptor(name = "interceptor1", priority = 3)
 public class InterceptorTest1 implements IRouterInterceptor {
 
 

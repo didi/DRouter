@@ -12,6 +12,8 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.CLASS)
 public @interface Interceptor {
 
+    String name() default "";
+
     int priority() default 0;
 
     boolean global() default false;

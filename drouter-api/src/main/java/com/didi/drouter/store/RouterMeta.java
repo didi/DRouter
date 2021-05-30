@@ -46,6 +46,7 @@ public class RouterMeta {
     private Boolean[] hasPlaceholder = new Boolean[3];
     private String activityName;
     private @Nullable Class<? extends IRouterInterceptor>[] interceptors;   //impl
+    private @Nullable String[] interceptorNames;   //interceptor path
     private int thread;
     private boolean hold;
     private Intent intent;
@@ -76,6 +77,7 @@ public class RouterMeta {
     public RouterMeta assembleRouter(String scheme, String host, String path,
                                      String routerClassName, IRouterProxy routerProxy,
                                      Class<? extends IRouterInterceptor>[] interceptors,
+                                     String[] interceptorNames,
                                      int thread, int priority, boolean hold) {
         this.scheme = scheme;
         this.host = host;
@@ -83,6 +85,7 @@ public class RouterMeta {
         this.activityName = routerClassName;
         this.routerProxy = routerProxy;
         this.interceptors = interceptors;
+        this.interceptorNames = interceptorNames;
         this.thread = thread;
         this.priority = priority;
         this.hold = hold;
@@ -93,6 +96,7 @@ public class RouterMeta {
     public RouterMeta assembleRouter(String scheme, String host, String path,
                                      Class<?> routerClass, IRouterProxy routerProxy,
                                      Class<? extends IRouterInterceptor>[] interceptors,
+                                     String[] interceptorNames,
                                      int thread, int priority, boolean hold) {
         this.scheme = scheme;
         this.host = host;
@@ -100,6 +104,7 @@ public class RouterMeta {
         this.routerClass = routerClass;
         this.routerProxy = routerProxy;
         this.interceptors = interceptors;
+        this.interceptorNames = interceptorNames;
         this.thread = thread;
         this.priority = priority;
         this.hold = hold;
@@ -180,6 +185,11 @@ public class RouterMeta {
     // for router
     public Class<? extends IRouterInterceptor>[] getInterceptors() {
         return interceptors;
+    }
+
+    @Nullable
+    public String[] getInterceptorNames() {
+        return interceptorNames;
     }
 
     public int getThread() {

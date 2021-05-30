@@ -24,6 +24,7 @@ import javassist.bytecode.annotation.Annotation;
 import javassist.bytecode.annotation.ArrayMemberValue;
 import javassist.bytecode.annotation.ClassMemberValue;
 import javassist.bytecode.annotation.MemberValue;
+import javassist.bytecode.annotation.StringMemberValue;
 
 /**
  * Created by gaowei on 2018/8/30
@@ -60,6 +61,7 @@ class RouterCollect extends AbsRouterCollect {
         for (CtClass routerCc : routerClass.values()) {
             try {
                 StringBuilder interceptorClass = null;
+                StringBuilder interceptorName = null;
 
                 String schemeValue = "";
                 String hostValue = "";
@@ -117,18 +119,26 @@ class RouterCollect extends AbsRouterCollect {
                         interceptorClass.append("new Class[]{");
                         for (MemberValue mv : interceptorClassArrayValue.getValue()) {
                             final ClassMemberValue cmv = (ClassMemberValue) mv;
-//                            CtClass interceptorCc = getCtClass(cmv.getValue());
-//                            Interceptor interceptorAnnotation =
-//                                  (Interceptor) interceptorCc.getAnnotation(Interceptor.class);
-//                            if (interceptorAnnotation == null) {
-//                               throw new Exception("please make sure interceptor has use @Interceptor annotation: "
-//                                      + interceptorCc.getName());
-//                            }
                             interceptorClass.append(cmv.getValue());
                             interceptorClass.append(".class,");
                         }
                         interceptorClass.deleteCharAt(interceptorClass.length() - 1);
                         interceptorClass.append("}");
+                    }
+
+                    ArrayMemberValue interceptorNameArrayValue =
+                            (ArrayMemberValue) annotation.getMemberValue("interceptorName");
+                    if (interceptorNameArrayValue != null) {
+                        interceptorName = new StringBuilder();
+                        interceptorName.append("new String[]{");
+                        for (MemberValue mv : interceptorNameArrayValue.getValue()) {
+                            final StringMemberValue smv = (StringMemberValue) mv;
+                            interceptorName.append("\"");
+                            interceptorName.append(smv.getValue());
+                            interceptorName.append("\",");
+                        }
+                        interceptorName.deleteCharAt(interceptorName.length() - 1);
+                        interceptorName.append("}");
                     }
                 }
 
@@ -183,6 +193,8 @@ class RouterCollect extends AbsRouterCollect {
                 metaBuilder.append(proxyCc != null ? "new " + proxyCc.getName() + "()" : "null");
                 metaBuilder.append(", ");
                 metaBuilder.append(interceptorClass != null ? interceptorClass.toString() : "null");
+                metaBuilder.append(", ");
+                metaBuilder.append(interceptorName != null ? interceptorName.toString() : "null");
                 metaBuilder.append(", ");
                 metaBuilder.append(thread);
                 metaBuilder.append(", ");

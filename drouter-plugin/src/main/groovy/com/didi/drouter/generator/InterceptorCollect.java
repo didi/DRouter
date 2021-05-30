@@ -3,6 +3,8 @@ package com.didi.drouter.generator;
 import com.didi.drouter.annotation.Interceptor;
 import com.didi.drouter.plugin.RouterSetting;
 import com.didi.drouter.utils.Logger;
+import com.didi.drouter.utils.StoreUtil;
+import com.didi.drouter.utils.TextUtil;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -87,6 +89,32 @@ class InterceptorCollect extends AbsRouterCollect {
                 itemBuilder.append(",");
                 itemBuilder.append(interceptor.cache());
                 itemBuilder.append("));\n");
+
+                String name = interceptor.name();
+                if (!TextUtil.isEmpty(name)) {
+                    // name is the key
+                    itemBuilder.append("    data.put(\"");
+                    itemBuilder.append(name);
+                    itemBuilder.append("\", com.didi.drouter.store.RouterMeta.build(");
+                    itemBuilder.append("com.didi.drouter.store.RouterMeta.INTERCEPTOR)");
+                    itemBuilder.append(".assembleInterceptor(");
+                    itemBuilder.append(interceptorCc.getName());
+                    itemBuilder.append(".class, ");
+                    itemBuilder.append(proxyCc != null ? "new " + proxyCc.getName() + "()" : "null");
+                    itemBuilder.append(",");
+                    itemBuilder.append(interceptor.priority());
+                    itemBuilder.append(",");
+                    itemBuilder.append(interceptor.global());
+                    itemBuilder.append(",");
+                    itemBuilder.append(interceptor.cache());
+                    itemBuilder.append("));\n");
+
+                    String duplicate = StoreUtil.insertUri(name, interceptorCc);
+                    if (duplicate != null) {
+                        throw new Exception("\"name=" + name + "\" on " + interceptorCc.getName() +
+                                "\nhas duplication of name with class: " + duplicate);
+                    }
+                }
                 items.add(itemBuilder.toString());
             } catch (Exception e) {
                 e.printStackTrace();

@@ -11,7 +11,7 @@ import com.didi.drouter.utils.RouterLogger;
 /**
  * Created by gaowei on 2018/9/3
  */
-@Interceptor(priority = 2, cache = Extend.Cache.SINGLETON)
+@Interceptor(name = "interceptor2", priority = 2, cache = Extend.Cache.SINGLETON)
 public class InterceptorTest2 implements IRouterInterceptor {
 
     public InterceptorTest2() {

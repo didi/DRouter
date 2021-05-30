@@ -20,6 +20,8 @@ public @interface Router {
 
     Class[] interceptor() default {};
 
+    String[] interceptorName() default {};
+
     int thread() default 0;
 
     int priority() default 0;

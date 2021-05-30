@@ -20,6 +20,7 @@ import java.util.Set;
 /**
  * Created by gaowei on 2018/9/5
  */
+@SuppressWarnings("unchecked")
 class InterceptorLoader {
 
     private static final Map<Class<? extends IRouterInterceptor>, IRouterInterceptor>
@@ -30,22 +31,31 @@ class InterceptorLoader {
             globalInterceptor = new ArraySet<>();
 
     static {
-        for (Map.Entry<Class<? extends IRouterInterceptor>, RouterMeta> entry :
-                RouterStore.getInterceptors().entrySet()) {
+        for (Map.Entry<Object, RouterMeta> entry : RouterStore.getInterceptors().entrySet()) {
             if (entry.getValue().isGlobal()) {
-                globalInterceptor.add(entry.getKey());
+                if (entry.getKey() instanceof String) {
+                    globalInterceptor.add(getInterceptorClz((String) entry.getKey()));
+                } else {
+                    globalInterceptor.add((Class<? extends IRouterInterceptor>) entry.getKey());
+                }
             }
         }
     }
 
     static @NonNull Queue<IRouterInterceptor> load(@NonNull RouterMeta meta) {
-        Set<Class<? extends IRouterInterceptor>> allInterceptors = new ArraySet<>(globalInterceptor);
+        Set<Class<? extends IRouterInterceptor>> allInterceptorClz = new ArraySet<>(globalInterceptor);
         Class<? extends IRouterInterceptor>[] interceptors = meta.getInterceptors();
         if (interceptors != null) {
-            allInterceptors.addAll(Arrays.asList(interceptors));
+            allInterceptorClz.addAll(Arrays.asList(interceptors));
+        }
+        String[] interceptorNames = meta.getInterceptorNames();
+        if (interceptorNames != null) {
+            for (String str : interceptorNames) {
+                allInterceptorClz.add(getInterceptorClz(str));
+            }
         }
         Queue<IRouterInterceptor> result = new PriorityQueue<>(11, new InterceptorComparator());
-        for (Class<? extends IRouterInterceptor> interceptorClass : allInterceptors) {
+        for (Class<? extends IRouterInterceptor> interceptorClass : allInterceptorClz) {
             result.add(getInstance(interceptorClass));
         }
         return result;
@@ -59,6 +69,14 @@ class InterceptorLoader {
             int priority2 = RouterStore.getInterceptors().get(o2.getClass()).getPriority();
             return priority2 - priority1;
         }
+    }
+
+    private static Class<? extends IRouterInterceptor> getInterceptorClz(String name) {
+        RouterMeta meta = RouterStore.getInterceptors().get(name);
+        if (meta != null) {
+            return (Class<? extends IRouterInterceptor>) meta.getRouterClass();
+        }
+        return null;
     }
 
     private static IRouterInterceptor getInstance(Class<? extends IRouterInterceptor> clz) {
