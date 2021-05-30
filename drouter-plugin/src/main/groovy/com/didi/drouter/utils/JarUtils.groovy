@@ -93,6 +93,6 @@ class JarUtils {
         connection.setConnectTimeout(15000)
         connection.setReadTimeout(60000)
         def response = connection.inputStream.text
-        Logger.d("compile statistic response = " + response)
+        //Logger.d("compile statistic response = " + response)
     }
 }

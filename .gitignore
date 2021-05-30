@@ -33,3 +33,6 @@ proguard/
 #mac specific file
 .DS_Store
 
+upload-maven.gradle
+upload.gradle
+*.gpg

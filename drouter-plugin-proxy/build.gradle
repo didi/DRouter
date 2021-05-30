@@ -31,4 +31,6 @@ jar {
     }
 }
 
-apply from : "../upload.gradle"
+if (file("${rootProject.projectDir}/upload-maven.gradle").exists()) {
+    apply from: "${rootProject.projectDir}/upload-maven.gradle"
+}
