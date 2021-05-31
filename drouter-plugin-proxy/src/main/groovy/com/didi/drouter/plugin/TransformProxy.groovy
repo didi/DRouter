@@ -13,10 +13,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 class TransformProxy extends Transform {
 
     Project project
-//    static String HOST = "https://jcenter.bintray.com/" +
-//            "com/didi/drouter/drouter-plugin/%s/drouter-plugin-%s.jar"
-    static String HOST = "https://repo1.maven.org/maven2/" +
-            "io/github/didi/drouter-plugin/%s/drouter-plugin-%s.jar"
+    static String HOST = "%s/io/github/didi/drouter-plugin/%s/drouter-plugin-%s.jar"
 
     TransformProxy(Project project) {
         this.project = project
@@ -49,7 +46,10 @@ class TransformProxy extends Transform {
         if (pluginVersion != null) {
             File pluginJar = new File(project.rootDir, ".gradle/drouter/drouter-plugin-${pluginVersion}.jar")
             if (!pluginJar.exists()) {
-                URL pluginUrl = new URL(String.format(HOST, pluginVersion, pluginVersion))
+                URL pluginUrl = new URL(String.format(HOST,
+                        !ProxyUtil.isEmpty(project.drouter.repo) ?
+                                project.drouter.repo : "https://repo1.maven.org/maven2",
+                        pluginVersion, pluginVersion))
                 try {
                     FileUtils.copyURLToFile(pluginUrl, pluginJar)
                     ProxyUtil.Logger.v("plugin url: " + pluginUrl.toString())

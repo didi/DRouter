@@ -5,6 +5,7 @@ package com.didi.drouter.plugin
  */
 class RouterSetting {
 
+    String repo
     boolean debug = false
     boolean incremental = true
     boolean cache = true

@@ -3,7 +3,7 @@
 <div align="center">
  <img src="https://img.shields.io/badge/license-Apache2.0-brightgreen.svg" align=left />
  <img src="https://img.shields.io/badge/drouter--plugin--proxy-1.0.0-red.svg" align=left />
- <img src="https://img.shields.io/badge/drouter--api-1.0.4-blue.svg" align=left />
+ <img src="https://img.shields.io/badge/drouter--api-1.0.6-blue.svg" align=left />
  <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" align=left />
 </div>
 <br/>
@@ -51,7 +51,11 @@ Page | 支持单Page、栈Page、ViewPager三种形式的Fragment加载
 接入方式及文档请移步 [Wiki](https://github.com/didi/DRouter/wiki)
 
 ``` java
-/** 最新版本 **/
+/** 最新版本 因jcenter关闭已迁移到maven **/
+classpath "io.github.didi:drouter-plugin-proxy:1.0.0"
+api "io.github.didi:drouter-api:1.0.6"
+
+/** 旧的jcenter版本 不再更新 **/
 classpath "com.didi.drouter:drouter-plugin-proxy:1.0.0"
 api "com.didi.drouter:drouter-api:1.0.4"
 ```
