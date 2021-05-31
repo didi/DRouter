@@ -17,7 +17,7 @@ DRouter是滴滴乘客端自研的一套Android路由框架，基于平台化解
 - 回调式onActivityResult
 - RouterHandler、Activity支持等待异步完成(hold)，并可设置超时时间
 - RouterHandler指定执行线程
-- 注入拦截器，支持全局拦截器和局部拦截器，面向切面编程
+- 注入拦截器，支持全局拦截器和局部拦截器，面向切面编程，拦截器可以使用字符串名字
 - 更为多样化的Fragment页面跳转能力
 - 使用接口或基类导航到实现类Service的Class以及实例
 - 支持Service别名以及多维过滤器查找
@@ -55,7 +55,7 @@ Page | 支持单Page、栈Page、ViewPager三种形式的Fragment加载
 classpath "io.github.didi:drouter-plugin-proxy:1.0.0"
 api "io.github.didi:drouter-api:1.0.6"
 
-/** 旧的jcenter版本 不再更新 **/
+/** 旧的jcenter版本 无法上传更新 **/
 classpath "com.didi.drouter:drouter-plugin-proxy:1.0.0"
 api "com.didi.drouter:drouter-api:1.0.4"
 ```
