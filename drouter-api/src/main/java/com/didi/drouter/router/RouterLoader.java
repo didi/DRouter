@@ -5,7 +5,6 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
-import android.support.v4.util.ArraySet;
 import android.util.SparseArray;
 
 import com.didi.drouter.api.Extend;
@@ -19,7 +18,7 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -44,35 +43,32 @@ class RouterLoader {
 
     void start() {
         RouterLogger.getCoreLogger().d(
-                "---------------------------------------------------------------------------");
+                "Request start -------------------------------------------------------------");
         RouterLogger.getCoreLogger().d("primary request \"%s\", router uri \"%s\", need callback \"%s\"",
                 primaryRequest.getNumber(), primaryRequest.getUri(), callback != null);
-        if (TextUtils.isEmpty(primaryRequest.authority)) {
-            startLocal();
-        } else {
+        if (!TextUtils.isEmpty(primaryRequest.authority)) {
             startRemote();
+        } else {
+            startLocal();
         }
     }
 
     private void startLocal() {
         TextUtils.appendExtra(primaryRequest.getExtra(), TextUtils.getQuery(primaryRequest.getUri()));
+        // with order, priority first then exact match first
         Map<Request, RouterMeta> requestMap = makeRequest();
-
         if (requestMap.isEmpty()) {
             RouterLogger.getCoreLogger().w("warning: there is no request target match");
             new Result(primaryRequest, null, callback);
             ResultAgent.release(primaryRequest, ResultAgent.STATE_NOT_FOUND);
             return;
         }
-
         final Result result = new Result(primaryRequest, requestMap.keySet(), callback);
         if (requestMap.size() > 1) {
             RouterLogger.getCoreLogger().w("warning: request match %s targets", requestMap.size());
         }
-        List<Map.Entry<Request, RouterMeta>> requestList = new ArrayList<>(requestMap.entrySet());
-        Collections.sort(requestList, new RouterComparator());
         final boolean[] stopByRouterTarget = {false};
-        for (final Map.Entry<Request, RouterMeta> entry : requestList) {
+        for (final Map.Entry<Request, RouterMeta> entry : requestMap.entrySet()) {
             if (stopByRouterTarget[0]) {
                 // one by one
                 ResultAgent.release(entry.getKey(), ResultAgent.STATE_STOP_BY_ROUTER_TARGET);
@@ -93,6 +89,7 @@ class RouterLoader {
                             stopByRouterTarget[0] = true;
                         }
                     };
+                    // it will release branch auto when no hold or no target
                     RouterDispatcher.start(entry.getKey(), entry.getValue(), result, callback);
                     entry.getKey().interceptor = null;
                 }
@@ -107,7 +104,7 @@ class RouterLoader {
 
     @NonNull
     private Map<Request, RouterMeta> makeRequest() {
-        Map<Request, RouterMeta> requestMap = new HashMap<>();
+        Map<Request, RouterMeta> requestMap = new LinkedHashMap<>();
         Parcelable parcelable = primaryRequest.getParcelable(Extend.START_ACTIVITY_VIA_INTENT);
         if (parcelable instanceof Intent) {
             primaryRequest.getExtra().remove(Extend.START_ACTIVITY_VIA_INTENT);
@@ -122,13 +119,13 @@ class RouterLoader {
                 requestMap.put(this.primaryRequest, RouterMeta.build(RouterType.ACTIVITY).assembleRouter(intent));
             }
         } else {
-            Set<RouterMeta> metas = getAllRouterMetas();
+            List<RouterMeta> metas = getAllRouterMetas();
             int index = 0;
             for (RouterMeta routerMeta : metas) {
-                // inject placeholder value
+                // inject placeholder key and value to bundle
                 if (!routerMeta.injectPlaceHolder(primaryRequest.getUri(), primaryRequest.extra)) {
                     RouterLogger.getCoreLogger().e(
-                            "inject place holder error, class=%s, uri=%s",
+                            "inject placeholder key value to bundle error, class=%s, uri=%s",
                             routerMeta.getSimpleClassName(),
                             primaryRequest.getUri());
                     continue;
@@ -146,21 +143,22 @@ class RouterLoader {
     }
 
     @NonNull
-    private Set<RouterMeta> getAllRouterMetas() {
-        Set<RouterMeta> matchMetas = RouterStore.getRouterMetas(TextUtils.getUriKey(primaryRequest.getUri()));
+    private List<RouterMeta> getAllRouterMetas() {
+        List<RouterMeta> output = new ArrayList<>();
+        List<RouterMeta> routerMetas = new ArrayList<>(RouterStore.getRouterMetas(TextUtils.getUriKey(primaryRequest.getUri())));
         String schemeHost = primaryRequest.getString(Extend.START_ACTIVITY_WITH_DEFAULT_SCHEME_HOST);
         if (!TextUtils.isEmpty(schemeHost) && primaryRequest.getUri().toString().startsWith(schemeHost.toLowerCase())) {
             Set<RouterMeta> degradeMetas =
                     RouterStore.getRouterMetas(TextUtils.getUriKey(primaryRequest.getUri().getPath()));
             for (RouterMeta meta : degradeMetas) {
                 if (meta.getRouterType() == RouterType.ACTIVITY) {
-                    matchMetas.add(meta);
+                    routerMetas.add(meta);
                 }
             }
         }
+        Collections.sort(routerMetas, new RouterComparator());
         SparseArray<RouterMeta> sparseArray = new SparseArray<>();
-        Set<RouterMeta> output = new ArraySet<>();
-        for (RouterMeta meta : matchMetas) {
+        for (RouterMeta meta : routerMetas) {
             if (meta.getRouterType() == RouterType.ACTIVITY) {
                 if (sparseArray.get(0) != null) {
                     RouterLogger.getCoreLogger().w(
@@ -189,7 +187,7 @@ class RouterLoader {
                 output.add(meta);
             }
         }
-        // only one activity/fragment/view
+        // only one activity/fragment/view with priority
         if (sparseArray.get(0) != null) {
             output.add(sparseArray.get(0));
         } else if (sparseArray.get(1) != null) {
@@ -227,10 +225,18 @@ class RouterLoader {
     }
 
     // from large to small, static
-    private static class RouterComparator implements Comparator<Map.Entry<Request, RouterMeta>> {
+    // when same, exact match first
+    private static class RouterComparator implements Comparator<RouterMeta> {
         @Override
-        public int compare(Map.Entry<Request, RouterMeta> o1, Map.Entry<Request, RouterMeta> o2) {
-            return o2.getValue().getPriority() - o1.getValue().getPriority();
+        public int compare(RouterMeta o1, RouterMeta o2) {
+            int diff = o2.getPriority() - o1.getPriority();
+            if (diff == 0 && !o1.isRegexUri() && o2.isRegexUri()) {
+                return -1;
+            }
+            if (diff == 0 && o1.isRegexUri() && !o2.isRegexUri()) {
+                return 1;
+            }
+            return diff;
         }
     }
 
