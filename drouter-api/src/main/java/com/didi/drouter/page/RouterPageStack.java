@@ -28,7 +28,7 @@ public class RouterPageStack extends RouterPageAbs {
         Fragment fragment = newFragment(bean.getPageUri());
         putArgsForFragment(fragment, bean.getPageInfo());
         manager.beginTransaction().add(containerId, fragment).commitAllowingStateLoss();
-        notifyPageChanged(bean, IPageObserver.CHANGED_BY_SHOW);
+        notifyPageChanged(bean, IPageObserver.CHANGED_BY_SHOW, false);
         fragments.add(fragment);
         curInfoList.add(bean);
     }
@@ -41,7 +41,7 @@ public class RouterPageStack extends RouterPageAbs {
             curInfoList.remove(index);
             manager.beginTransaction().remove(fragment).commitAllowingStateLoss();
             notifyPageChanged(index - 1 >= 0 && index - 1 < curInfoList.size() ?
-                    curInfoList.get(index - 1) : new IPageBean.EmptyPageBean(), IPageObserver.CHANGED_BY_POP);
+                    curInfoList.get(index - 1) : new IPageBean.EmptyPageBean(), IPageObserver.CHANGED_BY_POP, false);
         }
     }
 

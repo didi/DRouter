@@ -24,14 +24,14 @@ public class RouterPageSingle extends RouterPageAbs {
         fragment = newFragment(bean.getPageUri());
         putArgsForFragment(fragment, bean.getPageInfo());
         manager.beginTransaction().replace(containerId, fragment).commitAllowingStateLoss();
-        notifyPageChanged(bean, IPageObserver.CHANGED_BY_REPLACE);
+        notifyPageChanged(bean, IPageObserver.CHANGED_BY_REPLACE, false);
     }
 
     @Override
     public void popPage() {
         if (fragment != null) {
             manager.beginTransaction().remove(fragment).commitAllowingStateLoss();
-            notifyPageChanged(new IPageBean.EmptyPageBean(), IPageObserver.CHANGED_BY_POP);
+            notifyPageChanged(new IPageBean.EmptyPageBean(), IPageObserver.CHANGED_BY_POP, false);
             fragment = null;
         }
     }

@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.didi.drouter.page.IPageRouter.IPageObserver.CHANGED_BY_SHOW;
+
 /**
  * Created by gaowei on 2020/4/1
  */
@@ -25,7 +27,7 @@ public class RouterPageViewPager extends RouterPageAbs {
     private final List<String> curUriList = new ArrayList<>();
     private final List<IPageBean> curInfoList = new ArrayList<>();
     private List<String> lastUriList = new ArrayList<>();
-    private boolean showFlag = false;
+    private boolean changeByShow = false;
 
     public RouterPageViewPager(FragmentManager manager, ViewPager container) {
         fragmentManager = manager;
@@ -40,9 +42,9 @@ public class RouterPageViewPager extends RouterPageAbs {
 
             @Override
             public void onPageSelected(int position) {
-                // position changed once except empty to non-empty for first time.
+                // position will change but except empty to non-empty at first time.
                 notifyPageChangedFromIndex(position, false,
-                        showFlag ? IPageObserver.CHANGED_BY_SHOW : IPageObserver.CHANGED_BY_SCROLL_TOUCH);
+                        changeByShow ? CHANGED_BY_SHOW : IPageObserver.CHANGED_BY_SCROLL);
             }
 
             @Override
@@ -66,25 +68,22 @@ public class RouterPageViewPager extends RouterPageAbs {
             curInfoList.add(uriList.get(i));
         }
         int lastPosition = viewPager.getCurrentItem();
-        showFlag = true;
+        changeByShow = true;
         adapter.notifyDataSetChanged();
-        showFlag = false;
+        changeByShow = false;
         int curPosition = viewPager.getCurrentItem();
 
-        // Notify is a sync method for getCurrentItem, instantiateItem, onPageSelected,
-        // If position not changed, no trigger onPageSelected, so active it.
+        // notifyDataSetChanged is a sync method for getCurrentItem, instantiateItem, onPageSelected,
+        // If showing position not changed, no trigger onPageSelected, so active it.
         if (lastPosition == curPosition) {
-            // For fragment may be not changed when uri and position is all same, so filter it.
-            notifyPageChangedFromIndex(viewPager.getCurrentItem(), true, 1);
+            // although position is not changed, but fragment(uri) maybe has changed, so check it.
+            notifyPageChangedFromIndex(viewPager.getCurrentItem(), true, CHANGED_BY_SHOW);
         }
     }
 
     private void notifyPageChangedFromIndex(int position, boolean filter, int changeType) {
-        String lastUri = position < lastUriList.size() ? lastUriList.get(position) : "";
         IPageBean toBean = curInfoList.get(position);
-        if (!filter || !lastUri.equals(toBean.getPageUri())) {
-            notifyPageChanged(toBean, changeType);
-        }
+        notifyPageChanged(toBean, changeType, filter);
     }
 
     @Override
@@ -93,10 +92,10 @@ public class RouterPageViewPager extends RouterPageAbs {
         int position;
         if ((position = curUriList.indexOf(bean.getPageUri())) != -1) {
             // if same with last, no trigger onPageSelected.
-            showFlag = true;
-            // This is a sync method for onPageSelected.
+            changeByShow = true;
+            // setCurrentItem is a sync method for onPageSelected.
             viewPager.setCurrentItem(position, false);
-            showFlag = false;
+            changeByShow = false;
         }
     }
 

@@ -1,5 +1,6 @@
 package com.didi.drouter.page;
 
+import android.annotation.SuppressLint;
 import android.arch.lifecycle.Lifecycle;
 import android.arch.lifecycle.LifecycleObserver;
 import android.arch.lifecycle.LifecycleOwner;
@@ -14,12 +15,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.didi.drouter.R;
 import com.didi.drouter.api.DRouter;
 import com.didi.drouter.router.Result;
 import com.didi.drouter.router.RouterCallback;
 import com.didi.drouter.utils.RouterLogger;
-import com.didi.drouter.utils.TextUtils;
 
 import java.util.Set;
 
@@ -28,8 +27,8 @@ import java.util.Set;
  */
 public abstract class RouterPageAbs implements IPageRouter {
 
-    protected Set<IPageObserver> observers = new ArraySet<>();
-    protected IPageBean currentPage = new IPageBean.EmptyPageBean();
+    private Set<IPageObserver> observers = new ArraySet<>();
+    private IPageBean currentPage = new IPageBean.EmptyPageBean();
     protected Bundle bundle = new Bundle();
     // for stick
     private IPageBean lastPage = new IPageBean.EmptyPageBean();
@@ -60,7 +59,7 @@ public abstract class RouterPageAbs implements IPageRouter {
             if (owner != null) {
                 owner.getLifecycle().addObserver(new LifecycleObserver() {
                     @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
-                    public void onDestroy(@NonNull LifecycleOwner owner) {
+                    public void onDestroy() {
                         removePageObserver(listener);
                     }
                 });
@@ -74,9 +73,14 @@ public abstract class RouterPageAbs implements IPageRouter {
     }
 
     /**
-     * Fragment must be changed
+     * @param toUri target uri
+     * @param changeType change reason {@link com.didi.drouter.page.IPageRouter.IPageObserver}
+     * @param filter whether filter repeated page
      */
-    protected void notifyPageChanged(IPageBean toUri, int changeType) {
+    protected void notifyPageChanged(IPageBean toUri, int changeType, boolean filter) {
+        if (filter && toUri.getPageUri().equals(currentPage.getPageUri())) {
+            return;
+        }
         for (IPageObserver observer : observers) {
             observer.onPageChange(currentPage, toUri, changeType);
         }
@@ -116,12 +120,13 @@ public abstract class RouterPageAbs implements IPageRouter {
     }
 
     public static class EmptyFragment extends Fragment {
+        @SuppressLint("SetTextI18n")
         @Nullable
         @Override
         public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
                                  @Nullable Bundle savedInstanceState) {
             TextView textView = new TextView(getContext());
-            textView.setText(R.string.drouter_empty_fragment);
+            textView.setText("RouterEmptyFragment");
             return textView;
         }
     }

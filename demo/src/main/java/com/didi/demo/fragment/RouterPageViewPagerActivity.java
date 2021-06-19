@@ -50,7 +50,7 @@ public class RouterPageViewPagerActivity extends AppCompatActivity {
             public void onPageChange(@NonNull IPageBean from, @NonNull IPageBean to, int type) {
                 RouterLogger.getAppLogger().d(from.getPageUri() +  " -> " + to.getPageUri() + "  type:" + type);
             }
-        }, true, this);
+        }, false, this);
 
         ((TextView)findViewById(R.id.btn1)).setText("修改数据");
         ((TextView)findViewById(R.id.btn2)).setText("切换页面");
