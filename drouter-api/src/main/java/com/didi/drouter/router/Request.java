@@ -78,6 +78,9 @@ public class Request extends DataExtras<Request> {
         return this;
     }
 
+    /**
+     * @param authority ContentProvider authority for remote process.
+     */
     public Request setRemoteAuthority(String authority) {
         this.authority = authority;
         return this;

@@ -33,9 +33,6 @@
 
             </intent-filter>
         </activity>
-
-        <activity android:name="com.didi.demo.plugin.PluginActivity" />
-
         <activity android:name="com.didi.demo.web.SchemeActivity">
             <intent-filter>
                 <data android:scheme="didi" />
@@ -45,22 +42,19 @@
             </intent-filter>
         </activity>
 
-
         <provider
-            android:authorities="com.didi.drouter.remote.demo.host"
             android:name="com.didi.demo.remote.DemoHostProvider"
-            android:multiprocess="false"
-            android:exported="true"/>
-        <provider
-            android:authorities="com.didi.drouter.remote.demo.remote"
-            android:name="com.didi.demo.remote.DemoRemoteProvider"
-            android:process=":remote"
+            android:authorities="com.didi.drouter.remote.demo.host"
             android:multiprocess="false" />
+        <provider
+            android:name="com.didi.demo.remote.DemoRemoteProvider"
+            android:authorities="com.didi.drouter.remote.demo.remote"
+            android:multiprocess="false"
+            android:process=":remote" />
 
         <activity
             android:name="com.didi.demo.remote.RemoteActivity"
-            android:process=":remote"/>
-
+            android:process=":remote" />
         <activity android:name="com.didi.demo.handler.DynamicActivity" />
         <activity android:name="com.didi.demo.fragment.RouterPageViewPagerActivity" />
         <activity android:name="com.didi.demo.fragment.RouterPageSingleActivity" />

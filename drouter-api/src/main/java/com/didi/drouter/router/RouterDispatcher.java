@@ -33,7 +33,7 @@ class RouterDispatcher {
                 startView(request, meta, result);
                 break;
             case RouterType.HANDLER:
-                startHandler(request, meta, result);
+                startHandler(request, meta, result, callback);
                 break;
             default:
                 break;
@@ -71,11 +71,11 @@ class RouterDispatcher {
             ((Activity) context).overridePendingTransition(anim[0], anim[1]);
         }
         result.isActivityStarted = true;
-        if (!meta.isHold()) {
-            ResultAgent.release(request, ResultAgent.STATE_COMPLETE);
-        } else {
-            RouterLogger.getCoreLogger().w("request \"%s\" will be held", request.getNumber());
+        if (meta.isHold() && callback != null) {
+            RouterLogger.getCoreLogger().w("request \"%s\" will be hold", request.getNumber());
             Monitor.startMonitor(request, result);
+        } else {
+            ResultAgent.release(request, ResultAgent.STATE_COMPLETE);
         }
     }
 
@@ -105,7 +105,8 @@ class RouterDispatcher {
         ResultAgent.release(request, ResultAgent.STATE_COMPLETE);
     }
 
-    private static void startHandler(final Request request, final RouterMeta meta, final Result result) {
+    private static void startHandler(final Request request, final RouterMeta meta,
+                                     final Result result, final RouterCallback callback) {
         // dynamic
         IRouterHandler handler = meta.getHandler();
         if (handler == null) {
@@ -121,10 +122,10 @@ class RouterDispatcher {
                         RouterLogger.getCoreLogger().w("request \"%s\" will hold", request.getNumber());
                     }
                     finalHandler.handle(request, result);
-                    if (!meta.isHold()) {
-                        ResultAgent.release(request, ResultAgent.STATE_COMPLETE);
-                    } else {
+                    if (meta.isHold() && callback != null) {
                         Monitor.startMonitor(request, result);
+                    } else {
+                        ResultAgent.release(request, ResultAgent.STATE_COMPLETE);
                     }
                 }
             });

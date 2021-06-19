@@ -21,30 +21,28 @@ public class ReflectUtil {
                 params = new Object[] {null};
             }
             RouterLogger.getCoreLogger().w(
-                    "ReflectUtil create instance \"%s\" with params number %s by reflect",
+                    "Reflect to create object \"%s\" with %s constructor params",
                     implClass.getSimpleName(),
                     params.length);
             if (params.length == 0) {
                 return implClass.newInstance();
             }
             Constructor<?>[] constructors = implClass.getConstructors();
-            if (constructors != null) {
-                for (Constructor<?> constructor : constructors) {
-                    Class<?>[] classes = constructor.getParameterTypes();
-                    if (isParameterTypeMatch(classes, params)) {
-                        return constructor.newInstance(params);
-                    }
+            for (Constructor<?> constructor : constructors) {
+                Class<?>[] classes = constructor.getParameterTypes();
+                if (isParameterTypeMatch(classes, params)) {
+                    return constructor.newInstance(params);
                 }
             }
-            RouterLogger.getCoreLogger().e("ReflectUtil \"%s\" getInstance no match and return \"null\"", implClass);
+            RouterLogger.getCoreLogger().e("Reflect \"%s\" getInstance no match and return \"null\"", implClass);
         } catch (Exception e) {
-            RouterLogger.getCoreLogger().e("ReflectUtil \"%s\" getInstance Exception: %s", implClass, e);
+            RouterLogger.getCoreLogger().e("Reflect \"%s\" getInstance Exception: %s", implClass, e);
         }
         return null;
     }
 
     public static Object invokeMethod(Object instance, String methodName, @Nullable Object[] params) throws Exception {
-        RouterLogger.getCoreLogger().w("ReflectUtil invoke method \"%s\" by reflect", methodName);
+        RouterLogger.getCoreLogger().w("Reflect to invoke method \"%s\"", methodName);
         if (params == null || params.length == 0) {
             Method method = instance.getClass().getDeclaredMethod(methodName);
             method.setAccessible(true);
@@ -60,7 +58,7 @@ public class ReflectUtil {
                 }
             }
         }
-        throw new Exception("ReflectUtil invokeMethod no match");
+        throw new Exception("Reflect invokeMethod no match");
     }
 
     private static boolean isParameterTypeMatch(@NonNull Class<?>[] target, @NonNull Object[] params) {

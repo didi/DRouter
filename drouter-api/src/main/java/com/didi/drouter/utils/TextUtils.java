@@ -38,7 +38,7 @@ public class TextUtils {
         return content == null ? "" : content;
     }
 
-    // \w or /
+    // not \w or /
     public static boolean isRegex(String string) {
         return string != null && !string.matches("[\\w/]*");
     }

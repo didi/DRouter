@@ -194,6 +194,7 @@ public class ServiceCollect extends AbsRouterCollect {
                                 CtClass[] paraTypeCts = method.getParameterTypes();
                                 StringBuilder para = new StringBuilder();
                                 if (paraTypeCts != null) {
+                                    // argument type
                                     for (int j = 0; j < paraTypeCts.length; j++) {
                                         checkPrimitiveType(method.getName(), paraTypeCts[j]);
                                         para.append(String.format("(%s) (args[%s])", paraTypeCts[j].getName(), j));
@@ -202,6 +203,7 @@ public class ServiceCollect extends AbsRouterCollect {
                                         }
                                     }
                                 }
+                                // return type
                                 if (!"void".equals(returnCc.getName())) {
                                     allIfStr.append(String.format(
                                             "if (\"%s\".equals(methodName)) { return ((%s)instance).%s(%s); }",

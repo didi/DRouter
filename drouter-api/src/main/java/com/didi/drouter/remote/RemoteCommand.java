@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import java.lang.ref.WeakReference;
@@ -47,7 +48,7 @@ class RemoteCommand implements Parcelable {
     }
 
     @SuppressWarnings("unchecked")
-    RemoteCommand(Parcel in) {
+    private RemoteCommand(Parcel in) {
         type = in.readInt();
         if (type == REQUEST) {
             uri = in.readString();
@@ -142,6 +143,7 @@ class RemoteCommand implements Parcelable {
         return Arrays.hashCode(new Object[]{type, uri, serviceClass, alias, feature, methodName, bridge});
     }
 
+    @NonNull
     @Override
     public String toString() {
         if (type == REQUEST) {

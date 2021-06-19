@@ -125,7 +125,7 @@ public class RemoteFunction implements IRemoteFunction {
         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
             @Override
             public void run() {
-                System.exit(0);
+                int i = 1/0;
             }
         }, 2000);
     }
@@ -133,8 +133,11 @@ public class RemoteFunction implements IRemoteFunction {
     @Override
     @Remote
     public void call() {
-
     }
 
+    @Remote
+    public Integer cal(Integer a) {
+        return 1;
+    }
 
 }

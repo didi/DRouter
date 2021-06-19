@@ -2,6 +2,7 @@ package com.didi.demo.interceptor;
 
 import android.support.annotation.NonNull;
 
+import com.didi.drouter.annotation.Interceptor;
 import com.didi.drouter.router.IRouterInterceptor;
 import com.didi.drouter.router.Request;
 
@@ -10,7 +11,7 @@ import com.didi.drouter.router.Request;
  */
 public class OutClass {
 
-
+    @Interceptor
     public static class InnerInterceptor implements IRouterInterceptor {
         @Override
         public void handle(@NonNull Request request) {

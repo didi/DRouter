@@ -9,11 +9,21 @@ import android.support.annotation.RestrictTo;
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public interface IRouterProxy {
 
-    // once has default constructor for service
+    /**
+     * This method contains Fragment/View/RouterHandler with @Router, and Interceptor with @Interceptor.
+     * @return instance
+     */
     Object newInstance(Context context);
 
-    // has @Remote annotation only
+    /**
+     * This method contains only using @Remote annotation on method.
+     * @return method result
+     * @throws RemoteMethodMatchException when execute remote service method with no @Remote
+     */
     Object execute(Object instance, String methodName, Object[] args) throws RemoteMethodMatchException;
 
+    /**
+     * Throw this when remote service method has no @Remote
+     */
     class RemoteMethodMatchException extends Exception {}
 }

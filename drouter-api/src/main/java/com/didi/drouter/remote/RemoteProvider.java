@@ -1,10 +1,10 @@
 package com.didi.drouter.remote;
 
-import android.annotation.TargetApi;
 import android.app.Application;
 import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.database.AbstractCursor;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
@@ -12,15 +12,23 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.os.RemoteException;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.RequiresApi;
 import android.util.Log;
 
+import com.didi.drouter.api.DRouter;
 import com.didi.drouter.utils.RouterLogger;
 import com.didi.drouter.utils.SystemUtil;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
  * Created by gaowei on 2019/1/24
+ *
+ * Defining your own ProviderName extend RemoteProvider is highly recommended.
  */
 public class RemoteProvider extends ContentProvider {
 
@@ -28,7 +36,12 @@ public class RemoteProvider extends ContentProvider {
     static final String FIELD_REMOTE_PROCESS = "field_remote_process";
     static final String FIELD_REMOTE_LAUNCH_ACTION = "field_remote_launch_action";
     static final String BROADCAST_ACTION = "drouter.process.action.";
+
+    // ensure once in process lifecycle
     private static boolean hasSendBroadcast;
+
+    // key is authority
+    private static final Map<String, IHostService> sHostServiceMap = new ConcurrentHashMap<>();
 
     private static final IHostService.Stub stub = new IHostService.Stub() {
 
@@ -37,9 +50,14 @@ public class RemoteProvider extends ContentProvider {
             try {
                 return new RemoteDispatcher().execute(command);
             } catch (RuntimeException e) {
-                RouterLogger.getCoreLogger().e("[Service] exception: %s", e);
+                RouterLogger.getCoreLogger().e("[Server] exception: %s", e);
                 throw e;  // will not crash
             }
+        }
+
+        @Override
+        public String getProcess() {
+            return SystemUtil.getProcessName();
         }
     };
 
@@ -65,23 +83,19 @@ public class RemoteProvider extends ContentProvider {
         return true;
     }
 
+    @Nullable
     @Override
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    public Bundle call(@NonNull String method, @Nullable String arg, @Nullable Bundle extras) {
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    public Cursor query(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection,
+                        @Nullable String[] selectionArgs, @Nullable String sortOrder) {
         RouterLogger.getCoreLogger().d(
-                "[%s] is called by client to get binder, process: \"%s\"",
+                "[%s] Query is called by client to get binder, process: \"%s\"",
                 getClass().getSimpleName(), SystemUtil.getProcessName());
         Bundle bundle = new Bundle();
         bundle.putParcelable(FIELD_REMOTE_BINDER, new BinderParcel(stub));
-        bundle.putString(FIELD_REMOTE_PROCESS, SystemUtil.getProcessName());
-        return bundle;
-    }
-
-    @Nullable
-    @Override
-    public Cursor query(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection,
-                        @Nullable String[] selectionArgs, @Nullable String sortOrder) {
-        return null;
+        Cursor cursor = new BinderCursor();
+        cursor.setExtras(bundle);
+        return cursor;
     }
 
     @Nullable
@@ -105,6 +119,67 @@ public class RemoteProvider extends ContentProvider {
     public int update(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection,
                       @Nullable String[] selectionArgs) {
         return 0;
+    }
+
+    // NonNull as normal
+    static IHostService getHostService(final String authority) {
+        IHostService hostService = sHostServiceMap.get(authority);
+        if (hostService != null) {
+            return hostService;
+        }
+        try {
+            synchronized (RemoteCommand.class) {
+                hostService = sHostServiceMap.get(authority);
+                if (hostService != null) {
+                    return hostService;
+                }
+                Bundle bundle = null;
+                for (int i = 0; i < 3; i++) {    // remote process killed case and retry, return null
+                    try {
+                        Cursor cursor = DRouter.getContext().getContentResolver().query(
+                                Uri.parse(authority.startsWith("content://") ? authority : "content://" + authority),
+                                null, null, null, null);
+                        if (cursor != null) {
+                            bundle = cursor.getExtras();
+                            cursor.close();
+                        }
+                    } catch (RuntimeException e) {
+                        RouterLogger.getCoreLogger().e(
+                                "[Client] getHostService call provider, try time %s, exception: %s", i, e.getMessage());
+                    }
+                    if (bundle != null) {
+                        break;
+                    }
+                }
+                if (bundle != null) {
+                    bundle.setClassLoader(RemoteBridge.class.getClassLoader());
+                    RemoteProvider.BinderParcel parcel = bundle.getParcelable(RemoteProvider.FIELD_REMOTE_BINDER);
+                    if (parcel != null) {
+                        hostService = IHostService.Stub.asInterface(parcel.getBinder());
+                        hostService.asBinder().linkToDeath(new IBinder.DeathRecipient() {
+                            @Override
+                            public void binderDied() {
+                                // rebinding is not required
+                                // this may slow, so remove again when execute DeadObjectException
+                                sHostServiceMap.remove(authority);
+                                RouterLogger.getCoreLogger().e(
+                                        "[Client] linkToDeath: remote \"%s\" is died", authority);
+                            }
+                        }, 0);
+                        sHostServiceMap.put(authority, hostService);
+                        RouterLogger.getCoreLogger().d("[Client] get server binder success from provider, authority \"%s\"", authority);
+                        return hostService;
+                    }
+                }
+            }
+        } catch (RemoteException e) {      // linkToDeath
+            RouterLogger.getCoreLogger().e("[Client] getHostService remote exception: %s", e);
+        }
+        return null;
+    }
+
+    static void removeHostService(String authority) {
+        sHostServiceMap.remove(authority);
     }
 
     static class BinderParcel implements Parcelable {
@@ -146,6 +221,52 @@ public class RemoteProvider extends ContentProvider {
         };
     }
 
+    static class BinderCursor extends AbstractCursor {
 
+        @Override
+        public int getCount() {
+            return 0;
+        }
+
+        @Override
+        public String[] getColumnNames() {
+            return new String[0];
+        }
+
+        @Override
+        public String getString(int column) {
+            return null;
+        }
+
+        @Override
+        public short getShort(int column) {
+            return 0;
+        }
+
+        @Override
+        public int getInt(int column) {
+            return 0;
+        }
+
+        @Override
+        public long getLong(int column) {
+            return 0;
+        }
+
+        @Override
+        public float getFloat(int column) {
+            return 0;
+        }
+
+        @Override
+        public double getDouble(int column) {
+            return 0;
+        }
+
+        @Override
+        public boolean isNull(int column) {
+            return false;
+        }
+    }
 
 }

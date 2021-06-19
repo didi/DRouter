@@ -3,9 +3,9 @@ package com.didi.drouter.store;
 
 import android.arch.lifecycle.Lifecycle;
 import android.arch.lifecycle.LifecycleObserver;
-import android.arch.lifecycle.LifecycleOwner;
 import android.arch.lifecycle.OnLifecycleEvent;
 import android.net.Uri;
+import android.support.annotation.MainThread;
 import android.support.annotation.NonNull;
 import android.support.v4.util.ArraySet;
 import android.support.v4.util.Pair;
@@ -130,10 +130,12 @@ public class RouterStore {
     public static Set<RouterMeta> getRouterMetas(@NonNull Uri uriKey) {
         check();
         Set<RouterMeta> result = new ArraySet<>();
+        // exact match
         Object o = routerMetas.get(uriKey.toString());
         if (o instanceof RouterMeta) {
             result.add((RouterMeta) o);
         }
+        // fuzzy match include regex and placeholder
         Map<String, RouterMeta> regex = (Map<String, RouterMeta>) routerMetas.get(REGEX_ROUTER);
         if (regex != null) {
             for (RouterMeta meta : regex.values()) {
@@ -162,13 +164,14 @@ public class RouterStore {
     }
 
     @NonNull
-    // LegalUri is unique, can't duplicate with existing.
+    @MainThread
     public synchronized static IRegister register(final RouterKey key, final IRouterHandler handler) {
         if (key == null || handler == null) {
             throw new IllegalArgumentException("argument null illegal error");
         }
         check();
         boolean success = false;
+        // LegalUri is unique, can't duplicate with existing.
         RouterMeta meta = RouterMeta.build(RouterMeta.HANDLER).assembleRouter(
                 key.uri.getScheme(), key.uri.getHost(), key.uri.getPath(),
                 (Class<?>) null, null, key.interceptor, key.interceptorName,
@@ -194,7 +197,7 @@ public class RouterStore {
             if (key.lifecycleOwner != null) {
                 key.lifecycleOwner.getLifecycle().addObserver(new LifecycleObserver() {
                     @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
-                    public void onDestroy(@NonNull LifecycleOwner owner) {
+                    public void onDestroy() {
                         unregister(key, handler);
                     }
                 });
@@ -206,6 +209,7 @@ public class RouterStore {
         return new RouterRegister(key, handler, false);
     }
 
+    @MainThread
     synchronized static void unregister(RouterKey key, IRouterHandler handler) {
         if (key != null && handler != null) {
             RouterMeta meta = RouterMeta.build(RouterMeta.HANDLER).assembleRouter(
@@ -229,6 +233,7 @@ public class RouterStore {
     }
 
     @NonNull
+    @MainThread
     public synchronized static <T> IRegister register(final ServiceKey<T> key, final T service) {
         if (key == null || key.function == null || service == null) {
             throw new IllegalArgumentException("argument null illegal error");
@@ -247,7 +252,7 @@ public class RouterStore {
         if (key.lifecycleOwner != null) {
             key.lifecycleOwner.getLifecycle().addObserver(new LifecycleObserver() {
                 @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
-                public void onDestroy(@NonNull LifecycleOwner owner) {
+                public void onDestroy() {
                     unregister(key, service);
                 }
             });
@@ -257,7 +262,7 @@ public class RouterStore {
         return new RouterRegister(key, service, true);
     }
 
-    public synchronized static void unregister(ServiceKey<?> key, Object service) {
+    synchronized static void unregister(ServiceKey<?> key, Object service) {
         if (key != null && service != null) {
             Set<RouterMeta> metas = serviceMetas.get(key.function);
             if (metas != null) {

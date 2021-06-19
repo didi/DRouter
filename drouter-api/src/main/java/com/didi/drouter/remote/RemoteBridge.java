@@ -8,8 +8,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.net.Uri;
-import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.support.annotation.NonNull;
@@ -21,8 +19,8 @@ import com.didi.drouter.router.Request;
 import com.didi.drouter.router.Result;
 import com.didi.drouter.router.RouterCallback;
 import com.didi.drouter.router.RouterHelper;
-import com.didi.drouter.service.ServiceLoader;
 import com.didi.drouter.utils.RouterLogger;
+import com.didi.drouter.utils.TextUtils;
 
 import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationHandler;
@@ -35,7 +33,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static com.didi.drouter.remote.RemoteProvider.BROADCAST_ACTION;
 import static com.didi.drouter.remote.RemoteProvider.FIELD_REMOTE_LAUNCH_ACTION;
-import static com.didi.drouter.remote.RemoteProvider.FIELD_REMOTE_PROCESS;
 
 /**
  * Created by gaowei on 2018/11/1
@@ -53,9 +50,7 @@ public class RemoteBridge {
     private WeakReference<LifecycleOwner> lifecycle;
 
     // key is process, used for broadcast to resend
-    private static final Map<String, Set<RemoteCommand>> sResendCommandMap = new ConcurrentHashMap<>();
-    // key is authority
-    private static final Map<String, IHostService> sHostServiceMap = new ConcurrentHashMap<>();
+    private static final Map<String, Set<RemoteCommand>> sRetainCommandMap = new ConcurrentHashMap<>();
     // key is authority, value is process, one process register broadcast once
     private static final Map<String, String> sProcessMap = new ConcurrentHashMap<>();
 
@@ -70,8 +65,6 @@ public class RemoteBridge {
     }
 
     public void start(final Request request, final Result result, RouterCallback callback) {
-        RouterLogger.getCoreLogger().d("[Client] request \"%s\" start IPC", request.getNumber());
-
         final RemoteCommand command = new RemoteCommand(RemoteCommand.REQUEST);
         command.bridge = RemoteBridge.this;
         command.resendStrategy = resendStrategy;
@@ -82,17 +75,18 @@ public class RemoteBridge {
         if (callback != null) {
             command.binder = new IClientService.Stub() {
                 @Override
-                public RemoteResult callback(RemoteCommand resultCommand) throws RemoteException {
-                    RouterLogger.getCoreLogger().w("[Client] command \"%s\" callback success", command);
-                    //result.setActivityStarted(resultCommand.isActivityStarted);
+                public RemoteResult callback(RemoteCommand resultCommand) {
+                    RouterLogger.getCoreLogger().w("[Client] \"%s\" callback success", command);
+//                    result.setActivityStarted(resultCommand.isActivityStarted);
                     result.extra = resultCommand.extra;
                     result.addition = resultCommand.addition;
+                    // callback once, so release it
                     RouterHelper.release(request);
                     return null;
                 }
             };
         } else {
-            RouterLogger.getCoreLogger().d("[Client] request \"%s\" complete ahead of time", request.getNumber());
+            // no callback, so release immediately
             RouterHelper.release(request);
         }
         execute(command);
@@ -130,7 +124,6 @@ public class RemoteBridge {
             command.constructor = constructor;
             command.methodName = method.getName();
             command.parameters = parameters;
-            RouterLogger.getCoreLogger().d("[Client] command: \"%s\" start IPC", command);
             RemoteResult result = execute(command);
             if (result != null && RemoteResult.SUCCESS.equals(result.state)) {
                 return result.result;
@@ -152,64 +145,84 @@ public class RemoteBridge {
     }
 
     @Nullable
-    // concurrent execute
     private RemoteResult execute(RemoteCommand command) {
-        RouterLogger.getCoreLogger().d("[Client] execute command start, authority \"%s\", reTry:%s", authority, reTry);
+        RouterLogger.getCoreLogger().d("[Client] start " +
+                "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+        RouterLogger.getCoreLogger().d(
+                "[Client] \"%s\" start, authority \"%s\"", command, authority);
 
+        IHostService hostService = RemoteProvider.getHostService(authority);
         RemoteResult result = null;
-        IHostService service = getHostService(authority);
-        if (service != null) {
+        if (hostService != null) {
             try {
-                retainResendCommand(command);
-                result = service.execute(command);
+                retainCommandIfNeeded(hostService, command);
+                result = hostService.execute(command);
                 if (result != null) {
                     if (RemoteResult.SUCCESS.equals(result.state)) {
-                        RouterLogger.getCoreLogger().d("[Client] command \"%s\" return and state success", command);
+                        RouterLogger.getCoreLogger().d(
+                                "[Client] \"%s\" finish, and state success", command);
                     } else {
-                        RouterLogger.getCoreLogger().e("[Client] command \"%s\" return and state fail", command);
+                        RouterLogger.getCoreLogger().e(
+                                "[Client] \"%s\" finish, and state fail", command);
                     }
                 } else {
                     RouterLogger.getCoreLogger().e(
-                            "[Client] command \"%s\" remote inner error with early termination", command);
+                            "[Client] \"%s\" finish, remote inner error with early termination", command);
                 }
-            } catch (RemoteException e) {     // dead object exception
-                RouterLogger.getCoreLogger().e("[Client] remote RemoteException: %s", e);
+            } catch (RemoteException e) {     // DeadObjectException
+                RouterLogger.getCoreLogger().e("[Client] \"%s\" finish, RemoteException: %s", command, e);
                 if (!reTry) {
                     reTry = true;
-                    sHostServiceMap.remove(authority);
+                    RemoteProvider.removeHostService(authority);
+                    RouterLogger.getCoreLogger().w("[Client] retry execute: %s", command);
                     return execute(command);
                 }
             } catch (RuntimeException e) {    // remote exception will send here in some cases
-                e.printStackTrace();
-                RouterLogger.getCoreLogger().e("[Client] remote RuntimeException: %s", e);
+                RouterLogger.getCoreLogger().e("[Client] \"%s\" finish, RuntimeException: %s", command, e);
             }
+        } else {
+            RouterLogger.getCoreLogger().e("[Client] \"%s\" finish, server binder is null", command);
         }
-        RouterLogger.getCoreLogger().d("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+        RouterLogger.getCoreLogger().d("[Client] finish " +
+                "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
         return result;
     }
 
-    // After command execute
-    private void retainResendCommand(final RemoteCommand command) {
-        final String process = sProcessMap.get(authority);
-        if (process == null) {
-            RouterLogger.getCoreLogger().e("[Client] add resend command fail, for process is null");
-            return;
-        }
-        LifecycleOwner owner;
-        final Lifecycle lifecycle = command.lifecycle != null ?
-                ((owner = command.lifecycle.get()) != null ? owner.getLifecycle() : null) : null;
+    private void retainCommandIfNeeded(IHostService hostService, final RemoteCommand command) throws RemoteException {
         if (command.resendStrategy == Extend.Resend.WAIT_ALIVE) {
-            if (lifecycle != null && lifecycle.getCurrentState() == Lifecycle.State.DESTROYED) {
-                RouterLogger.getCoreLogger().e("[Client] add resend command fail, for lifecycle is destroyed");
+            String process = sProcessMap.get(authority);
+            if (process == null) {
+                synchronized (RemoteBridge.class) {
+                    process = sProcessMap.get(authority);
+                    if (process == null) {
+                        process = hostService.getProcess();
+                        if (!TextUtils.isEmpty(process)) {
+                            sProcessMap.put(authority, process);
+                            registerBroadcast(process);
+                        }
+                    }
+                }
+            }
+            if (TextUtils.isEmpty(process)) {
+                RouterLogger.getCoreLogger().e("[Client] retain command fail, for process name is null");
                 return;
             }
-            Set<RemoteCommand> resendCommands = sResendCommandMap.get(process);
+            // If lifecycle exists, resend command can be removed when destroyed
+            // check lifecycle state
+            LifecycleOwner owner;
+            final Lifecycle lifecycle = command.lifecycle != null ?
+                    ((owner = command.lifecycle.get()) != null ? owner.getLifecycle() : null) : null;
+            if (lifecycle != null && lifecycle.getCurrentState() == Lifecycle.State.DESTROYED) {
+                RouterLogger.getCoreLogger().e("[Client] retain command fail, for lifecycle is assigned but destroyed");
+                return;
+            }
+            Set<RemoteCommand> resendCommands = sRetainCommandMap.get(process);
             if (resendCommands == null) {
-                synchronized (ServiceLoader.class) {
-                    resendCommands = sResendCommandMap.get(process);
+                synchronized (RemoteBridge.class) {
+                    resendCommands = sRetainCommandMap.get(process);
                     if (resendCommands == null) {
                         resendCommands = Collections.newSetFromMap(new ConcurrentHashMap<RemoteCommand, Boolean>());
-                        sResendCommandMap.put(process, resendCommands);
+                        sRetainCommandMap.put(process, resendCommands);
                     }
                 }
             }
@@ -218,14 +231,15 @@ public class RemoteBridge {
                     if (!resendCommands.contains(command)) {
                         resendCommands.add(command);
                         if (lifecycle != null) {
+                            final String finalProcess = process;
                             lifecycle.addObserver(new LifecycleObserver() {
                                 @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
-                                public void onDestroy(@NonNull LifecycleOwner owner) {
-                                    Set<RemoteCommand> commands = sResendCommandMap.get(process);
+                                public void onDestroy() {
+                                    Set<RemoteCommand> commands = sRetainCommandMap.get(finalProcess);
                                     if (commands != null) {
                                         commands.remove(command);
                                         RouterLogger.getCoreLogger().w(
-                                                "[Client] remove resend command: \"%s\"", command);
+                                                "[Client] remove resend command \"%s\"", command);
                                     }
                                     lifecycle.removeObserver(this);
                                 }
@@ -234,18 +248,19 @@ public class RemoteBridge {
                     }
                 }
                 RouterLogger.getCoreLogger().w(
-                        "[Client] add resend command: \"%s\", with current lifecycle: %s",
+                        "[Client] retain resend command \"%s\", with current lifecycle: %s",
                         command, lifecycle != null ? lifecycle.getCurrentState() : null);
             }
         }
     }
 
-    private static void registerBroadcast(String process) {
+    private void registerBroadcast(String process) {
         BroadcastReceiver receiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 String process = intent.getStringExtra(FIELD_REMOTE_LAUNCH_ACTION);
-                RouterLogger.getCoreLogger().w("receive broadcast remote app launcher process: \"%s\"", process);
+                RouterLogger.getCoreLogger().w(
+                        "receive broadcast remote app launcher process: \"%s\"", process);
                 resendRemoteCommand(process);
             }
         };
@@ -255,7 +270,7 @@ public class RemoteBridge {
     }
 
     private static void resendRemoteCommand(String process) {
-        Set<RemoteCommand> commands = sResendCommandMap.get(process);
+        Set<RemoteCommand> commands = sRetainCommandMap.get(process);
         if (commands != null) {
             for (RemoteCommand command : commands) {
                 RouterLogger.getCoreLogger().w("execute resend command: \"%s\"", command);
@@ -264,77 +279,11 @@ public class RemoteBridge {
         }
     }
 
-    private static IHostService getHostService(final String authority) {
-        IHostService service = sHostServiceMap.get(authority);
-        if (service != null) {
-            return service;
-        }
-        try {
-            synchronized (RemoteCommand.class) {
-                service = sHostServiceMap.get(authority);
-                if (service != null) {
-                    RouterLogger.getCoreLogger().d("[Client] getHostService get binder with cache");
-                    return service;
-                }
-                Bundle bundle = null;
-                for (int i = 0; i < 3; i++) {    // remote process killed case and retry, return null
-                    try {
-                        bundle = DRouter.getContext().getContentResolver().call(
-                                Uri.parse(authority.startsWith("content://") ? authority : "content://" + authority),
-                                "",
-                                "",
-                                null);
-                    } catch (RuntimeException e) {
-                        RouterLogger.getCoreLogger().e(
-                                "[Client] getHostService call provider, try time %s, exception: %s", i, e.getMessage());
-                    }
-                    if (bundle != null) {
-                        break;
-                    }
-                }
-                boolean binderState = false;
-                boolean registerBroadcast = false;
-                String process = "";
-                if (bundle != null) {
-                    bundle.setClassLoader(RemoteBridge.class.getClassLoader());
-                    RemoteProvider.BinderParcel parcel = bundle.getParcelable(RemoteProvider.FIELD_REMOTE_BINDER);
-                    process = bundle.getString(FIELD_REMOTE_PROCESS);
-
-                    if (parcel != null) {
-                        service = IHostService.Stub.asInterface(parcel.getBinder());
-                        service.asBinder().linkToDeath(new IBinder.DeathRecipient() {
-                            @Override
-                            public void binderDied() {
-                                // no rebinding is required
-                                sHostServiceMap.remove(authority);
-                                RouterLogger.getCoreLogger().e(
-                                        "[Client] linkToDeath: remote \"%s\" is died", authority);
-                            }
-                        }, 0);
-                        sHostServiceMap.put(authority, service);
-                        binderState = true;
-                    }
-                    if (process != null && !sProcessMap.containsKey(authority)) {
-                        sProcessMap.put(authority, process);
-                        registerBroadcast(process);
-                        registerBroadcast = true;
-                    }
-                }
-                RouterLogger.getCoreLogger().d("[Client] getHostService get binder: %s, process: \"%s\", " +
-                        "register broadcast: %s", binderState, process, registerBroadcast);
-                return service;
-            }
-        } catch (RemoteException e) {      // linkToDeath
-            RouterLogger.getCoreLogger().e("[Client] getHostService remote exception: %s", e);
-        }
-        return null;
-    }
-
     /**
-     * This method can get remote binder after execute one remote command.
+     * This method can get remote binder after execute one remote command
      */
     public static IBinder getHostBinder(String authority) {
-        IHostService service = sHostServiceMap.get(authority);
+        IHostService service = RemoteProvider.getHostService(authority);
         return service != null ? service.asBinder() : null;
     }
 

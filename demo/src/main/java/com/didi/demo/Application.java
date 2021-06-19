@@ -20,7 +20,7 @@ public class Application extends android.app.Application {
         super.onCreate();
 
 
-        RouterLogger.getAppLogger().d("App Application onCreate");
+        RouterLogger.getAppLogger().d("App Application onCreate: " + this);
         // 可选
         DRouter.init(this);
 

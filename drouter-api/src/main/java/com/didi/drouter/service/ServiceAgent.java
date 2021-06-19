@@ -28,7 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Created by gaowei on 2019/4/1
  */
-@SuppressWarnings({"unchecked"})
+@SuppressWarnings("unchecked")
 class ServiceAgent<T> {
 
     // cache, key is impl
@@ -127,15 +127,13 @@ class ServiceAgent<T> {
     T getService(Object... constructors) {
         // remote
         if (!TextUtils.isEmpty(authority)) {
-            RouterLogger.getCoreLogger().d(
-                    "[..] Get remote service \"%s\" by RemoteBridge", function.getSimpleName());
             return RemoteBridge.load(authority, resendStrategy, lifecycle)
                     .getService(function, alias, feature, constructors);
         }
         // dynamic class
         for (RouterMeta meta : RouterStore.getServiceMetas(function)) {
             if (meta.isDynamic() && match(meta.getServiceAlias(), meta.getFeatureMatcher())) {
-                RouterLogger.getCoreLogger().d("[..] Get local dynamic service \"%s\" with result \"%s\"",
+                RouterLogger.getCoreLogger().d("[Local] Get dynamic service \"%s\" with impl \"%s\"",
                         function.getSimpleName(), meta.getService().getClass().getName());
                 return (T) meta.getService();
             }
@@ -143,18 +141,18 @@ class ServiceAgent<T> {
         // normal class
         T target = (T) getServiceInstance(getServiceClass(), constructors);
         if (target != null) {
-            // ICallServiceX
+            // ICallService
             if (function == ICallService.class && CallHandler.isCallService(target)) {
-                RouterLogger.getCoreLogger().d("[..] Get local ICallService service \"%s\" with result \"%s\"",
+                RouterLogger.getCoreLogger().d("[Local] Get ICallService \"%s\" with impl \"%s\"",
                         function.getSimpleName(), target.getClass().getSimpleName());
                 return (T) Proxy.newProxyInstance(
                         getClass().getClassLoader(), new Class[]{function}, new CallHandler(target));
             }
-            RouterLogger.getCoreLogger().d("[..] Get local normal service \"%s\" with result \"%s\"",
+            RouterLogger.getCoreLogger().d("[Local] Get service \"%s\" with impl \"%s\"",
                     function.getSimpleName(), target.getClass().getSimpleName());
-            return (T) target;
+            return target;
         }
-        RouterLogger.getCoreLogger().w("[..] Get local service \"%s\" fail with default instance \"%s\"",
+        RouterLogger.getCoreLogger().w("[Local] Get service \"%s\" fail with default \"%s\"",
                 function.getSimpleName(), defaultService != null ? defaultService.getClass().getName() : null);
         return defaultService;
     }
@@ -163,6 +161,7 @@ class ServiceAgent<T> {
         return this.alias.equals(alias) && (feature == null || feature.match(this.feature));
     }
 
+    @SuppressWarnings("ConstantConditions")
     private @Nullable Object getServiceInstance(Class<?> implClass, Object... parameter) {
         if (implClass == null) {
             return null;
@@ -185,8 +184,6 @@ class ServiceAgent<T> {
                         t = ReflectUtil.getInstance(implClass, parameter);
                     }
                     if (t != null) {
-                        RouterLogger.getCoreLogger().d("[..] Create new service \"%s\" instance success",
-                                t.getClass().getSimpleName());
                         if (routerClassImplMap.get(implClass).getCache() == Extend.Cache.SINGLETON) {
                             sInstanceMap.put(implClass, t);
                         } else if (routerClassImplMap.get(implClass).getCache() == Extend.Cache.WEAK) {
@@ -196,10 +193,6 @@ class ServiceAgent<T> {
                     }
                 }
             }
-        }
-        if (t != null) {
-            RouterLogger.getCoreLogger().d("[..] Get service \"%s\" instance by cache",
-                    t.getClass().getSimpleName());
         }
         return t;
     }
@@ -221,7 +214,7 @@ class ServiceAgent<T> {
         }
 
         @Override
-        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        public Object invoke(Object proxy, Method method, Object[] args) {
             Object[] params = (Object[]) args[0];
             if (params == null) {
                 params = new Object[]{null};
@@ -266,6 +259,7 @@ class ServiceAgent<T> {
     // from large to small, normal
     private class ServiceComparator implements Comparator<Class<?>> {
         @Override
+        @SuppressWarnings("ConstantConditions")
         public int compare(Class<?> o1, Class<?> o2) {
             int priority1 = routerClassImplMap.get(o1).getPriority();
             int priority2 = routerClassImplMap.get(o2).getPriority();

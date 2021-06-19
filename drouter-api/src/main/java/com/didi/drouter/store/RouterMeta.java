@@ -204,11 +204,13 @@ public class RouterMeta {
         return intent;
     }
 
-    // check whether it matches when any of scheme host path in annotation or router key is regex
+    // check whether it matches
+    // when any of scheme host path in @Router or RouterKey is regex or placeholder
     public boolean isRegexMatch(Uri uri) {
         String s = uri.getScheme();
         String h = uri.getHost();
         String p = uri.getPath();
+        // placeholder to match
         String schemeRegex = hasPlaceholder(0, scheme) ?
                 scheme.replaceAll(PLACE_HOLDER_REGEX, ".*") : scheme;
         String hostRegex = hasPlaceholder(1, host) ?
@@ -220,7 +222,7 @@ public class RouterMeta {
                 p != null && p.matches(pathRegex);
     }
 
-    // check whether router key is regex
+    // check whether router key is regex or placeholder
     public boolean isRegexUri() {
         return TextUtils.isRegex(scheme) || TextUtils.isRegex(host) || TextUtils.isRegex(path);
     }

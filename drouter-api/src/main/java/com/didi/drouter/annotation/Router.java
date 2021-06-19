@@ -61,6 +61,8 @@ public @interface Router {
      * At the same time, you must execute
      * {@link com.didi.drouter.router.RouterHelper#release(Request)}}
      * in any place after hold task is done.
+     *
+     * This take effect only when start with RouterCallback
      */
     boolean hold() default false;
 }

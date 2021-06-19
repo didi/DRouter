@@ -15,4 +15,6 @@ interface IHostService {
      * and return values in AIDL.
      */
     RemoteResult execute(in RemoteCommand command);
+
+    String getProcess();
 }

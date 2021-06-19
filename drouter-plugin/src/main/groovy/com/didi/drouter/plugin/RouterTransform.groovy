@@ -1,15 +1,12 @@
 package com.didi.drouter.plugin
 
 import com.android.build.api.transform.*
-import com.android.build.gradle.api.ApplicationVariant
-import com.android.build.gradle.api.BaseVariant
 import com.android.build.gradle.internal.pipeline.TransformManager
 import com.didi.drouter.utils.Logger
 import com.didi.drouter.utils.SystemUtil
 import com.google.common.collect.ImmutableSet
 import org.apache.commons.io.FileUtils
 import org.gradle.api.Project
-import org.gradle.api.internal.DefaultDomainObjectCollection
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -115,13 +112,14 @@ class RouterTransform extends Transform {
                             }
                             break
                         case Status.REMOVED:
-                            // for changedSource has been deleted
                             if (changedSourceDest.isFile()) {
+                                // for changedSource has been deleted
                                 changedSourceDest.delete()
                                 if (changedSource.absolutePath.endsWith(".class")) {
                                     cachePath.remove(changedSource.absolutePath)
                                 }
                             } else {
+                                // delete all classes under this folder
                                 changedSourceDest.deleteDir()
                                 Iterator<String> iterator = cachePath.iterator()
                                 while (iterator.hasNext()) {
@@ -157,8 +155,10 @@ class RouterTransform extends Transform {
                     case Status.ADDED:
                     case Status.CHANGED:
                         FileUtils.copyFile(changedSource, changedSourceDest)
+                        // we will remove it later when resolve jar
                         cachePath.add(changedSource.absolutePath)
                         if (jarInput.status == Status.CHANGED) {
+                            // delete all classes under this jar, as we don't know which class.
                             Iterator<String> iterator = cachePath.iterator()
                             while (iterator.hasNext()) {
                                 if (iterator.next().startsWith("jar:file:" + changedSource.absolutePath)) {

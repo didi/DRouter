@@ -41,7 +41,7 @@ class RemoteStream {
         } else if (o instanceof Collection) {
             return new CollectionParcelable(o);
         } else if (o instanceof IRemoteCallback) {
-            return new CallbackParcelable(o);
+            return new RemoteCallbackParcelable(o);
         } else {
             return new ObjectParcelable(o);
         }
@@ -56,8 +56,8 @@ class RemoteStream {
             return ((CollectionParcelable) o).getCollection();
         } else if (o instanceof ObjectParcelable) {
             return ((ObjectParcelable) o).getObject();
-        } else if (o instanceof CallbackParcelable) {
-            return ((CallbackParcelable) o).getObject();
+        } else if (o instanceof RemoteCallbackParcelable) {
+            return ((RemoteCallbackParcelable) o).getObject();
         } else {
             return o;
         }
@@ -89,6 +89,8 @@ class RemoteStream {
         ArrayParcelable(Parcel in) {
             Class<?> clz = (Class<?>) in.readSerializable();
             Object[] tmp = in.readArray(getClass().getClassLoader());
+            assert clz != null;
+            assert tmp != null;
             array = (Object[]) Array.newInstance(clz, tmp.length);
             for (int i = 0; i < tmp.length; i++) {
                 array[i] = reverse(tmp[i]);
@@ -101,6 +103,7 @@ class RemoteStream {
             for (int i = 0; i < array.length; i++) {
                 tmp[i] = transform(array[i]);
             }
+            assert array.getClass().getComponentType() != null;
             writeSerializable(dest, array.getClass().getComponentType());
             dest.writeArray(tmp);   //no shell type
         }
@@ -145,9 +148,11 @@ class RemoteStream {
             } else if (clz == ConcurrentHashMap.class) {
                 map = new ConcurrentHashMap<>();
             } else {
+                assert clz != null;
                 map = (Map<Object, Object>) ReflectUtil.getInstance(clz);
             }
             Map<Object, Object> tmp = in.readHashMap(getClass().getClassLoader());
+            assert tmp != null;
             for (Map.Entry<Object, Object> entry : tmp.entrySet()) {
                 map.put(reverse(entry.getKey()), reverse(entry.getValue()));
             }
@@ -206,9 +211,11 @@ class RemoteStream {
             } else if (clz == LinkedList.class) {
                 collection = new LinkedList<>();
             } else {
+                assert clz != null;
                 collection = (Collection<Object>) ReflectUtil.getInstance(clz);
             }
             List<Object> tmp = in.readArrayList(getClass().getClassLoader());
+            assert tmp != null;
             for (Object object : tmp) {
                 collection.add(reverse(object));
             }
@@ -298,21 +305,23 @@ class RemoteStream {
         }
     }
 
-    static class CallbackParcelable implements Parcelable {
+    static class RemoteCallbackParcelable implements Parcelable {
 
+        // key is client IRemoteCallback instance, value is Binder
+        // no need to remove, for week hash map can be removed auto
         static Map<IRemoteCallback, IClientService> callbackPool =
                 Collections.synchronizedMap(new WeakHashMap<IRemoteCallback, IClientService>());
 
         IBinder binder;
 
-        CallbackParcelable(Object object) {
+        RemoteCallbackParcelable(Object object) {
             final IRemoteCallback callback = (IRemoteCallback) object;
             IClientService callbackBinder = callbackPool.get(callback);
             if (callbackBinder == null) {
                 callbackBinder = new IClientService.Stub() {
                     @Override
                     public RemoteResult callback(RemoteCommand callbackCommand) throws RemoteException {
-                        RouterLogger.getCoreLogger().d("[Client] receive callback success and start invoke");
+                        RouterLogger.getCoreLogger().d("[Client] receive server callback from binder");
                         callback.callback(callbackCommand.callbackData);
                         return null;
                     }
@@ -322,7 +331,7 @@ class RemoteStream {
             binder = callbackBinder.asBinder();
         }
 
-        CallbackParcelable(Parcel in) {
+        RemoteCallbackParcelable(Parcel in) {
             binder = in.readStrongBinder();
         }
 
@@ -344,13 +353,13 @@ class RemoteStream {
                     if (data == null) {
                         data = new Object[] {null};
                     }
-                    RouterLogger.getCoreLogger().w("[Service] remote callback start invoke");
+                    RouterLogger.getCoreLogger().w("[Server] IRemoteCallback start callback invoke");
                     RemoteCommand callbackCommand = new RemoteCommand(RemoteCommand.SERVICE_CALLBACK);
                     callbackCommand.callbackData = data;
                     try {
                         callbackService.callback(callbackCommand);
                     } catch (RemoteException e) {
-                        RouterLogger.getCoreLogger().e("[Service] command callback Exception %s", e);
+                        RouterLogger.getCoreLogger().e("[Server] IRemoteCallback invoke Exception %s", e);
                         throw e;
                     }
                 }
@@ -359,15 +368,15 @@ class RemoteStream {
             return callback;
         }
 
-        public static final Creator<CallbackParcelable> CREATOR = new Creator<CallbackParcelable>() {
+        public static final Creator<RemoteCallbackParcelable> CREATOR = new Creator<RemoteCallbackParcelable>() {
             @Override
-            public CallbackParcelable createFromParcel(Parcel in) {
-                return new CallbackParcelable(in);
+            public RemoteCallbackParcelable createFromParcel(Parcel in) {
+                return new RemoteCallbackParcelable(in);
             }
 
             @Override
-            public CallbackParcelable[] newArray(int size) {
-                return new CallbackParcelable[size];
+            public RemoteCallbackParcelable[] newArray(int size) {
+                return new RemoteCallbackParcelable[size];
             }
         };
 

@@ -27,9 +27,9 @@ class RemoteDispatcher {
     @NonNull
     RemoteResult execute(final RemoteCommand command) {
         count.incrementAndGet();
-        RouterLogger.getCoreLogger().d("[Service] command \"%s\" start, thread count %s", command, count.get());
         if (count.get() >= 16) {
-            RouterLogger.getCoreLogger().e("[Service] binder thread pool is exploding", command, count.get());
+            RouterLogger.getCoreLogger().e(
+                    "[Server] binder thread pool %s is exploding, \"%s\"", count.get(), command);
         }
         if (command.uri != null) {
             if (count.get() >= 16) {
@@ -57,11 +57,11 @@ class RemoteDispatcher {
         if (command.addition != null) {
             request.addition = command.addition;
         }
-        request.start(DRouter.getContext(), new RouterCallback() {
+        request.start(DRouter.getContext(), command.binder != null ? new RouterCallback() {
             @Override
             public void onResult(@NonNull Result result) {
                 if (command.binder != null) {
-                    RouterLogger.getCoreLogger().d("[Service] command \"%s\" result start callback", command);
+                    RouterLogger.getCoreLogger().d("[Server] \"%s\" result start callback", command);
                     RemoteCommand resultCommand = new RemoteCommand(RemoteCommand.REQUEST_RESULT);
                     resultCommand.isActivityStarted = result.isActivityStarted();
                     resultCommand.routerSize = result.getRouterSize();
@@ -71,11 +71,11 @@ class RemoteDispatcher {
                         IClientService.Stub.asInterface(command.binder).callback(resultCommand);
                     } catch (RemoteException e) {
                         RouterLogger.getCoreLogger().e(
-                                "[Service] command \"%s\" callback Exception %s", command, e);
+                                "[Server] \"%s\" callback Exception %s", command, e);
                     }
                 }
             }
-        });
+        } : null);
         remoteResult.state = RemoteResult.SUCCESS;
     }
 
@@ -100,11 +100,12 @@ class RemoteDispatcher {
                 if (!useProxy) {
                     remoteResult.result = ReflectUtil.invokeMethod(instance, command.methodName, command.parameters);
                 }
+                RouterLogger.getCoreLogger().d("[Server] \"%s\" execute success", command);
                 remoteResult.state = RemoteResult.SUCCESS;
                 return;
             }
         } catch (Exception e) {
-            RouterLogger.getCoreLogger().e("[Service] invoke Exception %s", e);
+            RouterLogger.getCoreLogger().e("[Server] invoke Exception %s", e);
         }
         remoteResult.state = RemoteResult.FAIL;
     }
