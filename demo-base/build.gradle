@@ -28,7 +28,7 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 
-    api project(':drouter-api')
-//    api 'io.github.didi:drouter-api:1.0.6'
+//    api project(':drouter-api')
+    api 'io.github.didi:drouter-api:1.0.7'
 
 }
