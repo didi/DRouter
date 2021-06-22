@@ -62,7 +62,9 @@ api "com.didi.drouter:drouter-api:1.0.4"
 
 ## 微信交流群
 
-微信群二维码有期限，请搜索 gwball 加我微信入群，可备注 DRouter
+<img src="https://czp.s3.didiyunapi.com/image/drouter/drouter.jpg" width="250px" align="center" alt="WeiXin"/>
+
+如果二维码到期，请搜索 gwball 加作者微信(备注DRouter)入群
 
 ## License
 
