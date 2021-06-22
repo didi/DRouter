@@ -66,6 +66,10 @@ api "com.didi.drouter:drouter-api:1.0.4"
 
 如果二维码到期，请搜索 gwball 加作者微信(备注DRouter)入群
 
+## 相关文章
+
+[滴滴开源DRouter：一款高效的Android路由框架](https://juejin.cn/post/6975818153381068831)
+
 ## License
 
 <img alt="Apache-2.0 license" src="https://www.apache.org/img/ASF20thAnniversary.jpg" width="128">
