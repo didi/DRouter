@@ -72,9 +72,9 @@ class RouterCollect extends AbsRouterCollect {
                 int priority = 0;
                 boolean hold = false;
                 if (routerCc.hasAnnotation(Router.class)) {
-                    schemeValue = ((Router) routerCc.getAnnotation(Router.class)).scheme().toLowerCase();
-                    hostValue = ((Router) routerCc.getAnnotation(Router.class)).host().toLowerCase();
-                    pathValue = ((Router) routerCc.getAnnotation(Router.class)).path().toLowerCase();
+                    schemeValue = ((Router) routerCc.getAnnotation(Router.class)).scheme();
+                    hostValue = ((Router) routerCc.getAnnotation(Router.class)).host();
+                    pathValue = ((Router) routerCc.getAnnotation(Router.class)).path();
                     thread = ((Router) routerCc.getAnnotation(Router.class)).thread();
                     priority = ((Router) routerCc.getAnnotation(Router.class)).priority();
                     hold = ((Router) routerCc.getAnnotation(Router.class)).hold();

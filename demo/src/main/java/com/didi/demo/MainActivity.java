@@ -39,8 +39,8 @@ public class MainActivity extends AppCompatActivity {
 
         switch (view.getId()) {
             case R.id.start_activity1:
-                DRouter.build("/activity/test1_value1_value2?arg3=value3")
-                        .putExtra("arg4", "value4")
+                DRouter.build("/activity/Test1_Value1_Value2?Arg3=Value3")
+                        .putExtra("Arg4", "Value4")
                         .start(this);
                 break;
 

@@ -21,7 +21,7 @@ public class TextUtils {
         return str == null || str.length() == 0;
     }
 
-    // UriKey is lowercase and with "://"
+    // UriKey and with "://"
     public static @NonNull Uri getUriKey(String uri) {
         if (uri == null) return Uri.parse("://");
         return getUriKey(Uri.parse(uri));
@@ -29,9 +29,9 @@ public class TextUtils {
 
     public static @NonNull Uri getUriKey(Uri uri) {
         if (uri == null) return Uri.parse("://");
-        return Uri.parse(getNonNull(uri.getScheme()).toLowerCase() + "://" +
-                getNonNull(uri.getHost()).toLowerCase() +
-                getNonNull(uri.getPath()).toLowerCase());
+        return Uri.parse(getNonNull(uri.getScheme()) + "://" +
+                getNonNull(uri.getHost()) +
+                getNonNull(uri.getPath()));
     }
 
     private static String getNonNull(String content) {

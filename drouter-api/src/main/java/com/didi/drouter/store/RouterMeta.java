@@ -30,8 +30,8 @@ public class RouterMeta {
     public static int HANDLER     = RouterType.HANDLER;
     public static int INTERCEPTOR = RouterType.HANDLER + 1;
     public static int SERVICE     = RouterType.HANDLER + 2;
-    private static String PLACE_HOLDER_REGEX = "<[a-zA-Z_]+\\w*>";
-    private static Pattern pattern = Pattern.compile(PLACE_HOLDER_REGEX);
+    private static String PLACE_HOLDER_REGEX = "<[a-zA-Z_]+\\w*>";  // no /
+    private static Pattern sHolderPattern = Pattern.compile(PLACE_HOLDER_REGEX);
 
     private int routerType;
     private Class<?> routerClass;       // fragment, view, static handler, static service, interceptor
@@ -204,8 +204,8 @@ public class RouterMeta {
         return intent;
     }
 
-    // check whether it matches
-    // when any of scheme host path in @Router or RouterKey is regex or placeholder
+    // whether request uri match fuzzy meta,
+    // when any of scheme host path in meta(@Router or RouterKey) contains regex or placeholder
     public boolean isRegexMatch(Uri uri) {
         String s = uri.getScheme();
         String h = uri.getHost();
@@ -222,7 +222,7 @@ public class RouterMeta {
                 p != null && p.matches(pathRegex);
     }
 
-    // check whether router key is regex or placeholder
+    // whether meta contains regex or placeholder
     public boolean isRegexUri() {
         return TextUtils.isRegex(scheme) || TextUtils.isRegex(host) || TextUtils.isRegex(path);
     }
@@ -231,66 +231,69 @@ public class RouterMeta {
         if (hasPlaceholder[index] != null && hasPlaceholder[index] == false) {
             return false;
         }
-        return hasPlaceholder[index] = pattern.matcher(annotation).find();
+        return hasPlaceholder[index] = sHolderPattern.matcher(annotation).find();
     }
 
     // no holder or inject success
     public boolean injectPlaceHolder(Uri uri, Bundle bundle) {
-        return  analyseOne(0, scheme, uri.getScheme(), bundle) &&
-                analyseOne(1, host, uri.getHost(), bundle) &&
-                analyseOne(2, path, uri.getPath(), bundle);
+        return  injectOne(0, scheme, uri.getScheme(), bundle) &&
+                injectOne(1, host, uri.getHost(), bundle) &&
+                injectOne(2, path, uri.getPath(), bundle);
     }
 
-    private boolean analyseOne(int index, @NonNull String oriAnnoPart, @Nullable String oriUriPart, Bundle bundle) {
-        if (!hasPlaceholder(index, oriAnnoPart) || oriUriPart == null) {
+    private boolean injectOne(int index, @NonNull String oriAnno, @Nullable String oriUri, Bundle bundle) {
+        if (!hasPlaceholder(index, oriAnno) || oriUri == null) {
             return true;
         }
         Bundle b = new Bundle();
-        String annoPart = oriAnnoPart;
-        String uriPart = oriUriPart;
-        annoPart = "&&" + annoPart + "$$";
-        uriPart = "&&" + uriPart + "$$";
+        // for reduce the boundary conditions, and no query part
+        String restAnno = oriAnno;
+        String restUri = oriUri;
+        restAnno = "@@" + restAnno + "$$";
+        restUri = "@@" + restUri + "$$";
 
         String key, value;
-        String[] splits = annoPart.split(PLACE_HOLDER_REGEX);
-
-        for (int i = 0; i < splits.length; i++) {
-            if (i + 1 < splits.length) {
-                String annoSplit = splits[i];
-                annoPart = annoPart.substring(annoSplit.length());
-                if (!uriPart.startsWith(annoSplit)) {
+        // outside anno holder parts
+        String[] annoSplits = restAnno.split(PLACE_HOLDER_REGEX);
+        for (int i = 0; i < annoSplits.length; i++) {
+            if (i + 1 < annoSplits.length) {
+                String annoSplit = annoSplits[i];
+                restAnno = restAnno.substring(annoSplit.length());
+                if (!restUri.startsWith(annoSplit)) {
                     break;
                 }
-                uriPart = uriPart.substring(annoSplit.length());
+                restUri = restUri.substring(annoSplit.length());
 
-                Matcher matcher = pattern.matcher(annoPart);
+                // for key
+                Matcher matcher = sHolderPattern.matcher(restAnno);
                 String holder = "";
                 if (matcher.find()) {
                     holder = matcher.group();
                 }
                 key = holder.replace("<", "").replace(">", "");
-
-                String annoNextSplit = splits[i + 1];
-                int nextSplitStart = uriPart.indexOf(annoNextSplit);
-                value = uriPart.substring(0, nextSplitStart);
-
+                // for value
+                String annoNextSplit = annoSplits[i + 1];
+                int nextSplitStart = restUri.indexOf(annoNextSplit);
+                value = restUri.substring(0, nextSplitStart);
+                // store
                 if (TextUtils.isEmpty(key)) {
                     break;
                 }
                 b.putString(key, value);
 
-                annoPart = annoPart.substring(holder.length());
-                uriPart = uriPart.substring(nextSplitStart);
-            } else if (uriPart.equals(annoPart)) {
+                restAnno = restAnno.substring(holder.length());
+                restUri = restUri.substring(nextSplitStart);
+            } else if (restUri.equals(restAnno)) {
+                // check last part
                 RouterLogger.getCoreLogger().d(
                         "inject <> success, annoPart=%s, uriPart=%s, result=%s",
-                        oriAnnoPart, oriUriPart, b);
+                        oriAnno, oriUri, b);
                 bundle.putAll(b);
                 return true;
             }
         }
         RouterLogger.getCoreLogger().e(
-                "inject place holder error, annoPart=%s, uriPart=%s", oriAnnoPart, oriUriPart);
+                "inject place holder error, annoPart=%s, uriPart=%s", oriAnno, oriUri);
         return false;
     }
 

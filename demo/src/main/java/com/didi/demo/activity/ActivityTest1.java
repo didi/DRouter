@@ -9,7 +9,7 @@ import com.didi.drouter.annotation.Router;
 import com.didi.drouter.api.Extend;
 import com.didi.drouter.demo.R;
 
-@Router(path = "/activity/test1_<arg1>_<arg2>",
+@Router(path = "/activity/Test1_<Arg1>_<Arg2>",
         interceptorName = {"interceptor1", "interceptor2"},
         interceptor = {OutClass.InnerInterceptor.class})
 public class ActivityTest1 extends AppCompatActivity {
@@ -21,11 +21,11 @@ public class ActivityTest1 extends AppCompatActivity {
 
         TextView textView = findViewById(R.id.test1_text);
         String primaryUrl = getIntent().getStringExtra(Extend.REQUEST_BUILD_URI);
-        textView.setText(String.format("BUILD_URI=%s\n\narg1=%s\narg2=%s\narg3=%s\narg4=%s",
+        textView.setText(String.format("BUILD_URI=%s\n\nArg1=%s\nArg2=%s\nArg3=%s\nArg4=%s",
                 primaryUrl,
-                getIntent().getStringExtra("arg1"),
-                getIntent().getStringExtra("arg2"),
-                getIntent().getStringExtra("arg3"),
-                getIntent().getStringExtra("arg4")));
+                getIntent().getStringExtra("Arg1"),
+                getIntent().getStringExtra("Arg2"),
+                getIntent().getStringExtra("Arg3"),
+                getIntent().getStringExtra("Arg4")));
     }
 }
