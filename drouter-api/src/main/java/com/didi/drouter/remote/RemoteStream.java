@@ -13,6 +13,7 @@ import com.didi.drouter.utils.JsonConverter;
 import com.didi.drouter.utils.ReflectUtil;
 import com.didi.drouter.utils.RouterLogger;
 
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Array;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -318,11 +319,16 @@ class RemoteStream {
             final IRemoteCallback callback = (IRemoteCallback) object;
             IClientService callbackBinder = callbackPool.get(callback);
             if (callbackBinder == null) {
+                // avoid memory leak
+                final WeakReference<IRemoteCallback> callbackWeak = new WeakReference<>(callback);
                 callbackBinder = new IClientService.Stub() {
                     @Override
                     public RemoteResult callback(RemoteCommand callbackCommand) throws RemoteException {
                         RouterLogger.getCoreLogger().d("[Client] receive server callback from binder");
-                        callback.callback(callbackCommand.callbackData);
+                        IRemoteCallback callback2 = callbackWeak.get();
+                        if (callback2 != null) {
+                            callback2.callback(callbackCommand.callbackData);
+                        }
                         return null;
                     }
                 };
