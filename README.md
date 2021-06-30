@@ -3,7 +3,7 @@
 <div align="center">
  <img src="https://img.shields.io/badge/license-Apache2.0-brightgreen.svg" align=left />
  <img src="https://img.shields.io/badge/drouter--plugin--proxy-1.0.0-red.svg" align=left />
- <img src="https://img.shields.io/badge/drouter--api-1.0.7-blue.svg" align=left />
+ <img src="https://img.shields.io/badge/drouter--api-1.0.8-blue.svg" align=left />
  <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" align=left />
 </div>
 <br/>
@@ -51,24 +51,14 @@ Page | 支持单Page、栈Page、ViewPager三种形式的Fragment加载
 接入方式及文档请移步 [Wiki](https://github.com/didi/DRouter/wiki)
 
 ``` java
-/** 最新版本 因jcenter关闭已迁移到maven **/
+/** 最新版本 **/
 classpath "io.github.didi:drouter-plugin-proxy:1.0.0"
-api "io.github.didi:drouter-api:1.0.7"
-
-/** 旧的jcenter版本 无法上传更新 **/
-classpath "com.didi.drouter:drouter-plugin-proxy:1.0.0"
-api "com.didi.drouter:drouter-api:1.0.4"
+api "io.github.didi:drouter-api:1.0.8"
 ```
 
 ## 微信交流群
 
-<img src="https://czp.s3.didiyunapi.com/image/drouter/drouter.jpg" width="250px" align="center" alt="WeiXin"/>
-
-如果二维码到期，请搜索 gwball 加作者微信(备注DRouter)入群
-
-## 相关文章
-
-[滴滴开源DRouter：一款高效的Android路由框架](https://juejin.cn/post/6975818153381068831)
+微信群二维码有期限，请搜索作者 gwball (备注DRouter)加微信入群
 
 ## License
 
