@@ -210,13 +210,13 @@ public class RouterMeta {
         String s = uri.getScheme();
         String h = uri.getHost();
         String p = uri.getPath();
-        // placeholder to match
+        // placeholder to match, placeholder can not match part with /
         String schemeRegex = hasPlaceholder(0, scheme) ?
-                scheme.replaceAll(PLACE_HOLDER_REGEX, ".*") : scheme;
+                scheme.replaceAll(PLACE_HOLDER_REGEX, "[^/]*") : scheme;
         String hostRegex = hasPlaceholder(1, host) ?
-                host.replaceAll(PLACE_HOLDER_REGEX, ".*") : host;
+                host.replaceAll(PLACE_HOLDER_REGEX, "[^/]*") : host;
         String pathRegex = hasPlaceholder(2, path) ?
-                path.replaceAll(PLACE_HOLDER_REGEX, ".*") : path;
+                path.replaceAll(PLACE_HOLDER_REGEX, "[^/]*") : path;
         return  s != null && s.matches(schemeRegex) &&
                 h != null && h.matches(hostRegex) &&
                 p != null && p.matches(pathRegex);
