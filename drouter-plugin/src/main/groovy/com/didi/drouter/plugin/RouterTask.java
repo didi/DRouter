@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -97,35 +96,23 @@ public class RouterTask {
         }
     }
 
-    private void loadCachePaths(final Set<String> cachePath) throws ExecutionException, InterruptedException {
-        final Queue<String> pathQueue = new ConcurrentLinkedQueue<>(cachePath);
-        final List<Future<Void>> taskList = new ArrayList<>();
-        for (int i = 0; i < CPU_COUNT; i++) {
-            taskList.add(executor.submit(new Callable<Void>() {
-                @Override
-                public Void call() throws Exception {
-                    String path;
-                    while ((path = pathQueue.poll()) != null) {
-                        loadCacheClass(path);
-                    }
-                    return null;
-                }
-            }));
-        }
-        for (Future<Void> task : taskList) {
-            task.get();
+    private void loadCachePaths(final Set<String> cachePath) throws IOException {
+        // multi-thread for entry class of same jar may conflict
+        for (String path : cachePath) {
+            loadCachePath(path);
         }
     }
 
     private void loadFullPaths(final Queue<File> files) throws ExecutionException, InterruptedException {
         final List<Future<Void>> taskList = new ArrayList<>();
-        for (int i = 0; i < CPU_COUNT; i++) {
+        int thread = CPU_COUNT;
+        for (int i = 0; i < thread; i++) {
             taskList.add(executor.submit(new Callable<Void>() {
                 @Override
                 public Void call() throws Exception {
                     File file;
                     while ((file = files.poll()) != null) {
-                        loadFullClass(file);
+                        loadFullPath(file);
                     }
                     return null;
                 }
@@ -136,47 +123,52 @@ public class RouterTask {
         }
     }
 
-    private void loadCacheClass(String path) throws IOException {
+    private void loadCachePath(String path) throws IOException {
         if (path.startsWith("jar:file:")) {
-            resolveJarClass(path);
+            // class in jar file
+            resolveCachedClassInJar(path);
         } else if (path.endsWith(".class")) {
-            resolveClass(new File(path));
+            // class file
+            resolveClassFile(new File(path));
         } else if (path.endsWith(".jar")) {
-            resolveJar(new File(path));
+            // jar file added in transform
+            resolveJarFile(new File(path));
             cachePath.remove(path);
         } else {
-            throw new RuntimeException("cache dir ?");
+            throw new RuntimeException("is cached dir ?");
         }
     }
 
-    private void loadFullClass(File file) throws IOException {
+    private void loadFullPath(File file) throws IOException {
         if (file.isDirectory()) {
             File[] files = file.listFiles();
             if (files != null) {
                 for (File childFile : files) {
-                    loadFullClass(childFile);
+                    loadFullPath(childFile);
                 }
             }
         } else if (file.getName().endsWith(".class")) {
-            resolveClass(file);
+            resolveClassFile(file);
         } else if (file.getName().endsWith(".jar")) {
-            resolveJar(file);
+            resolveJarFile(file);
         }
     }
 
-    private void resolveClass(File file) throws IOException {
+    private void resolveClassFile(File file) throws IOException {
         count.incrementAndGet();
         FileInputStream stream = new FileInputStream(file);
         CtClass ctClass;
         try {
             ctClass = pool.makeClass(stream);
         } catch (Exception e) {
-            Logger.e("drouter resolve class error, file=" + file.getAbsolutePath());
+            Logger.w("drouter resolve class error," +
+                    " file=" + file.getAbsolutePath() +
+                    " exception=" + e.getMessage());
             return;
         } finally {
             stream.close();
         }
-        if (!TextUtil.excludeClass(ctClass.getName())) {
+        if (!TextUtil.excludePackageClass(ctClass.getName())) {
             if (classClassify.doClassify(ctClass)) {
                 cachePath.add(file.getAbsolutePath());
             } else if (useCache) {
@@ -185,45 +177,57 @@ public class RouterTask {
         }
     }
 
-    private void resolveJar(File file) throws IOException {
-        if (!TextUtil.excludeJarFile(file.getName())) {
+    private void resolveJarFile(File file) throws IOException {
+        if (!TextUtil.excludeJarNameFile(file.getName())) {
             JarFile jar = new JarFile(file);
             Enumeration<JarEntry> entries = jar.entries();
             while (entries.hasMoreElements()) {
                 final JarEntry entry = entries.nextElement();
                 if (entry.getName().endsWith(".class")) {
                     count.incrementAndGet();
-                    if (!TextUtil.excludeJarEntry(entry.getName())) {
+                    if (!TextUtil.excludePackageClassInJar(entry.getName())) {
                         InputStream stream = jar.getInputStream(entry);
                         String path = "jar:file:" + file.getAbsolutePath() + "!/" + entry.getName();
                         CtClass clz;
                         try {
                             clz = pool.makeClass(stream);
                         } catch (Exception e) {
-                            Logger.e("drouter resolve jar error," +
+                            Logger.w("drouter resolve jar class error," +
                                     " jar=" + file.getAbsolutePath() +
-                                    " entry=" + entry.getName());
+                                    " entry=" + entry.getName() +
+                                    " exception=" + e.getMessage());
                             continue;
                         } finally {
                             stream.close();
                         }
                         if (classClassify.doClassify(clz)) {
                             cachePath.add(path);
+                        } else if (useCache) {
+                            cachePath.remove(path);
                         }
-                        // no need to remove, as removed by handleJar
                     }
                 }
             }
         }
     }
 
-    private void resolveJarClass(String path) throws IOException {
+    private void resolveCachedClassInJar(String path) throws IOException {
         count.incrementAndGet();
         InputStream stream = new URL(path).openStream();
-        if (!classClassify.doClassify(pool.makeClass(stream))) {
+        CtClass ctClass;
+        try {
+            ctClass = pool.makeClass(stream);
+        } catch (Exception e) {
+            Logger.e("drouter resolve jar class error," +
+                    " entry=" + path +
+                    " exception=" + e.getMessage());
+            return;
+        } finally {
+            stream.close();
+        }
+        if (!classClassify.doClassify(ctClass)) {
             cachePath.remove(path);
         }
-        stream.close();
     }
     
 
