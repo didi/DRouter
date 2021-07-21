@@ -6,6 +6,4 @@ package com.didi.drouter.store;
 public interface IRegister {
 
     void unregister();
-
-    boolean isSuccess();
 }

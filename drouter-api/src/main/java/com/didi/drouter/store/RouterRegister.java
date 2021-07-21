@@ -16,30 +16,19 @@ public class RouterRegister implements IRegister {
     private ServiceKey<?> serviceKey;
     private Object service;
 
-    private final boolean isSuccess;
-
-    public RouterRegister(RouterKey uriKey, IRouterHandler handler, boolean isSuccess) {
+    public RouterRegister(RouterKey uriKey, IRouterHandler handler) {
         this.uriKey = uriKey;
         this.handler = handler;
-        this.isSuccess = isSuccess;
     }
 
-    public RouterRegister(ServiceKey<?> key, Object service, boolean isSuccess) {
+    public RouterRegister(ServiceKey<?> key, Object service) {
         this.serviceKey = key;
         this.service = service;
-        this.isSuccess = isSuccess;
     }
 
     @Override
     public void unregister() {
-        if (isSuccess) {
-            RouterStore.unregister(uriKey, handler);
-            RouterStore.unregister(serviceKey, service);
-        }
-    }
-
-    @Override
-    public boolean isSuccess() {
-        return isSuccess;
+        RouterStore.unregister(uriKey, handler);
+        RouterStore.unregister(serviceKey, service);
     }
 }

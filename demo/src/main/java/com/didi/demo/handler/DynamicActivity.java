@@ -42,9 +42,7 @@ public class DynamicActivity extends AppCompatActivity {
                     }
                 });
 
-        if (iRegister1.isSuccess() && iRegister2.isSuccess()) {
-            RouterLogger.toast("动态注册成功");
-        }
+        RouterLogger.toast("动态注册成功");
 
         findViewById(R.id.click_handler).setOnClickListener(new View.OnClickListener() {
             @Override
