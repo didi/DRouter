@@ -14,8 +14,8 @@ buildscript {
         classpath 'com.android.tools.build:gradle:3.2.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
 
-        // DRouter plugin
-        classpath 'io.github.didi:drouter-plugin-proxy:1.0.0'
+        // DRouter Plugin
+        classpath 'io.github.didi:drouter-plugin-proxy:1.0.1'
     }
 }
 

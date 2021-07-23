@@ -6,14 +6,10 @@ dependencies {
 
     implementation gradleApi()
     implementation localGroovy()
-    implementation 'org.javassist:javassist:3.18.2-GA'
+    implementation 'org.javassist:javassist:3.28.0-GA'
     //noinspection GradleDependency
     compileOnly 'com.android.tools.build:gradle:3.2.1'
 }
-
-
-sourceCompatibility = "1.7"
-targetCompatibility = "1.7"
 
 task sourcesJar(type: Jar) {
     classifier = 'sources'
@@ -23,7 +19,7 @@ artifacts {
     archives sourcesJar
 }
 
-version = '1.0.0'
+version = '1.0.1'
 
 jar {
     manifest {

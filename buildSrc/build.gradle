@@ -11,7 +11,7 @@
 //
 //    implementation gradleApi()
 //    implementation localGroovy()
-//    implementation 'org.javassist:javassist:3.18.2-GA'
+//    implementation 'org.javassist:javassist:3.28.0-GA'
 //    implementation 'com.android.tools.build:gradle:3.2.1'
 //}
 //
