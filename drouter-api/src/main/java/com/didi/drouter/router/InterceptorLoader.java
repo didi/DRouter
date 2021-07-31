@@ -1,8 +1,8 @@
 package com.didi.drouter.router;
 
-import android.support.annotation.NonNull;
-import android.support.v4.util.ArrayMap;
-import android.support.v4.util.ArraySet;
+import androidx.annotation.NonNull;
+import androidx.collection.ArrayMap;
+import androidx.collection.ArraySet;
 
 import com.didi.drouter.api.Extend;
 import com.didi.drouter.store.RouterMeta;

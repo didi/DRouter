@@ -1,6 +1,6 @@
 package com.didi.drouter.store;
 
-import android.support.annotation.RestrictTo;
+import androidx.annotation.RestrictTo;
 
 import java.util.Collections;
 import java.util.Map;

@@ -1,6 +1,7 @@
 package com.didi.drouter.store;
 
-import android.support.annotation.RestrictTo;
+
+import androidx.annotation.RestrictTo;
 
 import com.didi.drouter.router.IRouterHandler;
 

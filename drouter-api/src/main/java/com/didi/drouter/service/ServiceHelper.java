@@ -1,6 +1,7 @@
 package com.didi.drouter.service;
 
-import android.support.annotation.RestrictTo;
+
+import androidx.annotation.RestrictTo;
 
 import com.didi.drouter.store.IRouterProxy;
 

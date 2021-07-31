@@ -1,19 +1,20 @@
 package com.didi.drouter.page;
 
 import android.annotation.SuppressLint;
-import android.arch.lifecycle.Lifecycle;
-import android.arch.lifecycle.LifecycleObserver;
-import android.arch.lifecycle.LifecycleOwner;
-import android.arch.lifecycle.OnLifecycleEvent;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
-import android.support.v4.util.ArraySet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.collection.ArraySet;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.LifecycleObserver;
+import androidx.lifecycle.LifecycleOwner;
+import androidx.lifecycle.OnLifecycleEvent;
 
 import com.didi.drouter.api.DRouter;
 import com.didi.drouter.router.Result;
@@ -29,7 +30,6 @@ public abstract class RouterPageAbs implements IPageRouter {
 
     private Set<IPageObserver> observers = new ArraySet<>();
     private IPageBean currentPage = new IPageBean.EmptyPageBean();
-    protected Bundle bundle = new Bundle();
     // for stick
     private IPageBean lastPage = new IPageBean.EmptyPageBean();
     private int lastChangeType;
@@ -89,7 +89,7 @@ public abstract class RouterPageAbs implements IPageRouter {
         currentPage = toUri;
     }
 
-    protected @NonNull Fragment newFragment(String uri) {
+    protected @NonNull Fragment createFragment(String uri) {
         final Fragment[] fragments = {null};
         DRouter.build(uri).start(null, new RouterCallback() {
             @Override
@@ -123,7 +123,7 @@ public abstract class RouterPageAbs implements IPageRouter {
         @SuppressLint("SetTextI18n")
         @Nullable
         @Override
-        public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
+        public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                                  @Nullable Bundle savedInstanceState) {
             TextView textView = new TextView(getContext());
             textView.setText("RouterEmptyFragment");

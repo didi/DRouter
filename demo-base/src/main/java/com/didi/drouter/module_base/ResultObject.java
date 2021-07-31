@@ -1,6 +1,7 @@
 package com.didi.drouter.module_base;
 
-import android.support.annotation.Keep;
+
+import androidx.annotation.Keep;
 
 @Keep
 public class ResultObject {

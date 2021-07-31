@@ -2,9 +2,10 @@ package com.didi.drouter.router;
 
 import android.os.Bundle;
 import android.os.Parcelable;
-import android.support.annotation.NonNull;
-import android.support.v4.util.ArrayMap;
 import android.util.SparseArray;
+
+import androidx.annotation.NonNull;
+import androidx.collection.ArrayMap;
 
 import java.io.Serializable;
 import java.util.ArrayList;

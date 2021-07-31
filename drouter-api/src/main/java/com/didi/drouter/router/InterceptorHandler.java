@@ -1,6 +1,6 @@
 package com.didi.drouter.router;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import com.didi.drouter.store.RouterMeta;
 import com.didi.drouter.store.RouterStore;

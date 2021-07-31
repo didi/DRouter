@@ -5,9 +5,10 @@ import android.app.ActivityManager;
 import android.app.Application;
 import android.content.Context;
 import android.os.Build;
-import android.support.annotation.RestrictTo;
 import android.text.TextUtils;
 import android.util.Log;
+
+import androidx.annotation.RestrictTo;
 
 import com.didi.drouter.api.DRouter;
 

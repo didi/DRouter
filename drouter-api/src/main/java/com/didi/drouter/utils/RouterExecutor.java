@@ -2,7 +2,8 @@ package com.didi.drouter.utils;
 
 import android.os.Handler;
 import android.os.Looper;
-import android.support.annotation.RestrictTo;
+
+import androidx.annotation.RestrictTo;
 
 import com.didi.drouter.api.Extend;
 

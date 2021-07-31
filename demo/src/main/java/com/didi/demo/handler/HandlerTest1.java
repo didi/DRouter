@@ -1,6 +1,6 @@
 package com.didi.demo.handler;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import com.didi.drouter.annotation.Router;
 import com.didi.drouter.router.IRouterHandler;

@@ -1,6 +1,6 @@
 package com.didi.drouter.api;
 
-import android.support.annotation.IntDef;
+import androidx.annotation.IntDef;
 
 import com.didi.drouter.router.RouterCallback;
 

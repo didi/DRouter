@@ -1,8 +1,8 @@
 package com.didi.drouter.router;
 
 import android.content.Intent;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 /**
  * Created by gaowei on 2018/9/5

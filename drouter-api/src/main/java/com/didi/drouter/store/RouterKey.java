@@ -1,7 +1,8 @@
 package com.didi.drouter.store;
 
-import android.arch.lifecycle.LifecycleOwner;
 import android.net.Uri;
+
+import androidx.lifecycle.LifecycleOwner;
 
 import com.didi.drouter.api.Extend;
 import com.didi.drouter.router.IRouterInterceptor;
