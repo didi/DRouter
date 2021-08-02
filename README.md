@@ -3,7 +3,7 @@
 <div align="center">
  <img src="https://img.shields.io/badge/license-Apache2.0-brightgreen.svg" align=left />
  <img src="https://img.shields.io/badge/drouter--plugin--proxy-1.0.1-red.svg" align=left />
- <img src="https://img.shields.io/badge/drouter--api-1.0.9-blue.svg" align=left />
+ <img src="https://img.shields.io/badge/drouter--api-2.0.0-blue.svg" align=left />
  <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" align=left />
 </div>
 <br/>
@@ -27,6 +27,7 @@ DRouter是滴滴乘客端自研的一套Android路由框架，基于平台化解
 - 跨进程访问无需提前绑定、如同本地调用一样进行访问
 - 支持客户端进程和服务端进程自动重连
 - 支持VirtualApk
+- 适配AndroidX
 
 ### 技术特点
 1. 插件支持增量编译、多线程扫描、以及运行时异步加载路由表，尽其所能提高效率
@@ -53,7 +54,7 @@ Page | 支持单Page、栈Page、ViewPager三种形式的Fragment加载
 ``` java
 /** 最新版本 **/
 classpath "io.github.didi:drouter-plugin-proxy:1.0.1"
-api "io.github.didi:drouter-api:1.0.9"
+api "io.github.didi:drouter-api:2.0.0"
 ```
 
 ## 微信交流群
