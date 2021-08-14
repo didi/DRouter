@@ -8,6 +8,8 @@ import org.gradle.api.Project
  */
 class SystemUtil {
 
+    static boolean debug
+
     static void confirm(Project project) {
         if (!project.plugins.hasPlugin(AppPlugin)) {
             throw new RuntimeException("DRouterPlugin: please apply \'com.android.application\' first")

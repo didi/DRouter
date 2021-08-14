@@ -90,7 +90,7 @@ class RouterCollect extends AbsRouterCollect {
                         type = "com.didi.drouter.store.RouterMeta.HANDLER";
                     } else {
                         throw new Exception("@Router target class illegal, " +
-                                "support only Activity/v4.Fragment/View/IRouterHandler");
+                                "support only Activity/Fragment/View/IRouterHandler");
                     }
                 } else {
                     pathValue = "/" + routerCc.getName().replace(".", "/").toLowerCase();

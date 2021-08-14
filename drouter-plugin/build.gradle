@@ -20,6 +20,7 @@ artifacts {
 }
 
 version = '1.0.6'
+// latest test version: 1.0.6.0.0.2
 
 jar {
     manifest {

@@ -1,6 +1,7 @@
 package com.didi.drouter.generator;
 
 import com.didi.drouter.plugin.RouterSetting;
+import com.didi.drouter.utils.Logger;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -27,6 +28,9 @@ public class ClassClassify {
         for (int i = 0; i < classifies.size(); i++) {
             AbsRouterCollect cf = classifies.get(i);
             take = cf.collect(ct) || take;
+        }
+        if (take) {
+            Logger.d("  == router class: " + ct.getName());
         }
         return take;
     }

@@ -53,7 +53,7 @@ class RouterTransform extends Transform {
     @Override
     void transform(TransformInvocation invocation) throws TransformException, InterruptedException, IOException {
         long timeStart = System.currentTimeMillis()
-        Logger.debug = project.drouter.debug
+        SystemUtil.debug = project.drouter.debug
         boolean configChanged = SystemUtil.configChanged(project)
         boolean readCache = invocation.incremental && project.drouter.cache && cacheFile.exists() && !configChanged
         Logger.v("DRouterTask start"

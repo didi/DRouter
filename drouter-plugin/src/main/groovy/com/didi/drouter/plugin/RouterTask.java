@@ -4,6 +4,7 @@ import com.didi.drouter.generator.ClassClassify;
 import com.didi.drouter.utils.JarUtils;
 import com.didi.drouter.utils.Logger;
 import com.didi.drouter.utils.StoreUtil;
+import com.didi.drouter.utils.SystemUtil;
 import com.didi.drouter.utils.TextUtil;
 
 import org.gradle.api.GradleException;
@@ -99,27 +100,35 @@ public class RouterTask {
     private void loadCachePaths(final Set<String> cachePath) throws IOException {
         // multi-thread for entry class of same jar may conflict
         for (String path : cachePath) {
+            Logger.d("file: " + path);
             loadCachePath(path);
         }
     }
 
-    private void loadFullPaths(final Queue<File> files) throws ExecutionException, InterruptedException {
-        final List<Future<Void>> taskList = new ArrayList<>();
-        int thread = CPU_COUNT;
-        for (int i = 0; i < thread; i++) {
-            taskList.add(executor.submit(new Callable<Void>() {
-                @Override
-                public Void call() throws Exception {
-                    File file;
-                    while ((file = files.poll()) != null) {
-                        loadFullPath(file);
+    private void loadFullPaths(final Queue<File> files) throws ExecutionException, InterruptedException, IOException {
+        if (!SystemUtil.isDebug()) {
+            final List<Future<Void>> taskList = new ArrayList<>();
+            int thread = CPU_COUNT;
+            for (int i = 0; i < thread; i++) {
+                taskList.add(executor.submit(new Callable<Void>() {
+                    @Override
+                    public Void call() throws Exception {
+                        File file;
+                        while ((file = files.poll()) != null) {
+                            loadFullPath(file);
+                        }
+                        return null;
                     }
-                    return null;
-                }
-            }));
-        }
-        for (Future<Void> task : taskList) {
-            task.get();
+                }));
+            }
+            for (Future<Void> task : taskList) {
+                task.get();
+            }
+        } else {
+            for (File file : files) {
+                Logger.d("path: " + file.getAbsolutePath());
+                loadFullPath(file);
+            }
         }
     }
 
