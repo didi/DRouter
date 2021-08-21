@@ -91,6 +91,8 @@ class RouterCollect extends AbsRouterCollect {
                     } else if (checkSuper(routerCc, "com.didi.drouter.router.IRouterHandler")) {
                         type = "com.didi.drouter.store.RouterMeta.HANDLER";
                     } else {
+                        Logger.e("start check super: " + routerCc.getName());
+                        checkSuper(routerCc, true);
                         throw new Exception("@Router target class illegal, " +
                                 "support only Activity/Fragment/View/IRouterHandler");
                     }

@@ -1,6 +1,7 @@
 package com.didi.drouter.generator;
 
 import com.didi.drouter.plugin.RouterSetting;
+import com.didi.drouter.utils.Logger;
 import com.didi.drouter.utils.StoreUtil;
 import com.didi.drouter.utils.TextUtil;
 
@@ -160,25 +161,38 @@ abstract class AbsRouterCollect {
     // check all super class and interface, include self
     // As long as any of the super ct contains classNames return yes.
     boolean checkSuper(CtClass ct, String... classNames) {
+        return checkSuper(ct, false, classNames);
+    }
+
+    boolean checkSuper(CtClass ct, boolean log, String... classNames) {
         try {
             while (ct != null) {
+                if (log) {
+                    Logger.e("  checkSuper: " + ct.getName());
+                }
                 if (match(ct, classNames)) {   //self
                     return true;
                 }
-                if (checkInterface(ct, classNames)) {
+                if (checkInterface(ct, log, classNames)) {
                     return true;
                 }
                 ct = ct.getSuperclass();
             }
         } catch (NotFoundException e) {
             // ignore
+            if (log) {
+                Logger.e("NotFoundException: " + ct.getName() + " " + e.getMessage());
+            }
         }
         return false;
     }
 
     // ct can be class or interface, include self, tree
-    private boolean checkInterface(CtClass ct, String... classNames) {
+    private boolean checkInterface(CtClass ct, boolean log, String... classNames) {
         if (ct == null) {
+            if (log) {
+                Logger.e("ct == null");
+            }
             return false;
         }
         if (match(ct, classNames)) {
@@ -186,13 +200,19 @@ abstract class AbsRouterCollect {
         }
         try {
             for (CtClass superInterface : ct.getInterfaces()) {
-                boolean r = checkInterface(superInterface, classNames);
+                if (log) {
+                    Logger.e("    checkInterface: " + superInterface.getName());
+                }
+                boolean r = checkInterface(superInterface, log, classNames);
                 if (r) {
                     return true;
                 }
             }
         } catch (NotFoundException e) {
             // ignore
+            if (log) {
+                Logger.e("NotFoundException: " + ct.getName() + " " + e.getMessage());
+            }
         }
         return false;
     }

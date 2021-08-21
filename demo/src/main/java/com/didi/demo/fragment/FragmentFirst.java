@@ -21,7 +21,7 @@ import com.didi.drouter.utils.RouterLogger;
  * Created by gaowei on 2018/8/31
  */
 @Router(path = "/fragment/first/.*")
-public class FragmentFirst extends Fragment {
+public class FragmentFirst extends Fragment implements Cloneable {
 
     private String name;
 
