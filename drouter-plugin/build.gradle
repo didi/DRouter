@@ -19,7 +19,7 @@ artifacts {
     archives sourcesJar
 }
 
-version = '1.0.6'
+version = '1.0.7'
 // latest test version: 1.0.6.0.0.2
 
 jar {
