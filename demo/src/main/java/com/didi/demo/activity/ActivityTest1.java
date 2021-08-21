@@ -10,7 +10,7 @@ import com.didi.drouter.annotation.Router;
 import com.didi.drouter.api.Extend;
 import com.didi.drouter.demo.R;
 
-@Router(path = "/activity/Test1_<Arg1>_<Arg2>",
+@Router(uri = "/activity/Test1_<Arg1>_<Arg2>",
         interceptorName = {"interceptor1", "interceptor2"},
         interceptor = {OutClass.InnerInterceptor.class})
 public class ActivityTest1 extends AppCompatActivity {

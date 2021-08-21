@@ -99,8 +99,9 @@ public class RouterTask {
 
     private void loadCachePaths(final Set<String> cachePath) throws IOException {
         // multi-thread for entry class of same jar may conflict
+        Logger.d("start load class:");
         for (String path : cachePath) {
-            Logger.d("file: " + path);
+            Logger.d("  file: " + path);
             loadCachePath(path);
         }
     }
@@ -125,8 +126,9 @@ public class RouterTask {
                 task.get();
             }
         } else {
+            Logger.d("start load class:");
             for (File file : files) {
-                Logger.d("path: " + file.getAbsolutePath());
+                Logger.d("  path: " + file.getAbsolutePath());
                 loadFullPath(file);
             }
         }

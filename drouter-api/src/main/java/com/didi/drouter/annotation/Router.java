@@ -22,8 +22,13 @@ import java.lang.annotation.Target;
 public @interface Router {
 
     /**
-     * Ignore case, all will be transformed to low case.
-     * scheme, host, path support RegExp.
+     * RegExp support.
+     * uri can be combination of [scheme]://[host][path].
+     */
+    String uri() default "";
+
+    /**
+     * RegExp support.
      * If you want to match all strings, please use ".*", as setting to "" means support "" only.
      */
     String scheme() default "";
@@ -35,9 +40,8 @@ public @interface Router {
 
     /**
      * Same as scheme.
-     * In particular, if path is not RegExp, must use "/" to start.
      */
-    String path();
+    String path() default "";
 
     /**
      * Assign interceptors.

@@ -3,6 +3,7 @@ package com.didi.drouter.router;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.net.Uri;
 import android.os.Parcelable;
 import android.util.SparseArray;
 
@@ -146,11 +147,11 @@ class RouterLoader {
     @NonNull
     private List<RouterMeta> getAllRouterMetas() {
         List<RouterMeta> output = new ArrayList<>();
-        List<RouterMeta> routerMetas = new ArrayList<>(RouterStore.getRouterMetas(TextUtils.getUriKey(primaryRequest.getUri())));
+        List<RouterMeta> routerMetas = new ArrayList<>(RouterStore.getRouterMetas(primaryRequest.getUri()));
         String schemeHost = primaryRequest.getString(Extend.START_ACTIVITY_WITH_DEFAULT_SCHEME_HOST);
         if (!TextUtils.isEmpty(schemeHost) && primaryRequest.getUri().toString().startsWith(schemeHost.toLowerCase())) {
             Set<RouterMeta> degradeMetas =
-                    RouterStore.getRouterMetas(TextUtils.getUriKey(primaryRequest.getUri().getPath()));
+                    RouterStore.getRouterMetas(Uri.parse(primaryRequest.getUri().getPath()));
             for (RouterMeta meta : degradeMetas) {
                 if (meta.getRouterType() == RouterType.ACTIVITY) {
                     routerMetas.add(meta);

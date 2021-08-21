@@ -30,7 +30,7 @@ public class ClassClassify {
             take = cf.collect(ct) || take;
         }
         if (take) {
-            Logger.d("  == router class: " + ct.getName());
+            Logger.d("    == router class: " + ct.getName());
         }
         return take;
     }

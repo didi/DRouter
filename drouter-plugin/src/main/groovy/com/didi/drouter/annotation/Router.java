@@ -12,11 +12,13 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.CLASS)
 public @interface Router {
 
+    String uri() default "";
+
     String scheme() default "";
 
     String host() default "";
 
-    String path();
+    String path() default "";
 
     Class[] interceptor() default {};
 

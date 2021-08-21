@@ -57,21 +57,23 @@ class RouterCollect extends AbsRouterCollect {
         ctClass.setSuperclass(superClass);
 
         StringBuilder builder = new StringBuilder();
-        builder.append("\npublic void load(java.util.Map data) {\n");
+        builder.append("public void load(java.util.Map data) {\n");
         for (CtClass routerCc : routerClass.values()) {
             try {
                 StringBuilder interceptorClass = null;
                 StringBuilder interceptorName = null;
 
+                String uriValue = "";
                 String schemeValue = "";
                 String hostValue = "";
-                String pathValue;
+                String pathValue = "";
                 Annotation annotation = null;
                 String type;
                 int thread = 0;
                 int priority = 0;
                 boolean hold = false;
                 if (routerCc.hasAnnotation(Router.class)) {
+                    uriValue = ((Router) routerCc.getAnnotation(Router.class)).uri();
                     schemeValue = ((Router) routerCc.getAnnotation(Router.class)).scheme();
                     hostValue = ((Router) routerCc.getAnnotation(Router.class)).host();
                     pathValue = ((Router) routerCc.getAnnotation(Router.class)).path();
@@ -97,15 +99,23 @@ class RouterCollect extends AbsRouterCollect {
                     type = "com.didi.drouter.store.RouterMeta.ACTIVITY";
                 }
                 if (isNonStaticInnerClass(routerCc)) {
-                    throw new Exception("Annotation can not use non static inner class");
+                    throw new Exception("@Router can not use non static inner class");
+                }
+                if (!uriValue.isEmpty()) {
+                    if (!schemeValue.isEmpty() || !hostValue.isEmpty() || !pathValue.isEmpty()) {
+                        throw new Exception("@Router uri can be used alone");
+                    }
+                    schemeValue = parseScheme(uriValue);
+                    hostValue = parseHost(uriValue);
+                    pathValue = parsePath(uriValue);
                 }
                 if (schemeValue.contains("/") || hostValue.contains("/")) {
-                    throw new Exception("scheme and host can't use \"/\"");
+                    throw new Exception("@Router scheme and host can't use \"/\"");
                 }
-                boolean isPathRegex = isAnyRegex(pathValue);
-                if (!isPathRegex && !"".equals(pathValue) && !pathValue.startsWith("/")) {
-                    throw new Exception("please make sure path start with \"/\"");
-                }
+//                if (!isRegex(pathValue) && !pathValue.isEmpty() && !pathValue.startsWith("/")) {
+//                    throw new Exception("@Router path must start with \"/\"");
+//                }
+
                 // because of Escape character, \ will drop one, \\\\->\\, \\->empty(can't be one)
                 schemeValue = schemeValue.replace("\\", "\\\\");
                 hostValue = hostValue.replace("\\", "\\\\");
@@ -203,13 +213,13 @@ class RouterCollect extends AbsRouterCollect {
                 metaBuilder.append(hold);
                 metaBuilder.append(")");
 
-                String uri = schemeValue + "://" + hostValue + pathValue;
+                String uri = schemeValue + "@@" + hostValue + "$$" + pathValue;
                 if (!isPlaceholderLegal(schemeValue, hostValue, pathValue)) {
                     throw new Exception("\"" + uri + "\" on " + routerCc.getName() +
                             "\ncan't use regex outside placeholder <>," +
                             "\nand must be unique legal identifier inside placeholder <>");
                 }
-                boolean isAnyRegex = isAnyRegex(schemeValue, hostValue, pathValue);
+                boolean isAnyRegex = isRegex(schemeValue, hostValue, pathValue);
                 if (isAnyRegex) {
                     items.add("    put(\"" + uri + "\", " + metaBuilder + ", data); \n");
                     //builder.append("    put(\"").append(uri).append("\", ").append(metaBuilder).append(", data); \n");
@@ -233,7 +243,7 @@ class RouterCollect extends AbsRouterCollect {
         }
         builder.append("}");
 
-        Logger.d(builder.toString());
+        Logger.d("\nclass RouterLoader" + "\n" + builder.toString());
         generatorClass(routerDir, ctClass, builder.toString());
     }
 
@@ -246,7 +256,7 @@ class RouterCollect extends AbsRouterCollect {
         return r;
     }
 
-    private boolean isAnyRegex(String... strings) {
+    private boolean isRegex(String... strings) {
         for (String string : strings) {
             if (!pattern.matcher(string).matches()) {
                 return true;
@@ -285,16 +295,41 @@ class RouterCollect extends AbsRouterCollect {
         return true;
     }
 
-    private String schemeToRouter(String[] strings) {
-        if (strings.length > 0) {
-            StringBuilder result = new StringBuilder();
-            for (String string : strings) {
-                result.append(string.toLowerCase()).append("|");
-            }
-            result.deleteCharAt(result.length() - 1);
-            return result.toString();
+    private static String parseScheme(String uriString) {
+        int index = uriString.indexOf("://");
+        if (index != -1) {
+            return uriString.substring(0, index);
+        } else {
+            return "";
         }
-        return ".*";
     }
 
+    private static String parseHost(String uriString) {
+        int index = uriString.indexOf("://");
+        if (index != -1) {
+            uriString = uriString.substring(index + 3);
+            index = uriString.indexOf("/");
+            if (index != -1) {
+                uriString = uriString.substring(0, index);
+            }
+            return uriString;
+        } else {
+            return "";
+        }
+    }
+
+    private static String parsePath(String uriString) {
+        int index = uriString.indexOf("://");
+        if (index != -1) {
+            uriString = uriString.substring(index + 3);
+            index = uriString.indexOf("/");
+            if (index != -1) {
+                return uriString.substring(index);
+            } else {
+                return "";
+            }
+        } else {
+            return uriString;
+        }
+    }
 }

@@ -45,7 +45,7 @@ class InterceptorCollect extends AbsRouterCollect {
         ctClass.setSuperclass(superClass);
 
         StringBuilder builder = new StringBuilder();
-        builder.append("\npublic void load(java.util.Map data) {\n");
+        builder.append("public void load(java.util.Map data) {\n");
         for (CtClass interceptorCc : interceptorClass.values()) {
             try {
                 if (isNonStaticInnerClass(interceptorCc)) {
@@ -127,7 +127,7 @@ class InterceptorCollect extends AbsRouterCollect {
         }
         builder.append("}");
 
-        Logger.d(builder.toString());
+        Logger.d("\nclass InterceptorLoader" + "\n" + builder.toString());
         generatorClass(routerDir, ctClass, builder.toString());
     }
 

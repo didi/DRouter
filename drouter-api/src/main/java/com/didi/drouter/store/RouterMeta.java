@@ -80,9 +80,9 @@ public class RouterMeta {
                                      Class<? extends IRouterInterceptor>[] interceptors,
                                      String[] interceptorNames,
                                      int thread, int priority, boolean hold) {
-        this.scheme = scheme;
-        this.host = host;
-        this.path = path;
+        this.scheme = TextUtils.getNonNull(scheme);
+        this.host = TextUtils.getNonNull(host);
+        this.path = TextUtils.getNonNull(path);
         this.activityName = routerClassName;
         this.routerProxy = routerProxy;
         this.interceptors = interceptors;
@@ -99,9 +99,9 @@ public class RouterMeta {
                                      Class<? extends IRouterInterceptor>[] interceptors,
                                      String[] interceptorNames,
                                      int thread, int priority, boolean hold) {
-        this.scheme = scheme;
-        this.host = host;
-        this.path = path;
+        this.scheme = TextUtils.getNonNull(scheme);
+        this.host = TextUtils.getNonNull(host);
+        this.path = TextUtils.getNonNull(path);
         this.routerClass = routerClass;
         this.routerProxy = routerProxy;
         this.interceptors = interceptors;
@@ -208,9 +208,9 @@ public class RouterMeta {
     // whether request uri match fuzzy meta,
     // when any of scheme host path in meta(@Router or RouterKey) contains regex or placeholder
     public boolean isRegexMatch(Uri uri) {
-        String s = uri.getScheme();
-        String h = uri.getHost();
-        String p = uri.getPath();
+        String s = TextUtils.getNonNull(uri.getScheme());
+        String h = TextUtils.getNonNull(uri.getHost());
+        String p = TextUtils.getNonNull(uri.getPath());
         // placeholder to match, placeholder can not match part with /
         String schemeRegex = hasPlaceholder(0, scheme) ?
                 scheme.replaceAll(PLACE_HOLDER_REGEX, "[^/]*") : scheme;
@@ -296,10 +296,6 @@ public class RouterMeta {
         RouterLogger.getCoreLogger().e(
                 "inject place holder error, annoPart=%s, uriPart=%s", oriAnno, oriUri);
         return false;
-    }
-
-    public String getLegalUri() {
-        return scheme + "://" + host + path;
     }
 
     public IRouterHandler getHandler() {

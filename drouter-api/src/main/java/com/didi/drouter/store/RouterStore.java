@@ -18,6 +18,7 @@ import com.didi.drouter.loader.host.ServiceLoader;
 import com.didi.drouter.router.IRouterHandler;
 import com.didi.drouter.utils.ReflectUtil;
 import com.didi.drouter.utils.RouterLogger;
+import com.didi.drouter.utils.TextUtils;
 
 import java.util.Collections;
 import java.util.Map;
@@ -131,7 +132,7 @@ public class RouterStore {
         check();
         Set<RouterMeta> result = new ArraySet<>();
         // exact match
-        Object o = routerMetas.get(uriKey.toString());
+        Object o = routerMetas.get(TextUtils.getStandardRouterKey(uriKey));
         if (o instanceof RouterMeta) {
             result.add((RouterMeta) o);
         }
@@ -181,9 +182,9 @@ public class RouterStore {
                 regexMap = new ConcurrentHashMap<>();
                 routerMetas.put(REGEX_ROUTER, regexMap);
             }
-            regexMap.put(meta.getLegalUri(), meta);
+            regexMap.put(TextUtils.getStandardRouterKey(key.uri), meta);
         } else {
-            routerMetas.put(meta.getLegalUri(), meta);
+            routerMetas.put(TextUtils.getStandardRouterKey(key.uri), meta);
         }
         if (key.lifecycleOwner != null) {
             key.lifecycleOwner.getLifecycle().addObserver(new LifecycleObserver() {
@@ -194,7 +195,7 @@ public class RouterStore {
             });
         }
         RouterLogger.getCoreLogger().d("register \"%s\" with handler \"%s\" success",
-                meta.getLegalUri(), handler.getClass().getSimpleName());
+                TextUtils.getStandardRouterKey(key.uri), handler.getClass().getSimpleName());
         return new RouterRegister(key, handler);
     }
 
@@ -209,20 +210,20 @@ public class RouterStore {
             if (meta.isRegexUri()) {
                 Map<String, RouterMeta> regexMap = (Map<String, RouterMeta>) routerMetas.get(REGEX_ROUTER);
                 if (regexMap != null) {
-                    RouterMeta curMeta = regexMap.get(meta.getLegalUri());
+                    RouterMeta curMeta = regexMap.get(TextUtils.getStandardRouterKey(key.uri));
                     if (curMeta != null && curMeta.getHandler() == handler) {
-                        success = regexMap.remove(meta.getLegalUri()) != null;
+                        success = regexMap.remove(TextUtils.getStandardRouterKey(key.uri)) != null;
                     }
                 }
             } else {
-                RouterMeta curMeta = (RouterMeta) routerMetas.get(meta.getLegalUri());
+                RouterMeta curMeta = (RouterMeta) routerMetas.get(TextUtils.getStandardRouterKey(key.uri));
                 if (curMeta != null && curMeta.getHandler() == handler) {
-                    success = routerMetas.remove(meta.getLegalUri()) != null;
+                    success = routerMetas.remove(TextUtils.getStandardRouterKey(key.uri)) != null;
                 }
             }
             if (success) {
                 RouterLogger.getCoreLogger().d("unregister \"%s\" with handler \"%s\" success",
-                        meta.getLegalUri(), handler.getClass().getSimpleName());
+                        TextUtils.getStandardRouterKey(key.uri), handler.getClass().getSimpleName());
             }
         }
     }

@@ -57,7 +57,7 @@ public class ServiceCollect extends AbsRouterCollect {
         ctClass.setSuperclass(superClass);
 
         StringBuilder builder = new StringBuilder();
-        builder.append("\npublic void load(java.util.Map data) {\n");
+        builder.append("public void load(java.util.Map data) {\n");
 
         CtClass featureInterface = pool.get("com.didi.drouter.service.IFeatureMatcher");
 
@@ -158,7 +158,7 @@ public class ServiceCollect extends AbsRouterCollect {
                             completeMatchMethod(serviceCc, featureCc, featureBuilder);
 
                             featureBuilder.append(";\n}");
-                            Logger.d(featureBuilder.toString());
+//                            Logger.d(featureBuilder.toString());
                             generatorClass(routerDir, featureMatchCc, featureBuilder.toString());
                         }
                     }
@@ -271,7 +271,7 @@ public class ServiceCollect extends AbsRouterCollect {
         }
         builder.append("}");
 
-        Logger.d(builder.toString());
+        Logger.d("\nclass ServiceLoader" + "\n" + builder.toString());
         generatorClass(routerDir, ctClass, builder.toString());
     }
 

@@ -22,20 +22,14 @@ public class TextUtils {
         return str == null || str.length() == 0;
     }
 
-    // UriKey and with "://"
-    public static @NonNull Uri getUriKey(String uri) {
-        if (uri == null) return Uri.parse("://");
-        return getUriKey(Uri.parse(uri));
+    public static @NonNull String getStandardRouterKey(Uri uri) {
+        if (uri == null) return "@@$$";
+        return getNonNull(uri.getScheme()) + "@@" +
+                getNonNull(uri.getHost()) + "$$" +
+                getNonNull(uri.getPath());
     }
 
-    public static @NonNull Uri getUriKey(Uri uri) {
-        if (uri == null) return Uri.parse("://");
-        return Uri.parse(getNonNull(uri.getScheme()) + "://" +
-                getNonNull(uri.getHost()) +
-                getNonNull(uri.getPath()));
-    }
-
-    private static String getNonNull(String content) {
+    public static String getNonNull(String content) {
         return content == null ? "" : content;
     }
 
@@ -59,7 +53,7 @@ public class TextUtils {
         return getQuery(rawUri.toString());
     }
 
-    public static @NonNull Map<String, String> getQuery(String rawUri) {
+    private static @NonNull Map<String, String> getQuery(String rawUri) {
         if (rawUri == null) {
             return Collections.emptyMap();
         }

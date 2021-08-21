@@ -6,7 +6,6 @@ import androidx.lifecycle.LifecycleOwner;
 
 import com.didi.drouter.api.Extend;
 import com.didi.drouter.router.IRouterInterceptor;
-import com.didi.drouter.utils.TextUtils;
 
 /**
  * Created by gaowei on 2019/1/31
@@ -24,7 +23,7 @@ public class RouterKey {
 
     public static RouterKey build(String uri) {
         RouterKey key = new RouterKey();
-        key.uri = TextUtils.getUriKey(uri);
+        key.uri = Uri.parse(uri);
         return key;
     }
 
