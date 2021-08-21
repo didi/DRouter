@@ -219,6 +219,7 @@ public class RouterTask {
                     }
                 }
             }
+            jar.close();
         }
     }
 

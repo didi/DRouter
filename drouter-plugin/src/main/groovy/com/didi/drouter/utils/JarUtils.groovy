@@ -19,8 +19,8 @@ class JarUtils {
             if (!file.getName().endsWith(".jar")) {
                 continue
             }
+            ZipFile zipFile = new ZipFile(file)
             try {
-                ZipFile zipFile = new ZipFile(file)
                 Enumeration<? extends ZipEntry> entries = zipFile.entries()
                 while (entries.hasMoreElements()) {
                     ZipEntry entry = entries.nextElement()
@@ -40,20 +40,28 @@ class JarUtils {
                 }
             } catch (Exception e) {
                 e.printStackTrace()
+            } finally {
+                zipFile.close()
             }
         }
     }
 
     private static void grabPluginMetaInfo() {
+        InputStream inputStream
         try {
             String classPath = JarUtils.class.getResource(JarUtils.class.getSimpleName() + ".class").toString()
             String libPath = classPath.substring(0, classPath.lastIndexOf("!"))
             String filePath = libPath + "!/META-INF/MANIFEST.MF"
-            Manifest manifest = new Manifest(new URL(filePath).openStream())
+            inputStream = new URL(filePath).openStream()
+            Manifest manifest = new Manifest(inputStream)
             Attributes attributes = manifest.getMainAttributes()
             metaInfo.put("plugin-version", attributes.getValue("plugin-version"))
         } catch (Exception e) {
             e.printStackTrace()
+        } finally {
+            if (inputStream != null) {
+                inputStream.close()
+            }
         }
     }
 
