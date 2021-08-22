@@ -95,7 +95,7 @@ class RouterCollect extends AbsRouterCollect {
                                 "support only Activity/Fragment/View/IRouterHandler");
                     }
                 } else {
-                    pathValue = "/" + routerCc.getName().replace(".", "/").toLowerCase();
+                    pathValue = "/" + routerCc.getName().replace(".", "/");
                     type = "com.didi.drouter.store.RouterMeta.ACTIVITY";
                 }
                 if (isNonStaticInnerClass(routerCc)) {

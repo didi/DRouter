@@ -149,7 +149,7 @@ class RouterLoader {
         List<RouterMeta> output = new ArrayList<>();
         List<RouterMeta> routerMetas = new ArrayList<>(RouterStore.getRouterMetas(primaryRequest.getUri()));
         String schemeHost = primaryRequest.getString(Extend.START_ACTIVITY_WITH_DEFAULT_SCHEME_HOST);
-        if (!TextUtils.isEmpty(schemeHost) && primaryRequest.getUri().toString().startsWith(schemeHost.toLowerCase())) {
+        if (!TextUtils.isEmpty(schemeHost) && primaryRequest.getUri().toString().startsWith(schemeHost)) {
             Set<RouterMeta> degradeMetas =
                     RouterStore.getRouterMetas(Uri.parse(primaryRequest.getUri().getPath()));
             for (RouterMeta meta : degradeMetas) {
