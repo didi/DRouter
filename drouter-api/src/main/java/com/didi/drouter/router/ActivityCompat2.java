@@ -29,24 +29,24 @@ public class ActivityCompat2 {
 
     private static final String TAG = "DRouterEmptyFragment";
 
-    private static AtomicInteger sCount = new AtomicInteger(0);
-    private static SparseArray<Pair<WeakReference<Activity>, RouterCallback.ActivityCallback>>
+    private static final AtomicInteger sCount = new AtomicInteger(0);
+    private static final SparseArray<Pair<WeakReference<Activity>, RouterCallback.ActivityCallback>>
             sCallbackMap = new SparseArray<>();
 
     // start index, will not change when rotation or recycle
     private int cur;
-    private Active active;
+    private final Active active;
 
     private ActivityCompat2(Active active) {
         this.active = active;
     }
 
-    static void startActivityForResult(@NonNull Activity activity,
-                                       @NonNull Intent intent, int requestCode,
+    static void startActivityForResult(@NonNull final Activity activity,
+                                       @NonNull final Intent intent, final int requestCode,
                                        RouterCallback.ActivityCallback callback) {
-        int cur = sCount.incrementAndGet();
+        final int cur = sCount.incrementAndGet();
         sCallbackMap.put(cur, new Pair<>(new WeakReference<>(activity), callback));
-        Active active;
+        final Active active;
         if (activity instanceof FragmentActivity) {
             active = new HolderFragmentV4();
         } else {
@@ -55,15 +55,14 @@ public class ActivityCompat2 {
         RouterLogger.getCoreLogger().d("HoldFragment start, put %s callback and page | isV4:",
                 cur, active instanceof HolderFragmentV4);
         active.getCompat().cur = cur;
-        active.attach(activity);
-//        RouterLogger.getCoreLogger().d("HoldFragment commit attach");
-        active.start(activity, cur, intent, requestCode);
+        active.attach(activity, intent, requestCode);
     }
 
     public void onCreate(@Nullable Bundle savedInstanceState) {
         if (savedInstanceState != null) {
             cur = savedInstanceState.getInt("cur");
         }
+        active.startActivity();
 //        RouterLogger.getCoreLogger().d("HoldFragment onCreate cur:" + cur);
     }
 
@@ -93,14 +92,17 @@ public class ActivityCompat2 {
 
     public static class HolderFragmentV4 extends Fragment implements Active {
 
-        private ActivityCompat2 activityCompat2;
+        private final ActivityCompat2 activityCompat2;
+        private Intent intent;
+        private int requestCode;
 
         public HolderFragmentV4() {
             activityCompat2 = new ActivityCompat2(this);
         }
 
         @Override
-        public void start(Activity activity, int cur, @NonNull Intent intent, int requestCode) {
+        public void startActivity() {
+            if (intent == null) return;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
                 startActivityForResult(intent, requestCode, intent.getBundleExtra(Extend.START_ACTIVITY_OPTIONS));
             } else {
@@ -114,11 +116,13 @@ public class ActivityCompat2 {
         }
 
         @Override
-        public void attach(Activity activity) {
+        public void attach(Activity activity, Intent intent, int requestCode) {
+            this.intent = intent;
+            this.requestCode = requestCode;
             FragmentManager fragmentManager = ((FragmentActivity)activity).getSupportFragmentManager();
             FragmentTransaction transaction = fragmentManager.beginTransaction();
             transaction.add(this, TAG);
-            transaction.commitNow();
+            transaction.commit();
         }
 
         @Override
@@ -159,14 +163,17 @@ public class ActivityCompat2 {
     @SuppressWarnings("deprecation")
     public static class HolderFragment extends android.app.Fragment implements Active {
 
-        private ActivityCompat2 activityCompat2;
+        private final ActivityCompat2 activityCompat2;
+        private Intent intent;
+        private int requestCode;
 
         public HolderFragment() {
             activityCompat2 = new ActivityCompat2(this);
         }
 
         @Override
-        public void start(Activity activity, int cur, @NonNull Intent intent, int requestCode) {
+        public void startActivity() {
+            if (intent == null) return;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
                 startActivityForResult(intent, requestCode, intent.getBundleExtra(Extend.START_ACTIVITY_OPTIONS));
             } else {
@@ -180,16 +187,13 @@ public class ActivityCompat2 {
         }
 
         @Override
-        public void attach(Activity activity) {
+        public void attach(Activity activity, Intent intent, int requestCode) {
+            this.intent = intent;
+            this.requestCode = requestCode;
             android.app.FragmentManager fragmentManager = activity.getFragmentManager();
             android.app.FragmentTransaction transaction = fragmentManager.beginTransaction();
             transaction.add(this, TAG);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                transaction.commitNow();
-            } else {
-                transaction.commit();
-                fragmentManager.executePendingTransactions();
-            }
+            transaction.commit();
         }
 
         @Override
@@ -228,9 +232,9 @@ public class ActivityCompat2 {
     }
 
     interface Active {
-        void start(Activity activity, int cur, @NonNull Intent intent, int requestCode);
         ActivityCompat2 getCompat();
-        void attach(Activity activity);
+        void attach(Activity activity, Intent intent, int requestCode);
+        void startActivity();
         void remove();
     }
 
