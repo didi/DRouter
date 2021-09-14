@@ -30,7 +30,6 @@ public class TextUtil {
     public static boolean excludeJarNameFile(String name) {
         return  name.equals("android.jar") ||
                 name.contains("kotlin-") ||
-                name.contains("jetified-") ||
                 name.contains("appcompat-") ||
                 name.contains("multidex-") ||
                 name.contains("animated-vector-") ||
