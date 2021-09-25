@@ -21,13 +21,15 @@ class RouterTransform extends Transform {
     // path.class (class file)
     // jar:file:path.jar!entry.class (class in jar)
     // path.jar (jar file added in transform)
-    Set<String> cachePath
-    File cacheFile
+    Set<String> cachePathSet
+    File tmpDir
+    boolean isWindow
 
     RouterTransform(Project project) {
         this.project = project
-        this.cacheFile = new File(project.buildDir, "intermediates/drouter/cache")
-        this.cachePath = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>())
+        this.tmpDir = new File(project.buildDir, "intermediates/drouter")
+        this.cachePathSet = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>())
+        this.isWindow = System.getProperty("os.name").startsWith("Windows")
     }
 
     @Override
@@ -54,15 +56,15 @@ class RouterTransform extends Transform {
     void transform(TransformInvocation invocation) throws TransformException, InterruptedException, IOException {
         long timeStart = System.currentTimeMillis()
         SystemUtil.debug = project.drouter.debug
+        File cacheFile = new File(tmpDir, "cache")
         boolean configChanged = SystemUtil.configChanged(project)
-        boolean readCache = invocation.incremental && project.drouter.cache && cacheFile.exists() && !configChanged
+        boolean useCache = !isWindow && invocation.incremental && project.drouter.cache && cacheFile.exists() && !configChanged
         Logger.v("DRouterTask start"
                 + " | incremental:" + invocation.incremental
-                + " | readCache:" + readCache
-                + " | activity:" + project.drouter.supportNoAnnotationActivity)
-        if (readCache) {
-            cachePath.addAll(cacheFile.readLines())
-            Logger.v("read cache size: " + cachePath.size())
+                + " | useCache:" + useCache)
+        if (useCache) {
+            cachePathSet.addAll(cacheFile.readLines())
+            Logger.v("read cache size: " + cachePathSet.size())
         }
         if (!invocation.incremental) {
             invocation.outputProvider.deleteAll()
@@ -74,8 +76,8 @@ class RouterTransform extends Transform {
         }
         File dest = invocation.outputProvider.getContentLocation("DRouterTable", TransformManager.CONTENT_CLASS,
                 ImmutableSet.of(QualifiedContent.Scope.PROJECT), Format.DIRECTORY)
-        (new RouterTask(project, compilePath, cachePath, readCache, dest, project.drouter)).run()
-        FileUtils.writeLines(cacheFile, cachePath)
+        (new RouterTask(project, compilePath, cachePathSet, useCache, dest, tmpDir, project.drouter, isWindow)).run()
+        FileUtils.writeLines(cacheFile, cachePathSet)
         Logger.v("Link: https://github.com/didi/DRouter")
         Logger.v("DRouterTask done, time used: " + (System.currentTimeMillis() - timeStart) / 1000f  + "s")
     }
@@ -104,13 +106,13 @@ class RouterTransform extends Transform {
                             if (changedSource.isFile()) {
                                 FileUtils.copyFile(changedSource, changedSourceDest)
                                 if (changedSource.absolutePath.endsWith(".class")) {
-                                    cachePath.add(changedSource.absolutePath)
+                                    cachePathSet.add(changedSource.absolutePath)
                                 }
                             } else {
                                 FileUtils.copyDirectory(changedSource, changedSourceDest)
                                 FileUtils.listFiles(changedSource, null, true).each {
                                     if (it.absolutePath.endsWith(".class")) {
-                                        cachePath.add(it.absolutePath)
+                                        cachePathSet.add(it.absolutePath)
                                     }
                                 }
                             }
@@ -121,12 +123,12 @@ class RouterTransform extends Transform {
                             if (changedSourceDest.isFile()) {
                                 changedSourceDest.delete()
                                 if (changedSource.absolutePath.endsWith(".class")) {
-                                    cachePath.remove(changedSource.absolutePath)
+                                    cachePathSet.remove(changedSource.absolutePath)
                                 }
                             } else {
                                 // delete all classes under this folder
                                 changedSourceDest.deleteDir()
-                                Iterator<String> iterator = cachePath.iterator()
+                                Iterator<String> iterator = cachePathSet.iterator()
                                 while (iterator.hasNext()) {
                                     if (iterator.next().startsWith(changedSource.absolutePath + "/")) {
                                         iterator.remove()
@@ -161,10 +163,10 @@ class RouterTransform extends Transform {
                     case Status.CHANGED:
                         FileUtils.copyFile(changedSource, changedSourceDest)
                         // add again, and remove it later after resolving jar
-                        cachePath.add(changedSource.absolutePath)
+                        cachePathSet.add(changedSource.absolutePath)
                         if (jarInput.status == Status.CHANGED) {
                             // delete all classes under this jar, as we don't know which changed.
-                            Iterator<String> iterator = cachePath.iterator()
+                            Iterator<String> iterator = cachePathSet.iterator()
                             while (iterator.hasNext()) {
                                 if (iterator.next().startsWith("jar:file:" + changedSource.absolutePath)) {
                                     iterator.remove()
@@ -175,7 +177,7 @@ class RouterTransform extends Transform {
                     case Status.REMOVED:
                         compilePath.remove(jarInput.file)
                         changedSourceDest.delete()
-                        Iterator<String> iterator = cachePath.iterator()
+                        Iterator<String> iterator = cachePathSet.iterator()
                         while (iterator.hasNext()) {
                             if (iterator.next().startsWith("jar:file:" + changedSource.absolutePath)) {
                                 iterator.remove()

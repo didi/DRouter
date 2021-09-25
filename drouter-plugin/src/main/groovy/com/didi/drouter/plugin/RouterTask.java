@@ -7,6 +7,7 @@ import com.didi.drouter.utils.StoreUtil;
 import com.didi.drouter.utils.SystemUtil;
 import com.didi.drouter.utils.TextUtil;
 
+import org.apache.commons.io.FileUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 
@@ -39,7 +40,8 @@ public class RouterTask {
 
     private Project project;
     private Queue<File> compileClassPath;
-    private Set<String> cachePath; //.class | .jar | .jar!/class
+    private Set<String> cachePathSet; //.class | .jar | .jar!/class
+    private File wTmpDir;
     private boolean useCache;
     private File routerDir;
     private RouterSetting setting;
@@ -51,14 +53,15 @@ public class RouterTask {
     private AtomicInteger count = new AtomicInteger();
 
     RouterTask(Project project, Queue<File> compileClassPath,
-               Set<String> cachePath, boolean useCache,
-               File routerDir, RouterSetting setting) {
+               Set<String> cachePathSet, boolean useCache,
+               File routerDir, File tmpDir, RouterSetting setting, boolean isWindow) {
         this.project = project;
         this.compileClassPath = compileClassPath;
-        this.cachePath = cachePath;
+        this.cachePathSet = cachePathSet;
         this.useCache = useCache;
         this.routerDir = routerDir;
         this.setting = setting;
+        this.wTmpDir = isWindow ? new File(tmpDir, String.valueOf(System.currentTimeMillis())) : null;
     }
 
     void run() {
@@ -76,7 +79,7 @@ public class RouterTask {
                 pool.appendClassPath(file.getAbsolutePath());
             }
             if (useCache) {
-                loadCachePaths(cachePath);
+                loadCachePaths(cachePathSet);
             } else {
                 loadFullPaths(compileClassPath);
             }
@@ -84,7 +87,7 @@ public class RouterTask {
             timeStart = System.currentTimeMillis();
             classClassify.generatorRouter(routerDir);
             Logger.d("generator router table used: " + (System.currentTimeMillis() - timeStart) + "ms");
-            Logger.v("scan class size: " + count.get() + " | router class size: " + cachePath.size());
+            Logger.v("scan class size: " + count.get() + " | router class size: " + cachePathSet.size());
         } catch (Exception e) {
             JarUtils.check(e);
             String message = e.getMessage();
@@ -94,6 +97,7 @@ public class RouterTask {
             throw new GradleException("DRouter: Could not generate router table\n" + e.getMessage());
         } finally {
             executor.shutdown();
+            FileUtils.deleteQuietly(wTmpDir);
         }
     }
 
@@ -144,7 +148,7 @@ public class RouterTask {
         } else if (path.endsWith(".jar")) {
             // jar file added in transform
             resolveJarFile(new File(path));
-            cachePath.remove(path);
+            cachePathSet.remove(path);
         } else {
             throw new RuntimeException("is cached dir ?");
         }
@@ -167,7 +171,7 @@ public class RouterTask {
 
     private void resolveClassFile(File file) throws IOException {
         count.incrementAndGet();
-        FileInputStream stream = new FileInputStream(file);
+        FileInputStream stream = new FileInputStream(createFile(file, ".class"));
         CtClass ctClass;
         try {
             ctClass = pool.makeClass(stream);
@@ -181,16 +185,16 @@ public class RouterTask {
         }
         if (!TextUtil.excludePackageClass(ctClass.getName())) {
             if (classClassify.doClassify(ctClass)) {
-                cachePath.add(file.getAbsolutePath());
+                cachePathSet.add(file.getAbsolutePath());
             } else if (useCache) {
-                cachePath.remove(file.getAbsolutePath());
+                cachePathSet.remove(file.getAbsolutePath());
             }
         }
     }
 
     private void resolveJarFile(File file) throws IOException {
         if (!TextUtil.excludeJarNameFile(file.getName())) {
-            JarFile jar = new JarFile(file);
+            JarFile jar = new JarFile(createFile(file, ".jar"));
             Enumeration<JarEntry> entries = jar.entries();
             while (entries.hasMoreElements()) {
                 final JarEntry entry = entries.nextElement();
@@ -212,9 +216,9 @@ public class RouterTask {
                             stream.close();
                         }
                         if (classClassify.doClassify(clz)) {
-                            cachePath.add(path);
+                            cachePathSet.add(path);
                         } else if (useCache) {
-                            cachePath.remove(path);
+                            cachePathSet.remove(path);
                         }
                     }
                 }
@@ -238,8 +242,20 @@ public class RouterTask {
             stream.close();
         }
         if (!classClassify.doClassify(ctClass)) {
-            cachePath.remove(path);
+            cachePathSet.remove(path);
         }
+    }
+
+    private File createFile(File file, String suffix) throws IOException {
+        if (wTmpDir != null) {
+            File wFile = new File(wTmpDir, String.format("%s-%s%s",
+                    Thread.currentThread().getId(),
+                    System.currentTimeMillis(),
+                    suffix));
+            FileUtils.copyFile(file, wFile);
+            return wFile;
+        }
+        return file;
     }
     
 
