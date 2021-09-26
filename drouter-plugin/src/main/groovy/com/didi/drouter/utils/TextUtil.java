@@ -28,13 +28,7 @@ public class TextUtil {
     }
 
     public static boolean excludeJarNameFile(String name) {
-        return  name.equals("android.jar") ||
-                name.contains("kotlin-") ||
-                name.contains("appcompat-") ||
-                name.contains("multidex-") ||
-                name.contains("animated-vector-") ||
-                name.contains("gson-") ||
-                name.contains("support-");
+        return  name.equals("android.jar");
     }
 
     public static boolean excludePackageClassInJar(String name) {

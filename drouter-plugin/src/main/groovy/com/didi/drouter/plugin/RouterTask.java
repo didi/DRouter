@@ -105,7 +105,7 @@ public class RouterTask {
         // multi-thread for entry class of same jar may conflict
         Logger.d("start load class:");
         for (String path : cachePath) {
-            Logger.d("  file: " + path);
+            Logger.d("  path: " + path);
             loadCachePath(path);
         }
     }
