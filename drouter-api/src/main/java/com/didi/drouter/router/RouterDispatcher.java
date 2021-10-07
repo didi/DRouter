@@ -46,7 +46,13 @@ class RouterDispatcher {
         Intent intent = meta.getIntent();
         if (intent == null) {
             intent = new Intent();
-            intent.setClassName(context, meta.getActivityClassName());
+            Class<?> routerClass = meta.getRouterClass();
+            // 如果有class优先使用class
+            if (routerClass != null) {
+                intent.setClass(context, routerClass);
+            } else {
+                intent.setClassName(context, meta.getActivityClassName());
+            }
         }
         if (request.getExtra().containsKey(Extend.START_ACTIVITY_FLAGS)) {
             intent.setFlags(request.getInt(Extend.START_ACTIVITY_FLAGS));

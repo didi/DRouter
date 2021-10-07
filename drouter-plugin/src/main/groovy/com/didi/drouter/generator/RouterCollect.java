@@ -1,6 +1,7 @@
 package com.didi.drouter.generator;
 
 import com.didi.drouter.annotation.Router;
+import com.didi.drouter.plugin.RouterProperties;
 import com.didi.drouter.plugin.RouterSetting;
 import com.didi.drouter.utils.Logger;
 import com.didi.drouter.utils.StoreUtil;
@@ -163,7 +164,12 @@ class RouterCollect extends AbsRouterCollect {
                 metaBuilder.append("\"").append(pathValue).append("\"");
                 metaBuilder.append(",");
                 if ("com.didi.drouter.store.RouterMeta.ACTIVITY".equals(type)) {
-                    metaBuilder.append("\"").append(routerCc.getName()).append("\"");
+                    // !setting.getUseActivityRouterClass()
+                    if (!RouterProperties.useActivityRouterClass) {
+                        metaBuilder.append("\"").append(routerCc.getName()).append("\"");
+                    } else {
+                        metaBuilder.append(routerCc.getName()).append(".class");
+                    }
                 } else {
                     metaBuilder.append(routerCc.getName()).append(".class");
                 }
