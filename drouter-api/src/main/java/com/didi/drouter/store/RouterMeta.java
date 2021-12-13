@@ -8,6 +8,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
 
+import com.didi.drouter.api.Extend;
 import com.didi.drouter.router.IRouterHandler;
 import com.didi.drouter.router.IRouterInterceptor;
 import com.didi.drouter.router.RouterType;
@@ -51,14 +52,12 @@ public class RouterMeta {
     private int thread;
     private boolean hold;
     private Intent intent;
-    private RouterKey routerKey;
-    private IRouterHandler handler;
+    private IRouterHandler dynamicHandler;
 
     // for service
     private String serviceAlias;
     private @Nullable IFeatureMatcher<?> featureMatcher;   //instance
-    private ServiceKey serviceKey;
-    private Object service;
+    private Object dynamicService;
 
     // for interceptor
     private boolean global;
@@ -117,10 +116,8 @@ public class RouterMeta {
         return this;
     }
 
-    // for dynamic handler
-    public void setHandler(RouterKey key, @NonNull IRouterHandler handler) {
-        this.routerKey = key;
-        this.handler = handler;
+    public void setDynamicHandler(@NonNull IRouterHandler handler) {
+        this.dynamicHandler = handler;
         this.isDynamic = true;
     }
 
@@ -136,10 +133,8 @@ public class RouterMeta {
         return this;
     }
 
-    // for dynamic service
-    public void setService(ServiceKey key, Object service) {
-        this.serviceKey = key;
-        this.service = service;
+    public void setDynamicService(Object dynamicService) {
+        this.dynamicService = dynamicService;
         this.isDynamic = true;
     }
 
@@ -176,8 +171,8 @@ public class RouterMeta {
             return activityName.substring(activityName.lastIndexOf(".") + 1);
         } else if (routerClass != null) {
             return routerClass.getSimpleName();
-        } else if (handler != null) {
-            return handler.getClass().getName().substring(handler.getClass().getName().lastIndexOf(".") + 1);
+        } else if (dynamicHandler != null) {
+            return dynamicHandler.getClass().getName().substring(dynamicHandler.getClass().getName().lastIndexOf(".") + 1);
         } else {
             return null;
         }
@@ -193,6 +188,7 @@ public class RouterMeta {
         return interceptorNames;
     }
 
+    @Extend.Thread
     public int getThread() {
         return thread;
     }
@@ -298,8 +294,8 @@ public class RouterMeta {
         return false;
     }
 
-    public IRouterHandler getHandler() {
-        return handler;
+    public IRouterHandler getDynamicHandler() {
+        return dynamicHandler;
     }
 
     // for service
@@ -311,12 +307,8 @@ public class RouterMeta {
         return cache;
     }
 
-    public ServiceKey getServiceKey() {
-        return serviceKey;
-    }
-
-    public Object getService() {
-        return service;
+    public Object getDynamicService() {
+        return dynamicService;
     }
 
     @Nullable

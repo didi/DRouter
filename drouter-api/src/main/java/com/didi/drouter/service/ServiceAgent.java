@@ -31,12 +31,12 @@ import java.util.concurrent.ConcurrentHashMap;
 @SuppressWarnings("unchecked")
 class ServiceAgent<T> {
 
-    // cache, key is impl
-    private static final Map<Class<?>, Object> sInstanceMap = new ConcurrentHashMap<>();
+    // cache, key is impl, without dynamic
+    private static final Map<Class<?>, Object> sSingletonInstanceMap = new ConcurrentHashMap<>();
     private static final Map<Class<?>, WeakReference<Object>> sWeakInstanceMap = new ConcurrentHashMap<>();
 
-    // key is impl, normal class only
-    private final Map<Class<?>, RouterMeta> routerClassImplMap = new ConcurrentHashMap<>();
+    // all annotation and dynamic, sort by priority
+    private final List<RouterMeta> orderMetaList = new ArrayList<>();
     private final Class<T> function;
     private @NonNull String alias = "";
     private Object feature;
@@ -49,10 +49,11 @@ class ServiceAgent<T> {
         this.function = function;
         Set<RouterMeta> metaSet = RouterStore.getServiceMetas(function);
         for (RouterMeta meta : metaSet) {
-            if (meta.getRouterType() == RouterMeta.SERVICE && !meta.isDynamic()) {
-                routerClassImplMap.put(meta.getRouterClass(), meta);
+            if (meta.getRouterType() == RouterMeta.SERVICE) {
+                orderMetaList.add(meta);
             }
         }
+        Collections.sort(orderMetaList, new ServiceComparator());
     }
 
     void setAlias(String alias) {
@@ -79,23 +80,20 @@ class ServiceAgent<T> {
         this.defaultService = defaultService;
     }
 
-    // normal class only
+    // annotation class only, without dynamic
     @NonNull List<Class<? extends T>> getAllServiceClass() {
         List<Class<? extends T>> result = new ArrayList<>();
         if (function != null) {
-            for (RouterMeta meta : routerClassImplMap.values()) {
+            for (RouterMeta meta : orderMetaList) {
                 if (!meta.isDynamic() && match(meta.getServiceAlias(), meta.getFeatureMatcher())) {
                     result.add((Class<? extends T>) meta.getRouterClass());
                 }
-            }
-            if (result.size() > 1) {
-                Collections.sort(result, new ServiceComparator());
             }
         }
         return result;
     }
 
-    // normal class only
+    // annotation class only, without dynamic
     Class<? extends T> getServiceClass() {
         List<Class<? extends T>> result = getAllServiceClass();
         if (!result.isEmpty()) {
@@ -104,20 +102,21 @@ class ServiceAgent<T> {
         return null;
     }
 
-    // all and dynamic first
     @NonNull
     List<T> getAllService(Object... constructors) {
         List<T> result = new ArrayList<>();
         if (function != null) {
-            for (RouterMeta meta : RouterStore.getServiceMetas(function)) {
-                if (meta.isDynamic() && match(meta.getServiceAlias(), meta.getFeatureMatcher())) {
-                    result.add((T) meta.getService());
-                }
-            }
-            for (Class<? extends T> clz : getAllServiceClass()) {
-                T t = (T) getServiceInstance(clz, constructors);
-                if (t != null) {
-                    result.add(t);
+            for (RouterMeta meta : orderMetaList) {
+                if (match(meta.getServiceAlias(), meta.getFeatureMatcher())) {
+                    T t;
+                    if (meta.isDynamic()) {
+                        t = (T) meta.getDynamicService();
+                    } else {
+                        t = (T) getServiceInstance(meta, constructors);
+                    }
+                    if (t != null) {
+                        result.add(t);
+                    }
                 }
             }
         }
@@ -130,27 +129,30 @@ class ServiceAgent<T> {
             return RemoteBridge.load(authority, resendStrategy, lifecycle)
                     .getService(function, alias, feature, constructors);
         }
-        // dynamic class
-        for (RouterMeta meta : RouterStore.getServiceMetas(function)) {
-            if (meta.isDynamic() && match(meta.getServiceAlias(), meta.getFeatureMatcher())) {
-                RouterLogger.getCoreLogger().d("[Local] Get dynamic service \"%s\" with impl \"%s\"",
-                        function.getSimpleName(), meta.getService().getClass().getName());
-                return (T) meta.getService();
+        for (RouterMeta meta : orderMetaList) {
+            if (match(meta.getServiceAlias(), meta.getFeatureMatcher())) {
+                if (meta.isDynamic()) {
+                    // dynamic class
+                    RouterLogger.getCoreLogger().d("[Local] Get dynamic service \"%s\" with impl \"%s\"",
+                            function.getSimpleName(), meta.getDynamicService().getClass().getName());
+                    return (T) meta.getDynamicService();
+                } else {
+                    // annotation class
+                    T target = (T) getServiceInstance(meta, constructors);
+                    if (target != null) {
+                        // ICallService
+                        if (function == ICallService.class && CallHandler.isCallService(target)) {
+                            RouterLogger.getCoreLogger().d("[Local] Get ICallService \"%s\" with impl \"%s\"",
+                                    function.getSimpleName(), target.getClass().getSimpleName());
+                            return (T) Proxy.newProxyInstance(
+                                    getClass().getClassLoader(), new Class[]{function}, new CallHandler(target));
+                        }
+                        RouterLogger.getCoreLogger().d("[Local] Get service \"%s\" with impl \"%s\"",
+                                function.getSimpleName(), target.getClass().getSimpleName());
+                        return target;
+                    }
+                }
             }
-        }
-        // normal class
-        T target = (T) getServiceInstance(getServiceClass(), constructors);
-        if (target != null) {
-            // ICallService
-            if (function == ICallService.class && CallHandler.isCallService(target)) {
-                RouterLogger.getCoreLogger().d("[Local] Get ICallService \"%s\" with impl \"%s\"",
-                        function.getSimpleName(), target.getClass().getSimpleName());
-                return (T) Proxy.newProxyInstance(
-                        getClass().getClassLoader(), new Class[]{function}, new CallHandler(target));
-            }
-            RouterLogger.getCoreLogger().d("[Local] Get service \"%s\" with impl \"%s\"",
-                    function.getSimpleName(), target.getClass().getSimpleName());
-            return target;
         }
         RouterLogger.getCoreLogger().w("[Local] Get service \"%s\" fail with default \"%s\"",
                 function.getSimpleName(), defaultService != null ? defaultService.getClass().getName() : null);
@@ -162,31 +164,31 @@ class ServiceAgent<T> {
     }
 
     @SuppressWarnings("ConstantConditions")
-    private @Nullable Object getServiceInstance(Class<?> implClass, Object... parameter) {
+    private @Nullable Object getServiceInstance(RouterMeta meta, Object... parameter) {
+        Class<?> implClass = meta.getRouterClass();
         if (implClass == null) {
             return null;
         }
-        Object t = sInstanceMap.get(implClass);
+        Object t = sSingletonInstanceMap.get(implClass);
         if (t == null && sWeakInstanceMap.containsKey(implClass)) {
             t = sWeakInstanceMap.get(implClass).get();
         }
         if (t == null) {
             synchronized (ServiceAgent.class) {
-                t = sInstanceMap.get(implClass);
+                t = sSingletonInstanceMap.get(implClass);
                 if (t == null && sWeakInstanceMap.containsKey(implClass)) {
                     t = sWeakInstanceMap.get(implClass).get();
                 }
                 if (t == null) {
-                    RouterMeta meta = routerClassImplMap.get(implClass);
                     t = (parameter != null && parameter.length == 0) && meta.getRouterProxy() != null ?
                             meta.getRouterProxy().newInstance(null) : null;
                     if (t == null) {
                         t = ReflectUtil.getInstance(implClass, parameter);
                     }
                     if (t != null) {
-                        if (routerClassImplMap.get(implClass).getCache() == Extend.Cache.SINGLETON) {
-                            sInstanceMap.put(implClass, t);
-                        } else if (routerClassImplMap.get(implClass).getCache() == Extend.Cache.WEAK) {
+                        if (meta.getCache() == Extend.Cache.SINGLETON) {
+                            sSingletonInstanceMap.put(implClass, t);
+                        } else if (meta.getCache() == Extend.Cache.WEAK) {
                             sWeakInstanceMap.put(implClass, new WeakReference<>(t));
                         }
                         return t;
@@ -197,10 +199,12 @@ class ServiceAgent<T> {
         return t;
     }
 
+    // annotation class only
     IRouterProxy getRouterProxy(Class<?> implClass) {
-        RouterMeta meta = routerClassImplMap.get(implClass);
-        if (meta != null) {
-            return meta.getRouterProxy();
+        for (RouterMeta meta : orderMetaList) {
+            if (meta.getRouterClass() == implClass) {
+                return meta.getRouterProxy();
+            }
         }
         return null;
     }
@@ -256,13 +260,13 @@ class ServiceAgent<T> {
         }
     }
 
-    // from large to small, normal
-    private class ServiceComparator implements Comparator<Class<?>> {
+    // from large to small
+    private static class ServiceComparator implements Comparator<RouterMeta> {
+
         @Override
-        @SuppressWarnings("ConstantConditions")
-        public int compare(Class<?> o1, Class<?> o2) {
-            int priority1 = routerClassImplMap.get(o1).getPriority();
-            int priority2 = routerClassImplMap.get(o2).getPriority();
+        public int compare(RouterMeta o1, RouterMeta o2) {
+            int priority1 = o1.getPriority();
+            int priority2 = o2.getPriority();
             return priority2 - priority1;
         }
     }

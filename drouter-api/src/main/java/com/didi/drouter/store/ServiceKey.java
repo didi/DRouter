@@ -13,6 +13,7 @@ public class ServiceKey<T> {
     Class<T> function;
     @NonNull String alias = "";
     IFeatureMatcher<?> feature;
+    int priority;
     LifecycleOwner lifecycleOwner;
     RouterMeta meta;
 
@@ -29,8 +30,13 @@ public class ServiceKey<T> {
         return this;
     }
 
-    public ServiceKey<T> setFeature(IFeatureMatcher<?> feature) {
+    public ServiceKey<T> setFeatureMatcher(IFeatureMatcher<?> feature) {
         this.feature = feature;
+        return this;
+    }
+
+    public ServiceKey<T> setPriority(int priority) {
+        this.priority = priority;
         return this;
     }
 

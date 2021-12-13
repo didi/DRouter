@@ -17,6 +17,7 @@ public class RouterKey {
     String[] interceptorName;
     int thread;
     boolean hold;
+    int priority;
     LifecycleOwner lifecycleOwner;
 
     private RouterKey() {}
@@ -44,6 +45,11 @@ public class RouterKey {
 
     public RouterKey setHold(boolean hold) {
         this.hold = hold;
+        return this;
+    }
+
+    public RouterKey setPriority(int priority) {
+        this.priority = priority;
         return this;
     }
 
