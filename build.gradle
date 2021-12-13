@@ -4,7 +4,7 @@ buildscript {
     ext.kotlin_version = '1.3.72'
 
     repositories {
-        maven { url uri(rootProject.rootDir.path + '/.aar/maven')}
+//        maven { url uri(rootProject.rootDir.path + '/.aar/maven')}
         maven { url uri('https://s01.oss.sonatype.org/content/repositories/releases/')}
 
         jcenter()
@@ -22,7 +22,7 @@ buildscript {
 
 allprojects {
     repositories {
-        maven { url uri(rootProject.rootDir.path + '/.aar/maven')}
+//        maven { url uri(rootProject.rootDir.path + '/.aar/maven')}
         maven { url uri('https://s01.oss.sonatype.org/content/repositories/releases/')}
         jcenter()
         mavenCentral()
