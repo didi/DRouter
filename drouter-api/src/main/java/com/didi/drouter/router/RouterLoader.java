@@ -145,6 +145,7 @@ class RouterLoader {
     }
 
     @NonNull
+    // many handler -> activity -> fragment -> view
     private List<RouterMeta> getAllRouterMetas() {
         List<RouterMeta> output = new ArrayList<>();
         List<RouterMeta> routerMetas = new ArrayList<>(RouterStore.getRouterMetas(primaryRequest.getUri()));
