@@ -9,7 +9,7 @@ class RouterSetting {
     boolean debug = false
     boolean incremental = true
     boolean cache = true
-    boolean supportNoAnnotationActivity = false
     boolean useActivityRouterClass = false
+    boolean supportNoAnnotationActivity = false
     String pluginName
 }

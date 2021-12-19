@@ -17,7 +17,7 @@ public class ClassClassify {
 
     private List<AbsRouterCollect> classifies = new ArrayList<>();
 
-    public ClassClassify(ClassPool pool, RouterSetting setting) {
+    public ClassClassify(ClassPool pool, RouterSetting.Parse setting) {
         classifies.add(new RouterCollect(pool, setting));
         classifies.add(new ServiceCollect(pool, setting));
         classifies.add(new InterceptorCollect(pool, setting));
