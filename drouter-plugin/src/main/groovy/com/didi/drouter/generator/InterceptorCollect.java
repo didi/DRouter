@@ -25,7 +25,7 @@ class InterceptorCollect extends AbsRouterCollect {
     private final Map<String, CtClass> interceptorClass = new ConcurrentHashMap<>();
     private final List<String> items = new ArrayList<>();
 
-    InterceptorCollect(ClassPool pool, RouterSetting setting) {
+    InterceptorCollect(ClassPool pool, RouterSetting.Parse setting) {
         super(pool, setting);
     }
 

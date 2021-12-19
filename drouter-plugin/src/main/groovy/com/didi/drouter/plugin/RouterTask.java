@@ -44,7 +44,7 @@ public class RouterTask {
     private File wTmpDir;
     private boolean useCache;
     private File routerDir;
-    private RouterSetting setting;
+    private RouterSetting.Parse setting;
 
     private ClassPool pool;
     private ClassClassify classClassify;
@@ -54,7 +54,7 @@ public class RouterTask {
 
     RouterTask(Project project, Queue<File> compileClassPath,
                Set<String> cachePathSet, boolean useCache,
-               File routerDir, File tmpDir, RouterSetting setting, boolean isWindow) {
+               File routerDir, File tmpDir, RouterSetting.Parse setting, boolean isWindow) {
         this.project = project;
         this.compileClassPath = compileClassPath;
         this.cachePathSet = cachePathSet;
@@ -67,10 +67,6 @@ public class RouterTask {
     void run() {
         StoreUtil.clear();
         JarUtils.printVersion(project, compileClassPath);
-
-        RouterProperties.useActivityRouterClass = RouterProperties.getBoolean(project, "drouter.useActivityRouterClass");
-        Logger.d("load drouter properties: drouter.useActivityRouterClass=" + RouterProperties.useActivityRouterClass);
-
         pool = new ClassPool();
         classClassify = new ClassClassify(pool, setting);
         startExecute();
@@ -115,7 +111,7 @@ public class RouterTask {
     }
 
     private void loadFullPaths(final Queue<File> files) throws ExecutionException, InterruptedException, IOException {
-        if (!SystemUtil.isDebug()) {
+        if (!RouterSetting.Parse.isDebug()) {
             final List<Future<Void>> taskList = new ArrayList<>();
             int thread = CPU_COUNT;
             for (int i = 0; i < thread; i++) {

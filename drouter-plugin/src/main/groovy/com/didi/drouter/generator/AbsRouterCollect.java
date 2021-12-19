@@ -42,10 +42,10 @@ abstract class AbsRouterCollect {
     abstract boolean include(CtClass superCt);
 
     ClassPool pool;
-    RouterSetting setting;
+    RouterSetting.Parse setting;
     Loader classLoader;
 
-    AbsRouterCollect(ClassPool pool, RouterSetting setting) {
+    AbsRouterCollect(ClassPool pool, RouterSetting.Parse setting) {
         this.pool = pool;
         this.setting = setting;
         this.classLoader = new Loader(pool);
