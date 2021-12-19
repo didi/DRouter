@@ -60,7 +60,7 @@ class RouterSetting {
         }
 
         static void log(Exception e) {
-            Logger.w("Please use plugin-proxy >= 1.0.2, err = " + e.message)
+            Logger.d("Please use plugin-proxy >= 1.0.2, err = " + e.message)
         }
 
         @Override
