@@ -174,19 +174,29 @@ public class RouterStore {
         RouterMeta meta = RouterMeta.build(RouterMeta.HANDLER).assembleRouter(
                 key.uri.getScheme(), key.uri.getHost(), key.uri.getPath(),
                 (Class<?>) null, null, key.interceptor, key.interceptorName,
-                key.thread, 0, key.hold);
-        meta.setHandler(key, handler);
+                key.thread, key.priority, key.hold);
+        meta.setDynamicHandler(handler);
+        boolean success = false;
+        String standardRouterKey = TextUtils.getStandardRouterKey(key.uri);
         if (meta.isRegexUri()) {
             Map<String, RouterMeta> regexMap = (Map<String, RouterMeta>) routerMetas.get(REGEX_ROUTER);
             if (regexMap == null) {
                 regexMap = new ConcurrentHashMap<>();
                 routerMetas.put(REGEX_ROUTER, regexMap);
             }
-            regexMap.put(TextUtils.getStandardRouterKey(key.uri), meta);
+            RouterMeta exist = regexMap.get(standardRouterKey);
+            if (exist == null || exist.isDynamic()) {
+                success = true;
+                regexMap.put(standardRouterKey, meta);
+            }
         } else {
-            routerMetas.put(TextUtils.getStandardRouterKey(key.uri), meta);
+            RouterMeta exist = (RouterMeta) routerMetas.get(standardRouterKey);
+            if (exist == null || exist.isDynamic()) {
+                success = true;
+                routerMetas.put(standardRouterKey, meta);
+            }
         }
-        if (key.lifecycleOwner != null) {
+        if (success && key.lifecycleOwner != null) {
             key.lifecycleOwner.getLifecycle().addObserver(new LifecycleObserver() {
                 @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
                 public void onDestroy() {
@@ -194,8 +204,11 @@ public class RouterStore {
                 }
             });
         }
-        RouterLogger.getCoreLogger().d("register \"%s\" with handler \"%s\" success",
-                TextUtils.getStandardRouterKey(key.uri), handler.getClass().getSimpleName());
+        RouterLogger.getCoreLogger().dw("register \"%s\" with handler \"%s\" %s",
+                !success,
+                TextUtils.getStandardRouterKey(key.uri),
+                handler.getClass().getName(),
+                success ? "success" : "fail");
         return new RouterRegister(key, handler);
     }
 
@@ -205,25 +218,25 @@ public class RouterStore {
             RouterMeta meta = RouterMeta.build(RouterMeta.HANDLER).assembleRouter(
                     key.uri.getScheme(), key.uri.getHost(), key.uri.getPath(),
                     (Class<?>) null, null,
-                    key.interceptor, key.interceptorName, key.thread, 0, key.hold);
+                    key.interceptor, key.interceptorName, key.thread, key.priority, key.hold);
             boolean success = false;
             if (meta.isRegexUri()) {
                 Map<String, RouterMeta> regexMap = (Map<String, RouterMeta>) routerMetas.get(REGEX_ROUTER);
                 if (regexMap != null) {
                     RouterMeta curMeta = regexMap.get(TextUtils.getStandardRouterKey(key.uri));
-                    if (curMeta != null && curMeta.getHandler() == handler) {
+                    if (curMeta != null && curMeta.getDynamicHandler() == handler) {
                         success = regexMap.remove(TextUtils.getStandardRouterKey(key.uri)) != null;
                     }
                 }
             } else {
                 RouterMeta curMeta = (RouterMeta) routerMetas.get(TextUtils.getStandardRouterKey(key.uri));
-                if (curMeta != null && curMeta.getHandler() == handler) {
+                if (curMeta != null && curMeta.getDynamicHandler() == handler) {
                     success = routerMetas.remove(TextUtils.getStandardRouterKey(key.uri)) != null;
                 }
             }
             if (success) {
                 RouterLogger.getCoreLogger().d("unregister \"%s\" with handler \"%s\" success",
-                        TextUtils.getStandardRouterKey(key.uri), handler.getClass().getSimpleName());
+                        TextUtils.getStandardRouterKey(key.uri), handler.getClass().getName());
             }
         }
     }
@@ -234,10 +247,11 @@ public class RouterStore {
         if (key == null || key.function == null || service == null) {
             throw new IllegalArgumentException("argument null illegal error");
         }
+        check();
         RouterMeta meta = RouterMeta.build(RouterMeta.SERVICE).assembleService(
                 null, null,
-                key.alias, key.feature, 0, Extend.Cache.NO);
-        meta.setService(key, service);
+                key.alias, key.feature, key.priority, Extend.Cache.NO);
+        meta.setDynamicService(service);
         key.meta = meta;
         Set<RouterMeta> metas = serviceMetas.get(key.function);
         if (metas == null) {
@@ -254,7 +268,7 @@ public class RouterStore {
             });
         }
         RouterLogger.getCoreLogger().d("register \"%s\" with service \"%s\" success, size:%s",
-                key.function.getSimpleName(), service, metas.size());
+                key.function.getName(), service, metas.size());
         return new RouterRegister(key, service);
     }
 
@@ -264,7 +278,7 @@ public class RouterStore {
             if (metas != null) {
                 if (metas.remove(key.meta)) {
                     RouterLogger.getCoreLogger().d("unregister \"%s\" with service \"%s\" success",
-                            key.function.getSimpleName(), service);
+                            key.function.getName(), service);
                 }
             }
         }

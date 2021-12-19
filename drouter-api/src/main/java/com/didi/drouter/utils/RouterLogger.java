@@ -51,6 +51,26 @@ public class RouterLogger {
         }
     }
 
+    public void dw(String content, boolean isWarn, Object... args) {
+        if (content != null && logger != null) {
+            if (isWarn) {
+                logger.w(tag, format(content, args));
+            } else {
+                logger.d(tag, format(content, args));
+            }
+        }
+    }
+
+    public void de(String content, boolean isError, Object... args) {
+        if (content != null && logger != null) {
+            if (isError) {
+                logger.e(tag, format(content, args));
+            } else {
+                logger.d(tag, format(content, args));
+            }
+        }
+    }
+
     public void crash(String content, Object... args) {
         if (content != null && logger != null) {
             logger.e(tag, format(content, args) +

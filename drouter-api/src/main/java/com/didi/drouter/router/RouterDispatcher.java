@@ -22,7 +22,7 @@ class RouterDispatcher {
 
         RouterLogger.getCoreLogger().d("request \"%s\", class \"%s\" start execute",
                 request.getNumber(),
-                meta.getRouterClass() != null ? meta.getRouterClass().getSimpleName() : meta.getHandler());
+                meta.getRouterClass() != null ? meta.getRouterClass().getSimpleName() : meta.getDynamicHandler());
         switch (meta.getRouterType()) {
             case RouterType.ACTIVITY:
                 startActivity(request, meta, result, callback);
@@ -109,7 +109,7 @@ class RouterDispatcher {
     private static void startHandler(final Request request, final RouterMeta meta,
                                      final Result result, final RouterCallback callback) {
         // dynamic
-        IRouterHandler handler = meta.getHandler();
+        IRouterHandler handler = meta.getDynamicHandler();
         if (handler == null) {
             handler = meta.getRouterProxy() != null ?
                     (IRouterHandler) meta.getRouterProxy().newInstance(null) : null;
