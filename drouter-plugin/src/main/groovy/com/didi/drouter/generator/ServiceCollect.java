@@ -37,7 +37,7 @@ public class ServiceCollect extends AbsRouterCollect {
     private final Map<String, CtClass> serviceClass = new ConcurrentHashMap<>();
     private final List<String> items = new ArrayList<>();
 
-    ServiceCollect(ClassPool pool, RouterSetting setting) {
+    ServiceCollect(ClassPool pool, RouterSetting.Parse setting) {
         super(pool, setting);
     }
 

@@ -1,5 +1,7 @@
 package com.didi.drouter.utils;
 
+import com.didi.drouter.plugin.RouterSetting;
+
 public class Logger {
 
     public static void p(Object msg) {
@@ -11,7 +13,7 @@ public class Logger {
     }
 
     public static void d(Object msg) {
-        if (SystemUtil.isDebug()) {
+        if (RouterSetting.Parse.isDebug()) {
             System.out.println("\033[37m" + msg + "\033[0m");
         }
     }

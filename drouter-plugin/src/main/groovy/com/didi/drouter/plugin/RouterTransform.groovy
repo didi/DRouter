@@ -7,6 +7,7 @@ import com.didi.drouter.utils.SystemUtil
 import com.google.common.collect.ImmutableSet
 import org.apache.commons.io.FileUtils
 import org.gradle.api.Project
+import sun.rmi.runtime.Log
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -16,6 +17,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 class RouterTransform extends Transform {
 
     Project project
+    RouterSetting.Parse setting
     Queue<File> compilePath
 
     // path.class (class file)
@@ -55,13 +57,14 @@ class RouterTransform extends Transform {
     @Override
     void transform(TransformInvocation invocation) throws TransformException, InterruptedException, IOException {
         long timeStart = System.currentTimeMillis()
-        SystemUtil.debug = project.drouter.debug
+        this.setting = new RouterSetting.Parse(project.drouter)
         File cacheFile = new File(tmpDir, "cache")
-        boolean configChanged = SystemUtil.configChanged(project)
-        boolean useCache = !isWindow && invocation.incremental && project.drouter.cache && cacheFile.exists() && !configChanged
+        boolean configChanged = SystemUtil.configChanged(project, setting)
+        boolean useCache = !isWindow && invocation.incremental && setting.cache && cacheFile.exists() && !configChanged
         Logger.v("DRouterTask start"
                 + " | incremental:" + invocation.incremental
                 + " | useCache:" + useCache)
+        Logger.d(setting)
         if (useCache) {
             cachePathSet.addAll(cacheFile.readLines())
             Logger.v("read cache size: " + cachePathSet.size())
@@ -76,7 +79,7 @@ class RouterTransform extends Transform {
         }
         File dest = invocation.outputProvider.getContentLocation("DRouterTable", TransformManager.CONTENT_CLASS,
                 ImmutableSet.of(QualifiedContent.Scope.PROJECT), Format.DIRECTORY)
-        (new RouterTask(project, compilePath, cachePathSet, useCache, dest, tmpDir, project.drouter, isWindow)).run()
+        (new RouterTask(project, compilePath, cachePathSet, useCache, dest, tmpDir, setting, isWindow)).run()
         FileUtils.writeLines(cacheFile, cachePathSet)
         Logger.v("Link: https://github.com/didi/DRouter")
         Logger.v("DRouterTask done, time used: " + (System.currentTimeMillis() - timeStart) / 1000f  + "s")
