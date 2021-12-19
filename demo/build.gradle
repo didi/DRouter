@@ -5,9 +5,9 @@ apply plugin: 'kotlin-android-extensions'
 apply plugin: 'com.didi.drouter'
 
 drouter {
-    //incremental = false
     debug = true
-//    useActivityRouterClass = true
+    //incremental = false
+    //useActivityRouterClass = true
 }
 
 android {
