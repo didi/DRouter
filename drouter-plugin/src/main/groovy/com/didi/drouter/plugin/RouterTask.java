@@ -67,6 +67,10 @@ public class RouterTask {
     void run() {
         StoreUtil.clear();
         JarUtils.printVersion(project, compileClassPath);
+
+        RouterProperties.useActivityRouterClass = RouterProperties.getBoolean(project, "drouter.useActivityRouterClass");
+        Logger.d("load drouter properties: drouter.useActivityRouterClass=" + RouterProperties.useActivityRouterClass);
+
         pool = new ClassPool();
         classClassify = new ClassClassify(pool, setting);
         startExecute();
@@ -83,7 +87,7 @@ public class RouterTask {
             } else {
                 loadFullPaths(compileClassPath);
             }
-            Logger.d("load class used: " + (System.currentTimeMillis() - timeStart)  + "ms");
+            Logger.d("load class used: " + (System.currentTimeMillis() - timeStart) + "ms");
             timeStart = System.currentTimeMillis();
             classClassify.generatorRouter(routerDir);
             Logger.d("generator router table used: " + (System.currentTimeMillis() - timeStart) + "ms");
@@ -257,6 +261,6 @@ public class RouterTask {
         }
         return file;
     }
-    
+
 
 }
