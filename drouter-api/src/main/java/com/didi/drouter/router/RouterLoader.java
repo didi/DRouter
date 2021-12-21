@@ -5,9 +5,8 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
 import android.util.SparseArray;
-
-import androidx.annotation.NonNull;
 
 import com.didi.drouter.api.Extend;
 import com.didi.drouter.remote.RemoteBridge;

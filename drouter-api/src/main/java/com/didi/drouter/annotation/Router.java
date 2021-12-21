@@ -1,7 +1,6 @@
 package com.didi.drouter.annotation;
 
-
-import androidx.annotation.Keep;
+import android.support.annotation.Keep;
 
 import com.didi.drouter.api.Extend;
 import com.didi.drouter.router.IRouterInterceptor;

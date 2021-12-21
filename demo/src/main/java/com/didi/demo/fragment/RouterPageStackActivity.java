@@ -1,20 +1,19 @@
 package com.didi.demo.fragment;
 
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.TextView;
-
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 
 import com.didi.drouter.annotation.Router;
 import com.didi.drouter.api.DRouter;
 import com.didi.drouter.demo.R;
+import com.didi.drouter.store.ServiceKey;
+import com.didi.drouter.utils.RouterLogger;
 import com.didi.drouter.page.IPageBean;
 import com.didi.drouter.page.IPageRouter;
 import com.didi.drouter.page.RouterPageStack;
-import com.didi.drouter.store.ServiceKey;
-import com.didi.drouter.utils.RouterLogger;
 
 @Router(path = "/activity/router_page_stack")
 public class RouterPageStackActivity extends AppCompatActivity {

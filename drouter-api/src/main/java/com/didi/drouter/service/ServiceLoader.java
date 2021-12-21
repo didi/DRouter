@@ -1,7 +1,7 @@
 package com.didi.drouter.service;
 
-import androidx.lifecycle.LifecycleOwner;
-import androidx.annotation.NonNull;
+import android.arch.lifecycle.LifecycleOwner;
+import android.support.annotation.NonNull;
 
 import com.didi.drouter.api.Extend;
 

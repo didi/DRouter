@@ -1,7 +1,6 @@
 package com.didi.drouter.module_base.remote;
 
-
-import androidx.annotation.Keep;
+import android.support.annotation.Keep;
 
 /**
  * Created by gaowei on 2018/11/5

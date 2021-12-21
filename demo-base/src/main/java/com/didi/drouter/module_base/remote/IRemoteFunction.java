@@ -1,8 +1,7 @@
 package com.didi.drouter.module_base.remote;
 
 import android.content.Context;
-
-import androidx.annotation.Keep;
+import android.support.annotation.Keep;
 
 import com.didi.drouter.module_base.ParamObject;
 import com.didi.drouter.module_base.ResultObject;

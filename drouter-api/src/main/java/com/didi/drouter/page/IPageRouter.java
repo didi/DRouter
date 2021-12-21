@@ -1,10 +1,9 @@
 package com.didi.drouter.page;
 
+import android.arch.lifecycle.LifecycleOwner;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.lifecycle.LifecycleOwner;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 /**
  * Created by gaowei on 2020/4/1

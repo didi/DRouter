@@ -2,13 +2,12 @@ package com.didi.demo.fragment;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 
 import com.didi.drouter.annotation.Router;
 import com.didi.drouter.api.DRouter;
@@ -23,17 +22,8 @@ import com.didi.drouter.utils.RouterLogger;
 @Router(path = "/fragment/first/.*")
 public class FragmentFirst extends Fragment {
 
-    private String name;
-
     public FragmentFirst() {
         RouterLogger.getAppLogger().d("FirstFragment constructor");
-    }
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        name = getArguments().getString(Extend.REQUEST_BUILD_URI);
-        RouterLogger.getAppLogger().d(name + " onCreate");
     }
 
     @Nullable
@@ -55,37 +45,8 @@ public class FragmentFirst extends Fragment {
             }
         });
 
-        ((TextView)view.findViewById(R.id.title)).setText(name);
+        ((TextView)view.findViewById(R.id.title)).setText(getArguments().getString(Extend.REQUEST_BUILD_URI));
         return view;
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-        RouterLogger.getAppLogger().d(name + " onStart");
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        RouterLogger.getAppLogger().d(name + " onResume");
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        RouterLogger.getAppLogger().d(name + " onPause");
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        RouterLogger.getAppLogger().d(name + " onStop");
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        RouterLogger.getAppLogger().d(name + " onDestroy");
-    }
 }

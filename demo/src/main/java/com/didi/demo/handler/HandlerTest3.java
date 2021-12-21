@@ -2,7 +2,7 @@ package com.didi.demo.handler;
 
 import android.os.Handler;
 import android.os.Looper;
-import androidx.annotation.NonNull;
+import android.support.annotation.NonNull;
 
 import com.didi.drouter.annotation.Router;
 import com.didi.drouter.api.Extend;

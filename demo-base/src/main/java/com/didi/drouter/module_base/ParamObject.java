@@ -1,7 +1,6 @@
 package com.didi.drouter.module_base;
 
-
-import androidx.annotation.Keep;
+import android.support.annotation.Keep;
 
 import com.didi.drouter.utils.JsonConverter;
 

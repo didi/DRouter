@@ -3,10 +3,9 @@ package com.didi.drouter.router;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
 import android.view.View;
-
-import androidx.core.app.ActivityCompat;
-import androidx.fragment.app.Fragment;
 
 import com.didi.drouter.api.Extend;
 import com.didi.drouter.store.RouterMeta;

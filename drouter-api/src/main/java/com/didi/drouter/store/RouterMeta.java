@@ -3,10 +3,9 @@ package com.didi.drouter.store;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.RestrictTo;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.annotation.RestrictTo;
 
 import com.didi.drouter.api.Extend;
 import com.didi.drouter.router.IRouterHandler;

@@ -1,8 +1,7 @@
 package com.didi.drouter.store;
 
 import android.content.Context;
-
-import androidx.annotation.RestrictTo;
+import android.support.annotation.RestrictTo;
 
 /**
  * Created by gaowei on 2020/10/25

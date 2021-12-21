@@ -52,10 +52,9 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 
-    api 'androidx.appcompat:appcompat:1.0.2'
-    api 'androidx.lifecycle:lifecycle-runtime:2.2.0'
-    api 'androidx.fragment:fragment:1.1.0'
-
+    //noinspection GradleCompatible
+    api 'com.android.support:appcompat-v7:26.1.0'
+    api 'android.arch.lifecycle:runtime:1.1.1'
     implementation 'com.google.code.gson:gson:2.8.5'
     compileOnly project(':drouter-api-stub')
 }
@@ -65,8 +64,7 @@ task sourcesJar(type: Jar) {
     from android.sourceSets.main.java.source
 }
 
-version = '2.2.1'
-// latest test version: 2.1.0.0.0.1
+version = '1.0.9'
 
 if (file("${rootProject.projectDir}/upload-maven.gradle").exists()) {
     apply from: "${rootProject.projectDir}/upload-maven.gradle"

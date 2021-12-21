@@ -1,6 +1,6 @@
 package com.didi.demo.interceptor;
 
-import androidx.annotation.NonNull;
+import android.support.annotation.NonNull;
 
 import com.didi.drouter.annotation.Interceptor;
 import com.didi.drouter.router.IRouterInterceptor;

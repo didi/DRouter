@@ -4,16 +4,15 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.annotation.RestrictTo;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Pair;
 import android.util.SparseArray;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.RestrictTo;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentActivity;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
 
 import com.didi.drouter.api.Extend;
 import com.didi.drouter.utils.RouterLogger;
@@ -129,11 +128,9 @@ public class ActivityCompat2 {
         @Override
         public void remove() {
             FragmentManager fragmentManager = getFragmentManager();
-            if (fragmentManager != null) {
-                FragmentTransaction transaction = fragmentManager.beginTransaction();
-                transaction.remove(this);
-                transaction.commit();
-            }
+            FragmentTransaction transaction = fragmentManager.beginTransaction();
+            transaction.remove(this);
+            transaction.commit();
         }
 
         @Override
@@ -149,7 +146,7 @@ public class ActivityCompat2 {
         }
 
         @Override
-        public void onSaveInstanceState(@NonNull Bundle outState) {
+        public void onSaveInstanceState(Bundle outState) {
             super.onSaveInstanceState(outState);
             activityCompat2.onSaveInstanceState(outState);
         }
@@ -161,7 +158,7 @@ public class ActivityCompat2 {
         }
     }
 
-    @SuppressWarnings("deprecation")
+    @Deprecated
     public static class HolderFragment extends android.app.Fragment implements Active {
 
         private final ActivityCompat2 activityCompat2;
@@ -194,17 +191,15 @@ public class ActivityCompat2 {
             android.app.FragmentManager fragmentManager = activity.getFragmentManager();
             android.app.FragmentTransaction transaction = fragmentManager.beginTransaction();
             transaction.add(this, TAG);
-            transaction.commit();
+            transaction.commitNow();
         }
 
         @Override
         public void remove() {
             android.app.FragmentManager fragmentManager = getFragmentManager();
-            if (fragmentManager != null) {
-                android.app.FragmentTransaction transaction = fragmentManager.beginTransaction();
-                transaction.remove(this);
-                transaction.commit();
-            }
+            android.app.FragmentTransaction transaction = fragmentManager.beginTransaction();
+            transaction.remove(this);
+            transaction.commit();
         }
 
         @Override

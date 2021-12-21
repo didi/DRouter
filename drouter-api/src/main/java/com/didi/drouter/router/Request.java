@@ -1,10 +1,9 @@
 package com.didi.drouter.router;
 
+import android.arch.lifecycle.LifecycleOwner;
 import android.content.Context;
 import android.net.Uri;
-
-import androidx.annotation.NonNull;
-import androidx.lifecycle.LifecycleOwner;
+import android.support.annotation.NonNull;
 
 import com.didi.drouter.api.DRouter;
 import com.didi.drouter.api.Extend;

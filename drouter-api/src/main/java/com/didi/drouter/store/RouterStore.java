@@ -1,15 +1,15 @@
 package com.didi.drouter.store;
 
-import android.net.Uri;
-import android.util.Log;
-import android.util.Pair;
 
-import androidx.annotation.MainThread;
-import androidx.annotation.NonNull;
-import androidx.collection.ArraySet;
-import androidx.lifecycle.Lifecycle;
-import androidx.lifecycle.LifecycleObserver;
-import androidx.lifecycle.OnLifecycleEvent;
+import android.arch.lifecycle.Lifecycle;
+import android.arch.lifecycle.LifecycleObserver;
+import android.arch.lifecycle.OnLifecycleEvent;
+import android.net.Uri;
+import android.support.annotation.MainThread;
+import android.support.annotation.NonNull;
+import android.support.v4.util.ArraySet;
+import android.support.v4.util.Pair;
+import android.util.Log;
 
 import com.didi.drouter.api.Extend;
 import com.didi.drouter.loader.host.InterceptorLoader;

@@ -2,9 +2,9 @@ package com.didi.drouter.remote;
 
 import android.os.Bundle;
 import android.os.RemoteException;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
-import androidx.appcompat.app.AppCompatActivity;
 
 import com.didi.drouter.api.DRouter;
 import com.didi.drouter.api.Extend;

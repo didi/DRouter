@@ -1,7 +1,7 @@
 package com.didi.drouter.page;
 
 import android.os.Bundle;
-import androidx.annotation.NonNull;
+import android.support.annotation.NonNull;
 
 /**
  * Created by gaowei on 2020/9/16

@@ -1,7 +1,7 @@
 package com.didi.drouter.api;
 
 import android.app.Application;
-import androidx.annotation.NonNull;
+import android.support.annotation.NonNull;
 
 import com.didi.drouter.router.IRouterHandler;
 import com.didi.drouter.router.Request;

@@ -1,9 +1,9 @@
 package com.didi.drouter.page;
 
-import androidx.annotation.IdRes;
-import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
+import android.support.annotation.IdRes;
+import android.support.annotation.NonNull;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +25,7 @@ public class RouterPageStack extends RouterPageAbs {
 
     @Override
     public void showPage(@NonNull IPageBean bean) {
-        Fragment fragment = createFragment(bean.getPageUri());
+        Fragment fragment = newFragment(bean.getPageUri());
         putArgsForFragment(fragment, bean.getPageInfo());
         manager.beginTransaction().add(containerId, fragment).commitAllowingStateLoss();
         notifyPageChanged(bean, IPageObserver.CHANGED_BY_SHOW, false);

@@ -2,9 +2,8 @@ package com.didi.demo.activity;
 
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v7.app.AppCompatActivity;
 import android.widget.TextView;
-
-import androidx.appcompat.app.AppCompatActivity;
 
 import com.didi.drouter.annotation.Router;
 import com.didi.drouter.demo.R;

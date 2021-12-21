@@ -5,9 +5,8 @@ import android.os.IBinder;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.os.RemoteException;
-
-import androidx.collection.ArrayMap;
-import androidx.collection.ArraySet;
+import android.support.v4.util.ArrayMap;
+import android.support.v4.util.ArraySet;
 
 import com.didi.drouter.api.DRouter;
 import com.didi.drouter.utils.JsonConverter;

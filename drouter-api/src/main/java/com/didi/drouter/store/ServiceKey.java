@@ -1,7 +1,7 @@
 package com.didi.drouter.store;
 
-import androidx.lifecycle.LifecycleOwner;
-import androidx.annotation.NonNull;
+import android.arch.lifecycle.LifecycleOwner;
+import android.support.annotation.NonNull;
 
 import com.didi.drouter.service.IFeatureMatcher;
 

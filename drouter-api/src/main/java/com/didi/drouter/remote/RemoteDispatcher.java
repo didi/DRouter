@@ -1,7 +1,7 @@
 package com.didi.drouter.remote;
 
 import android.os.RemoteException;
-import androidx.annotation.NonNull;
+import android.support.annotation.NonNull;
 
 import com.didi.drouter.api.DRouter;
 import com.didi.drouter.router.Request;
