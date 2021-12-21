@@ -54,7 +54,7 @@ Page | 支持单Page、栈Page、ViewPager三种形式的Fragment加载
 ``` java
 /** 最新版本 **/
 classpath "io.github.didi:drouter-plugin-proxy:1.0.2"
-api "io.github.didi:drouter-api:2.2.0"
+api "io.github.didi:drouter-api:2.2.0"   // 该版本为androidx, 如需support版本1.1.0
 ```
 
 ## 微信交流群
