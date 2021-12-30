@@ -28,9 +28,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ActivityCompat2 {
 
     private static final String TAG = "DRouterEmptyFragment";
+    private static final String CbTag = "router_cb_tag";
 
     private static final AtomicInteger sCount = new AtomicInteger(0);
-    private static final SparseArray<Pair<WeakReference<Activity>, WeakReference<RouterCallback.ActivityCallback>>>
+    private static final SparseArray<Pair<WeakReference<Activity>, RouterCallback.ActivityCallback>>
             sCallbackMap = new SparseArray<>();
 
     // start index, will not change when rotation or recycle
@@ -45,7 +46,7 @@ public class ActivityCompat2 {
                                        @NonNull final Intent intent, final int requestCode,
                                        RouterCallback.ActivityCallback callback) {
         final int cur = sCount.incrementAndGet();
-        sCallbackMap.put(cur, new Pair<>(new WeakReference<>(activity), new WeakReference<>(callback)));
+        sCallbackMap.put(cur, new Pair<>(new WeakReference<>(activity), callback));
         final Active active;
         if (activity instanceof FragmentActivity) {
             active = new HolderFragmentV4();
@@ -60,30 +61,30 @@ public class ActivityCompat2 {
 
     public void onCreate(@Nullable Bundle savedInstanceState) {
         if (savedInstanceState != null) {
-            cur = savedInstanceState.getInt("cur");
+            cur = savedInstanceState.getInt(CbTag);
         }
         active.startActivity();
 //        RouterLogger.getCoreLogger().d("HoldFragment onCreate cur:" + cur);
     }
 
     private void onActivityResult(Activity activity, int resultCode, Intent data) {
-        Pair<WeakReference<Activity>, WeakReference<RouterCallback.ActivityCallback>> pair = sCallbackMap.get(cur);
-        if (pair != null) {
-            RouterCallback.ActivityCallback cb;
-            if (pair.first == null || pair.first.get() != activity) {
-                RouterLogger.getCoreLogger().e("HoldFragment onActivityResult error, for host activity changed");
-            } else if (pair.second != null && (cb = pair.second.get()) != null) {
-                RouterLogger.getCoreLogger().d("HoldFragment ActivityResult callback success");
-                cb.onActivityResult(resultCode, data);
-            }
+        RouterCallback.ActivityCallback cb;
+        Pair<WeakReference<Activity>, RouterCallback.ActivityCallback> pair = sCallbackMap.get(cur);
+        if (pair != null && (cb = pair.second) != null) {
+            RouterLogger.getCoreLogger().d("HoldFragment ActivityResult callback success");
+            cb.onActivityResult(resultCode, data);
         }
-        RouterLogger.getCoreLogger().d("HoldFragment release %s callback", cur);
+        if (pair == null || pair.first == null || pair.first.get() != activity) {
+            RouterLogger.getCoreLogger().e("HoldFragment onActivityResult warn, " +
+                    "for host activity changed, but still callback last host");
+        }
+        RouterLogger.getCoreLogger().d("HoldFragment remove %s callback and page", cur);
         sCallbackMap.remove(cur);
         active.remove();
     }
 
     private void onSaveInstanceState(Bundle outState) {
-        outState.putInt("cur", cur);
+        outState.putInt(CbTag, cur);
     }
 
     private void onDestroy() {
