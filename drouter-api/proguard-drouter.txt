@@ -5,7 +5,9 @@
 #cross app remote
 -keep class com.didi.drouter.remote.* implements android.os.Parcelable
 -keep class android.support.v4.util.ArrayMap
+-keep class androidx.collection.ArrayMap
 -keep class android.support.v4.util.ArraySet
+-keep class androidx.collection.ArraySet
 #keep constructor exist
 -keepclassmembers @com.didi.drouter.annotation.Router class * extends android.view.View {
    <init>(...);

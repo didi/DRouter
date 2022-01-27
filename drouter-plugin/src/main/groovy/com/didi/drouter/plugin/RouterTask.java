@@ -4,7 +4,6 @@ import com.didi.drouter.generator.ClassClassify;
 import com.didi.drouter.utils.JarUtils;
 import com.didi.drouter.utils.Logger;
 import com.didi.drouter.utils.StoreUtil;
-import com.didi.drouter.utils.SystemUtil;
 import com.didi.drouter.utils.TextUtil;
 
 import org.apache.commons.io.FileUtils;
@@ -38,19 +37,19 @@ import javassist.CtClass;
  */
 public class RouterTask {
 
-    private Project project;
-    private Queue<File> compileClassPath;
-    private Set<String> cachePathSet; //.class | .jar | .jar!/class
-    private File wTmpDir;
-    private boolean useCache;
-    private File routerDir;
-    private RouterSetting.Parse setting;
+    private final Project project;
+    private final Queue<File> compileClassPath;
+    private final Set<String> cachePathSet; //.class | .jar | .jar!/class
+    private final File wTmpDir;
+    private final boolean useCache;
+    private final File routerDir;
+    private final RouterSetting.Parse setting;
 
     private ClassPool pool;
     private ClassClassify classClassify;
-    private ExecutorService executor = Executors.newCachedThreadPool();
-    private int CPU_COUNT = Runtime.getRuntime().availableProcessors();
-    private AtomicInteger count = new AtomicInteger();
+    private final ExecutorService executor = Executors.newCachedThreadPool();
+    private final int CPU_COUNT = Runtime.getRuntime().availableProcessors();
+    private final AtomicInteger count = new AtomicInteger();
 
     RouterTask(Project project, Queue<File> compileClassPath,
                Set<String> cachePathSet, boolean useCache,
@@ -201,24 +200,20 @@ public class RouterTask {
                 if (entry.getName().endsWith(".class")) {
                     count.incrementAndGet();
                     if (!TextUtil.excludePackageClassInJar(entry.getName())) {
-                        InputStream stream = jar.getInputStream(entry);
-                        String path = "jar:file:" + file.getAbsolutePath() + "!/" + entry.getName();
-                        CtClass clz;
-                        try {
-                            clz = pool.makeClass(stream);
+                        try (InputStream stream = jar.getInputStream(entry)) {
+                            String path = "jar:file:" + file.getAbsolutePath() + "!/" + entry.getName();
+                            CtClass clz = pool.makeClass(stream);
+                            if (classClassify.doClassify(clz)) {
+                                cachePathSet.add(path);
+                            } else if (useCache) {
+                                cachePathSet.remove(path);
+                            }
                         } catch (Exception e) {
                             Logger.w("drouter resolve jar class error," +
                                     " jar=" + file.getAbsolutePath() +
                                     " entry=" + entry.getName() +
                                     " exception=" + e.getMessage());
-                            continue;
-                        } finally {
-                            stream.close();
-                        }
-                        if (classClassify.doClassify(clz)) {
-                            cachePathSet.add(path);
-                        } else if (useCache) {
-                            cachePathSet.remove(path);
+                            throw e;
                         }
                     }
                 }
@@ -229,20 +224,16 @@ public class RouterTask {
 
     private void resolveCachedClassInJar(String path) throws IOException {
         count.incrementAndGet();
-        InputStream stream = new URL(path).openStream();
-        CtClass ctClass;
-        try {
-            ctClass = pool.makeClass(stream);
+        try (InputStream stream = new URL(path).openStream()) {
+            CtClass ctClass = pool.makeClass(stream);
+            if (!classClassify.doClassify(ctClass)) {
+                cachePathSet.remove(path);
+            }
         } catch (Exception e) {
             Logger.e("drouter resolve jar class error," +
                     " entry=" + path +
                     " exception=" + e.getMessage());
-            return;
-        } finally {
-            stream.close();
-        }
-        if (!classClassify.doClassify(ctClass)) {
-            cachePathSet.remove(path);
+            throw e;
         }
     }
 

@@ -1,5 +1,7 @@
 package com.didi.drouter.router;
 
+import static com.didi.drouter.api.Extend.REQUEST_BUILD_URI;
+
 import android.content.Context;
 import android.net.Uri;
 
@@ -7,11 +9,9 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.LifecycleOwner;
 
 import com.didi.drouter.api.DRouter;
-import com.didi.drouter.api.Extend;
+import com.didi.drouter.remote.Strategy;
 
 import java.util.concurrent.atomic.AtomicInteger;
-
-import static com.didi.drouter.api.Extend.REQUEST_BUILD_URI;
 
 /**
  * Created by gaowei on 2018/8/31
@@ -23,9 +23,8 @@ public class Request extends DataExtras<Request> {
     private final Uri uri;
     Context context;
     LifecycleOwner lifecycleOwner;
-    String authority;
+    Strategy strategy;
     @RouterType int routerType;
-    int resendStrategy;
     long holdTimeout;
     String serialNumber;
     IRouterInterceptor.IInterceptor interceptor;
@@ -80,15 +79,10 @@ public class Request extends DataExtras<Request> {
     }
 
     /**
-     * @param authority ContentProvider authority for remote process.
+     * @param strategy for remote process.
      */
-    public Request setRemoteAuthority(String authority) {
-        this.authority = authority;
-        return this;
-    }
-
-    public Request setRemoteDeadResend(@Extend.Resend int strategy) {
-        this.resendStrategy = strategy;
+    public Request setRemote(Strategy strategy) {
+        this.strategy = strategy;
         return this;
     }
 
@@ -98,7 +92,6 @@ public class Request extends DataExtras<Request> {
     }
 
     public @NonNull IRouterInterceptor.IInterceptor getInterceptor() {
-        if (interceptor == null) return new InterceptorHandler.Default();
-        return interceptor;
+        return interceptor == null ? new InterceptorHandler.Default() : interceptor;
     }
 }

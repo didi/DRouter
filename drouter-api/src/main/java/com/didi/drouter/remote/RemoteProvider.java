@@ -2,9 +2,9 @@ package com.didi.drouter.remote;
 
 import android.app.Application;
 import android.content.ContentProvider;
+import android.content.ContentProviderClient;
 import android.content.ContentValues;
 import android.content.Intent;
-import android.database.AbstractCursor;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
@@ -17,7 +17,6 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 
 import com.didi.drouter.api.DRouter;
 import com.didi.drouter.utils.RouterLogger;
@@ -43,22 +42,22 @@ public class RemoteProvider extends ContentProvider {
 
     // key is authority
     private static final Map<String, IHostService> sHostServiceMap = new ConcurrentHashMap<>();
+    // key is authority, value is process
+    private static final Map<String, String> sProcessMap = new ConcurrentHashMap<>();
 
     private static final IHostService.Stub stub = new IHostService.Stub() {
-
         @Override
-        public RemoteResult execute(RemoteCommand command) {
+        public RemoteResult call(RemoteCommand command) {
             try {
-                return new RemoteDispatcher().execute(command);
+                return new RemoteDispatcher().call(command);
             } catch (RuntimeException e) {
                 RouterLogger.getCoreLogger().e("[Server] exception: %s", e);
                 throw e;  // will not crash
             }
         }
-
         @Override
-        public String getProcess() {
-            return SystemUtil.getProcessName();
+        public void callAsync(RemoteCommand command) {
+            call(command);
         }
     };
 
@@ -78,35 +77,30 @@ public class RemoteProvider extends ContentProvider {
             }
         } else {
             Log.e(RouterLogger.NAME,
-                    String.format("[%s] onCreate | Context: %s | Process: \"%s\"" ,
+                    String.format("[%s] onCreate multiProcess? | Context: %s | Process: \"%s\"" ,
                             getClass().getSimpleName(), getContext(), process));
         }
         return true;
     }
 
-    @Nullable
-    @Override
-    @RequiresApi(api = Build.VERSION_CODES.M)
-    public Cursor query(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection,
-                        @Nullable String[] selectionArgs, @Nullable String sortOrder) {
+    @Nullable @Override
+    public Bundle call(@NonNull String method, @Nullable String arg, @Nullable Bundle extras) {
         RouterLogger.getCoreLogger().d(
-                "[%s] Query is called by client to get binder, process: \"%s\"",
+                "[%s] is called by client to get binder, process: \"%s\"",
                 getClass().getSimpleName(), SystemUtil.getProcessName());
         Bundle bundle = new Bundle();
         bundle.putParcelable(FIELD_REMOTE_BINDER, new BinderParcel(stub));
-        Cursor cursor = new BinderCursor();
-        cursor.setExtras(bundle);
-        return cursor;
+        bundle.putString(FIELD_REMOTE_PROCESS, SystemUtil.getProcessName());
+        return bundle;
     }
 
-    @Nullable
-    @Override
-    public String getType(@NonNull Uri uri) {
+    @Nullable @Override
+    public Cursor query(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection,
+                        @Nullable String[] selectionArgs, @Nullable String sortOrder) {
         return null;
     }
 
-    @Nullable
-    @Override
+    @Nullable @Override
     public Uri insert(@NonNull Uri uri, @Nullable ContentValues values) {
         return null;
     }
@@ -122,7 +116,11 @@ public class RemoteProvider extends ContentProvider {
         return 0;
     }
 
-    // NonNull as normal
+    @Nullable @Override
+    public String getType(@NonNull Uri uri) {
+        return null;
+    }
+
     static IHostService getHostService(final String authority) {
         IHostService hostService = sHostServiceMap.get(authority);
         if (hostService != null) {
@@ -137,12 +135,15 @@ public class RemoteProvider extends ContentProvider {
                 Bundle bundle = null;
                 for (int i = 0; i < 3; i++) {    // remote process killed case and retry, return null
                     try {
-                        Cursor cursor = DRouter.getContext().getContentResolver().query(
-                                Uri.parse(authority.startsWith("content://") ? authority : "content://" + authority),
-                                null, null, null, null);
-                        if (cursor != null) {
-                            bundle = cursor.getExtras();
-                            cursor.close();
+                        ContentProviderClient client = DRouter.getContext().getContentResolver()
+                                .acquireUnstableContentProviderClient(authority);
+                        if (client != null) {
+                            bundle = client.call("", "", null);
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                                client.close();
+                            } else {
+                                client.release();
+                            }
                         }
                     } catch (RuntimeException e) {
                         RouterLogger.getCoreLogger().e(
@@ -154,7 +155,8 @@ public class RemoteProvider extends ContentProvider {
                 }
                 if (bundle != null) {
                     bundle.setClassLoader(RemoteBridge.class.getClassLoader());
-                    RemoteProvider.BinderParcel parcel = bundle.getParcelable(RemoteProvider.FIELD_REMOTE_BINDER);
+                    BinderParcel parcel = bundle.getParcelable(RemoteProvider.FIELD_REMOTE_BINDER);
+                    sProcessMap.put(authority, bundle.getString(FIELD_REMOTE_PROCESS));
                     if (parcel != null) {
                         hostService = IHostService.Stub.asInterface(parcel.getBinder());
                         hostService.asBinder().linkToDeath(new IBinder.DeathRecipient() {
@@ -181,6 +183,10 @@ public class RemoteProvider extends ContentProvider {
 
     static void removeHostService(String authority) {
         sHostServiceMap.remove(authority);
+    }
+
+    static String getProcess(String authority) {
+        return sProcessMap.get(authority);
     }
 
     static class BinderParcel implements Parcelable {
@@ -220,54 +226,6 @@ public class RemoteProvider extends ContentProvider {
                 return new BinderParcel[size];
             }
         };
-    }
-
-    static class BinderCursor extends AbstractCursor {
-
-        @Override
-        public int getCount() {
-            return 0;
-        }
-
-        @Override
-        public String[] getColumnNames() {
-            return new String[0];
-        }
-
-        @Override
-        public String getString(int column) {
-            return null;
-        }
-
-        @Override
-        public short getShort(int column) {
-            return 0;
-        }
-
-        @Override
-        public int getInt(int column) {
-            return 0;
-        }
-
-        @Override
-        public long getLong(int column) {
-            return 0;
-        }
-
-        @Override
-        public float getFloat(int column) {
-            return 0;
-        }
-
-        @Override
-        public double getDouble(int column) {
-            return 0;
-        }
-
-        @Override
-        public boolean isNull(int column) {
-            return false;
-        }
     }
 
 }

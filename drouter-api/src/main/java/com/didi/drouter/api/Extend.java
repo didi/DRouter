@@ -15,43 +15,43 @@ public class Extend {
     /**
      * value:String, this represent uri when building, used for getting primary uri from Activity/Fragment/View
      */
-    public static final String REQUEST_BUILD_URI = "DRouter_request_build_uri";
+    public static final String REQUEST_BUILD_URI = "router_request_build_uri";
 
     /**
      * value:Bundle, optionsBundle for Activity.
      */
-    public static final String START_ACTIVITY_OPTIONS = "DRouter_start_activity_options";
+    public static final String START_ACTIVITY_OPTIONS = "router_start_activity_options";
 
     /**
      * value:int[], animation for Activity.
      */
-    public static final String START_ACTIVITY_ANIMATION = "DRouter_start_activity_animation";
+    public static final String START_ACTIVITY_ANIMATION = "router_start_activity_animation";
 
     /**
      * value:int, flags for Activity.
      */
-    public static final String START_ACTIVITY_FLAGS = "DRouter_start_activity_flags";
+    public static final String START_ACTIVITY_FLAGS = "router_start_activity_flags";
 
     /**
      * value:Intent, use intent to start Activity, this will ignore uri in build at the same time.
      */
-    public static final String START_ACTIVITY_VIA_INTENT = "DRouter_start_activity_via_intent";
+    public static final String START_ACTIVITY_VIA_INTENT = "router_start_activity_via_intent";
 
     /**
      * value:int, assign RequestCode for startActivityForResult.
      * {@link RouterCallback.ActivityCallback}
      */
-    public static final String START_ACTIVITY_REQUEST_CODE = "DRouter_start_activity_request_code";
+    public static final String START_ACTIVITY_REQUEST_CODE = "router_start_activity_request_code";
 
     /**
      * value:Boolean，Used for Fragment, whether create fragment instance, default true.
      */
-    public static final String START_FRAGMENT_NEW_INSTANCE = "DRouter_start_fragment_new_instance";
+    public static final String START_FRAGMENT_NEW_INSTANCE = "router_start_fragment_new_instance";
 
     /**
      * value:Boolean，Used for View, whether create fragment instance, default true.
      */
-    public static final String START_VIEW_NEW_INSTANCE = "DRouter_start_view_new_instance";
+    public static final String START_VIEW_NEW_INSTANCE = "router_start_view_new_instance";
 
     /**
      * value:String, format "scheme://host", used for Activity.
@@ -59,7 +59,7 @@ public class Extend {
      * All those Activity will auto add scheme://host prefix for only this request to take a match.
      */
     public static final String
-            START_ACTIVITY_WITH_DEFAULT_SCHEME_HOST = "DRouter_start_activity_with_default_scheme_host";
+            START_ACTIVITY_WITH_DEFAULT_SCHEME_HOST = "router_start_activity_with_default_scheme_host";
 
     @Retention(RetentionPolicy.SOURCE)
     @IntDef({Resend.NO_RESEND, Resend.WAIT_ALIVE})
@@ -69,7 +69,7 @@ public class Extend {
          */
         int NO_RESEND   = 0;
         /**
-         * Resend strategy: Client command will hold and wait until Server restart
+         * Resend strategy: Client command will retain and wait until Server restart
          * Please refer to {@link RouterLifecycle} to control resend switch
          */
         int WAIT_ALIVE  = 1;
@@ -78,8 +78,17 @@ public class Extend {
     @Retention(RetentionPolicy.SOURCE)
     @IntDef({Thread.POSTING, Thread.MAIN, Thread.WORKER})
     public @interface Thread {
+        /**
+         * No thread switch
+         */
         int POSTING     = 0;
+        /**
+         * UI thread
+         */
         int MAIN        = 1;
+        /**
+         * Worker thread
+         */
         int WORKER      = 2;
     }
 

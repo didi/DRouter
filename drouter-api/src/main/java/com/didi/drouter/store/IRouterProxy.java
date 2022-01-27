@@ -21,7 +21,7 @@ public interface IRouterProxy {
      * @return method result
      * @throws RemoteMethodMatchException when execute remote service method with no @Remote
      */
-    Object execute(Object instance, String methodName, Object[] args) throws RemoteMethodMatchException;
+    Object callMethod(Object instance, String methodName, Object[] args) throws RemoteMethodMatchException;
 
     /**
      * Throw this when remote service method has no @Remote

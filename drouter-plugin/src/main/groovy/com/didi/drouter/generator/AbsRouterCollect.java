@@ -33,7 +33,7 @@ abstract class AbsRouterCollect {
             "   return null;" +
             "}";
     static final String METHOD2 =
-            "public java.lang.Object execute(Object instance, String methodName, Object[] args) {" +
+            "public java.lang.Object callMethod(Object instance, String methodName, Object[] args) {" +
             "   return null;" +
             "}";
 

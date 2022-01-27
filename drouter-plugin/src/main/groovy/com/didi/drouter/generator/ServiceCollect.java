@@ -62,6 +62,7 @@ public class ServiceCollect extends AbsRouterCollect {
         CtClass featureInterface = pool.get("com.didi.drouter.service.IFeatureMatcher");
 
         for (CtClass serviceCc : serviceClass.values()) {
+//            Logger.d(serviceCc.getName());
             try {
                 if (isNonStaticInnerClass(serviceCc)) {
                     throw new Exception("Annotation can not use non static inner class");
@@ -181,8 +182,13 @@ public class ServiceCollect extends AbsRouterCollect {
                         StringBuilder allIfStr = new StringBuilder();
                         Set<String> methodNames = new HashSet<>();
                         for (CtMethod method : ctMethods) {
-                            boolean add =
-                                    methodNames.add(method.getName() + "_$$_" + method.getParameterTypes().length);
+//                            Logger.d(method.getName());
+//                            Logger.d(method.getParameterTypes().length);
+//                            for (CtClass a : method.getParameterTypes()) {
+//                                Logger.d(a.getName());
+//
+//                            }
+                            boolean add = methodNames.add(method.getName() + "_$$_" + method.getParameterTypes().length);
                             Remote remote = (Remote) method.getAnnotation(Remote.class);
                             if (remote != null) {
                                 if (!add) {
@@ -218,7 +224,7 @@ public class ServiceCollect extends AbsRouterCollect {
                             }
                         }
                         executeMethod = String.format(
-                                "public java.lang.Object execute(Object instance, String methodName, Object[] " +
+                                "public java.lang.Object callMethod(Object instance, String methodName, Object[] " +
                                 "args) {" +
                                 "%s" +
                                 "throw " +

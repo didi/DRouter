@@ -21,20 +21,19 @@ class RemoteResult implements Parcelable {
 
     RemoteResult(Parcel in) {
         state = in.readString();
-        result = RemoteStream.reverse(in.readValue(getClass().getClassLoader()));
+        result = DataStream.reverse(in.readValue(getClass().getClassLoader()));
     }
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(state);
-        dest.writeValue(RemoteStream.transform(result));
+        dest.writeValue(DataStream.transform(result));
     }
 
     public static final Creator<RemoteResult> CREATOR = new Creator<RemoteResult>() {
         public RemoteResult createFromParcel(Parcel in) {
             return new RemoteResult(in);
         }
-
         public RemoteResult[] newArray(int size) {
             return new RemoteResult[size];
         }

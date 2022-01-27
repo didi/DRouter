@@ -1,13 +1,14 @@
 package com.didi.drouter.router;
 
+import static com.didi.drouter.router.ResultAgent.FIELD_START_ACTIVITY_REQUEST_NUMBER;
+
 import android.app.Activity;
 import android.content.Intent;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.didi.drouter.annotation.Router;
-
-import static com.didi.drouter.router.ResultAgent.FIELD_START_ACTIVITY_REQUEST_NUMBER;
 
 /**
  * Created by gaowei on 2020/10/15

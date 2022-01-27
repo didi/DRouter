@@ -19,7 +19,7 @@ public class Result extends DataExtras<Result> {
     boolean isActivityStarted;
     Fragment fragment;
     View view;
-    private final int routerSize;
+    int routerSize;
 
     Result(@NonNull Request primaryRequest,
            @Nullable Collection<Request> branchRequests,

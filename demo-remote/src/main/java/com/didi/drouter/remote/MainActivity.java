@@ -1,7 +1,6 @@
 package com.didi.drouter.remote;
 
 import android.os.Bundle;
-import android.os.RemoteException;
 import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -12,7 +11,6 @@ import com.didi.drouter.api.RouterLifecycle;
 import com.didi.drouter.module_base.ParamObject;
 import com.didi.drouter.module_base.remote.IRemoteFunction;
 import com.didi.drouter.module_base.remote.RemoteFeature;
-import com.didi.drouter.utils.RouterLogger;
 
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -40,17 +38,17 @@ public class MainActivity extends AppCompatActivity {
                     .putExtra("1", 1)
                     .putExtra("2", new Bundle())
                     .putAddition("3", new ParamObject())
-                    .setRemoteAuthority("com.didi.drouter.remote.demo.host")
+                    .setRemote(new Strategy("com.didi.drouter.remote.demo.host"))
                     .start(DRouter.getContext());
         }
 
         if (view.getId() == R.id.service) {
             bindRemote();
             remoteFunction.handle(new ParamObject[]{}, new ParamObject(), 2, this,
-                    new IRemoteCallback() {
+                    new IRemoteCallback.Type2<String, Integer>() {
                         @Override
-                        public void callback(Object... data) throws RemoteException {
-                            RouterLogger.toast("子进程收到主进程的回调");
+                        public void callback(String s, Integer integer) {
+
                         }
                     });
         }
@@ -86,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
 
     private final IRemoteCallback callback = new IRemoteCallback() {
         @Override
-        public void callback(Object... data) throws RemoteException {
+        public void callback(Object... data) {
 
         }
     };
@@ -105,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
             set.add(new ParamObject());
 
             remoteFunction = DRouter.build(IRemoteFunction.class)
-                    .setRemoteAuthority("com.didi.drouter.remote.demo.host")
+                    .setRemote(new Strategy("com.didi.drouter.remote.demo.host"))
                     .setAlias("remote")
                     .setFeature(feature)
                     .getService(new ParamObject[]{new ParamObject()}, map, list, set, 1);
@@ -126,10 +124,10 @@ public class MainActivity extends AppCompatActivity {
             set.add(new ParamObject());
 
             resentRemoteFunction = DRouter.build(IRemoteFunction.class)
-                    .setRemoteAuthority("com.didi.drouter.remote.demo.host")
+                    .setRemote(new Strategy("com.didi.drouter.remote.demo.host")
+                    .setResend(Extend.Resend.WAIT_ALIVE))
                     .setAlias("remote")
                     .setFeature(feature)
-                    .setRemoteDeadResend(Extend.Resend.WAIT_ALIVE)
                     .setLifecycleOwner(lifecycle)
                     .getService(new ParamObject[]{new ParamObject()}, map, list, set, 1);
         }

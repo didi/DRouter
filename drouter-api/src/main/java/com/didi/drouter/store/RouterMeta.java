@@ -35,7 +35,7 @@ public class RouterMeta {
     private static String PLACE_HOLDER_REGEX = "<[a-zA-Z_]+\\w*>";  // no /
     private static Pattern sHolderPattern = Pattern.compile(PLACE_HOLDER_REGEX);
 
-    private int routerType;
+    private @RouterType int routerType;
     private Class<?> routerClass;       // fragment, view, static handler, static service, interceptor
     private IRouterProxy routerProxy;   // fragment, view, static handler, static service, interceptor
     private int priority;               // router, interceptor, service
@@ -149,7 +149,7 @@ public class RouterMeta {
         return this;
     }
 
-    public int getRouterType() {
+    public @RouterType int getRouterType() {
         return routerType;
     }
 
