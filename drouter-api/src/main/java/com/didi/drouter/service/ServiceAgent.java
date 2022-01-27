@@ -6,6 +6,8 @@ import androidx.lifecycle.LifecycleOwner;
 
 import com.didi.drouter.api.Extend;
 import com.didi.drouter.remote.RemoteBridge;
+import com.didi.drouter.remote.Strategy;
+import com.didi.drouter.router.Request;
 import com.didi.drouter.store.IRouterProxy;
 import com.didi.drouter.store.RouterMeta;
 import com.didi.drouter.store.RouterStore;
@@ -40,8 +42,7 @@ class ServiceAgent<T> {
     private final Class<T> function;
     private @NonNull String alias = "";
     private Object feature;
-    private String authority;
-    private int resendStrategy;
+    private Strategy strategy;
     private WeakReference<LifecycleOwner> lifecycle;
     private @Nullable T defaultService;
 
@@ -64,12 +65,8 @@ class ServiceAgent<T> {
         this.feature = feature;
     }
 
-    void setRemoteAuthority(String authority) {
-        this.authority = authority;
-    }
-
-    void setRemoteDeadResend(@Extend.Resend int strategy) {
-        this.resendStrategy = strategy;
+    void setRemote(Strategy strategy) {
+        this.strategy = strategy;
     }
 
     void setLifecycleOwner(LifecycleOwner owner) {
@@ -125,8 +122,8 @@ class ServiceAgent<T> {
 
     T getService(Object... constructors) {
         // remote
-        if (!TextUtils.isEmpty(authority)) {
-            return RemoteBridge.load(authority, resendStrategy, lifecycle)
+        if (strategy != null) {
+            return RemoteBridge.load(strategy, lifecycle)
                     .getService(function, alias, feature, constructors);
         }
         for (RouterMeta meta : orderMetaList) {
@@ -223,26 +220,26 @@ class ServiceAgent<T> {
             if (params == null) {
                 params = new Object[]{null};
             }
-            if (callService instanceof ICallService0 && params.length == 0) {
-                return ((ICallService0) callService).call();
+            if (callService instanceof ICallService.Type0 && params.length == 0) {
+                return ((ICallService.Type0) callService).call();
             }
-            if (callService instanceof ICallService1 && params.length == 1) {
-                return ((ICallService1) callService).call(params[0]);
+            if (callService instanceof ICallService.Type1 && params.length == 1) {
+                return ((ICallService.Type1) callService).call(params[0]);
             }
-            if (callService instanceof ICallService2 && params.length == 2) {
-                return ((ICallService2) callService).call(params[0], params[1]);
+            if (callService instanceof ICallService.Type2 && params.length == 2) {
+                return ((ICallService.Type2) callService).call(params[0], params[1]);
             }
-            if (callService instanceof ICallService3 && params.length == 3) {
-                return ((ICallService3) callService).call(params[0], params[1], params[2]);
+            if (callService instanceof ICallService.Type3 && params.length == 3) {
+                return ((ICallService.Type3) callService).call(params[0], params[1], params[2]);
             }
-            if (callService instanceof ICallService4 && params.length == 4) {
-                return ((ICallService4) callService).call(params[0], params[1], params[2], params[3]);
+            if (callService instanceof ICallService.Type4 && params.length == 4) {
+                return ((ICallService.Type4) callService).call(params[0], params[1], params[2], params[3]);
             }
-            if (callService instanceof ICallService5 && params.length == 5) {
-                return ((ICallService5) callService).call(params[0], params[1], params[2], params[3], params[4]);
+            if (callService instanceof ICallService.Type5 && params.length == 5) {
+                return ((ICallService.Type5) callService).call(params[0], params[1], params[2], params[3], params[4]);
             }
-            if (callService instanceof ICallServiceN) {
-                return ((ICallServiceN) callService).call(params);
+            if (callService instanceof ICallService.TypeN) {
+                return ((ICallService.TypeN) callService).call(params);
             }
             RouterLogger.getCoreLogger().e("%s not match with argument length %s ",
                     callService.getClass().getSimpleName(), params.length);
@@ -250,13 +247,13 @@ class ServiceAgent<T> {
         }
 
         static boolean isCallService(Object instance) {
-            return instance instanceof ICallService0 ||
-                    instance instanceof ICallService1 ||
-                    instance instanceof ICallService2 ||
-                    instance instanceof ICallService3 ||
-                    instance instanceof ICallService4 ||
-                    instance instanceof ICallService5 ||
-                    instance instanceof ICallServiceN;
+            return instance instanceof ICallService.Type0 ||
+                    instance instanceof ICallService.Type1 ||
+                    instance instanceof ICallService.Type2 ||
+                    instance instanceof ICallService.Type3 ||
+                    instance instanceof ICallService.Type4 ||
+                    instance instanceof ICallService.Type5 ||
+                    instance instanceof ICallService.TypeN;
         }
     }
 

@@ -14,7 +14,7 @@ import com.didi.drouter.remote.IRemoteCallback;
 @Keep
 public interface IRemoteFunction {
 
-    ResultObject handle(ParamObject[] x, ParamObject y, Integer z, Context context, IRemoteCallback callback);
+    ResultObject handle(ParamObject[] x, ParamObject y, Integer z, Context context, IRemoteCallback.Type2<String, Integer> callback);
 
     void register(IRemoteCallback callback);
 

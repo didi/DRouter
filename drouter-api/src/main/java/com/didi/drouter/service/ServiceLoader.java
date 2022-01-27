@@ -1,9 +1,9 @@
 package com.didi.drouter.service;
 
-import androidx.lifecycle.LifecycleOwner;
 import androidx.annotation.NonNull;
+import androidx.lifecycle.LifecycleOwner;
 
-import com.didi.drouter.api.Extend;
+import com.didi.drouter.remote.Strategy;
 
 import java.util.List;
 
@@ -33,27 +33,14 @@ public class ServiceLoader<T> {
         return this;
     }
 
-    /**
-     * @param authority ContentProvider authority for remote process.
-     */
-    public ServiceLoader<T> setRemoteAuthority(String authority) {
-        serviceAgent.setRemoteAuthority(authority);
-        return this;
-    }
-
-    /**
-     * If set, it will auto stop resend behavior when lifecycle is destroy.
-     * It will take effect for all execute by this build,
-     * for example, if this owner is destroyed, all the execute command resend will be stopped.
-     */
-    public ServiceLoader<T> setRemoteDeadResend(@Extend.Resend int strategy) {
-        serviceAgent.setRemoteDeadResend(strategy);
+    public ServiceLoader<T> setRemote(Strategy strategy) {
+        serviceAgent.setRemote(strategy);
         return this;
     }
 
     /**
      * If set, it will auto stop resend behavior when lifecycle is destroy
-     * {@link ServiceLoader#setRemoteDeadResend}
+     * {@link Strategy#setResend}
      */
     public ServiceLoader<T> setLifecycleOwner(LifecycleOwner owner) {
         serviceAgent.setLifecycleOwner(owner);

@@ -3,8 +3,9 @@ package com.didi.drouter.router;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.LifecycleEventObserver;
 import androidx.lifecycle.LifecycleObserver;
-import androidx.lifecycle.OnLifecycleEvent;
+import androidx.lifecycle.LifecycleOwner;
 
 import com.didi.drouter.utils.RouterLogger;
 import com.didi.drouter.utils.TextUtils;
@@ -19,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 class ResultAgent {
 
     // used inner, exists in Intent
-    static final String FIELD_START_ACTIVITY_REQUEST_NUMBER = "DRouter_start_activity_request_number";
+    static final String FIELD_START_ACTIVITY_REQUEST_NUMBER = "router_start_activity_request_number";
 
     static final String STATE_NOT_FOUND = "not_found";
     static final String STATE_TIMEOUT = "timeout";
@@ -37,7 +38,7 @@ class ResultAgent {
     private final Map<String, String> branchReasonMap = new ConcurrentHashMap<>();
     // primary
     @NonNull Request primaryRequest;
-    private RouterCallback callback;
+    private final RouterCallback callback;
 
     // if only primary, branchRequests will only contains this primary request
     // branchRequests is null or size >= 1
@@ -54,22 +55,24 @@ class ResultAgent {
             }
         }
         if (primaryRequest.lifecycleOwner != null) {
-            primaryRequest.lifecycleOwner.getLifecycle().addObserver(new LifecycleObserver() {
-                @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
-                public void onDestroy() {
-                    if (numberToResult.containsKey(primaryRequest.getNumber())) {
-                        RouterLogger.getCoreLogger().w(
-                                "request \"%s\" lifecycleOwner \"%s\" destroy and complete",
-                                primaryRequest.getNumber(),
-                                primaryRequest.lifecycleOwner.getLifecycle().getClass().getSimpleName());
-                        // stop callback
-                        ResultAgent.this.callback = null;
-                        release(primaryRequest.getNumber(), STATE_REQUEST_CANCEL);
-                    }
-                }
-            });
+            primaryRequest.lifecycleOwner.getLifecycle().addObserver(observer);
         }
     }
+
+    private final LifecycleObserver observer = new LifecycleEventObserver() {
+        @Override
+        public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
+            if (event == Lifecycle.Event.ON_DESTROY) {
+                if (numberToResult.containsKey(primaryRequest.getNumber())) {
+                    RouterLogger.getCoreLogger().w(
+                            "request \"%s\" lifecycleOwner \"%s\" destroy and complete",
+                            primaryRequest.getNumber(),
+                            primaryRequest.lifecycleOwner.getLifecycle().getClass().getSimpleName());
+                    release(primaryRequest.getNumber(), STATE_REQUEST_CANCEL);
+                }
+            }
+        }
+    };
 
     @Nullable
     static Request getRequest(@Nullable String requestNumber) {
@@ -138,6 +141,9 @@ class ResultAgent {
         numberToResult.remove(result.agent.primaryRequest.getNumber());
         if (result.agent.callback != null) {
             result.agent.callback.onResult(result);
+        }
+        if (result.agent.primaryRequest.lifecycleOwner != null) {
+            result.agent.primaryRequest.lifecycleOwner.getLifecycle().removeObserver(result.agent.observer);
         }
         if (!numberToResult.containsKey(result.agent.primaryRequest.getNumber())) {
             RouterLogger.getCoreLogger().d(

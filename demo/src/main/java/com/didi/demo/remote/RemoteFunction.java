@@ -2,6 +2,7 @@ package com.didi.demo.remote;
 
 import android.content.Context;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Looper;
 import android.os.RemoteException;
 
@@ -53,7 +54,7 @@ public class RemoteFunction implements IRemoteFunction {
 
     @Override
     @Remote
-    public ResultObject handle(ParamObject[] x, ParamObject y, Integer z, Context context, final IRemoteCallback callback) {
+    public ResultObject handle(ParamObject[] x, ParamObject y, Integer z, Context context, final IRemoteCallback.Type2<String, Integer> callback) {
 
         RouterExecutor.main(new Runnable() {
             @Override
@@ -66,15 +67,24 @@ public class RemoteFunction implements IRemoteFunction {
         result.a = 100;
         result.i = "100";
 
+        try {
+            callback.asBinder().linkToDeath(new IBinder.DeathRecipient() {
+                @Override
+                public void binderDied() {
+                    RouterLogger.getAppLogger().d("Client death");
+                }
+            }, 0);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+
         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
             @Override
             public void run() {
                 HashMap<String, Object> map = new HashMap<>();
                 map.put("result", result);
-                try {
-                    callback.callback(map);
-                } catch (RemoteException e) {
-                    e.printStackTrace();
+                if (callback.asBinder().isBinderAlive()) {
+                    callback.callback("aaa", 1);
                 }
             }
         }, 3000);
@@ -130,7 +140,6 @@ public class RemoteFunction implements IRemoteFunction {
         }, 2000);
     }
 
-    @Override
     @Remote
     public void call() {
     }

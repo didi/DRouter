@@ -12,15 +12,15 @@ import androidx.annotation.Nullable;
 import androidx.collection.ArraySet;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Lifecycle;
-import androidx.lifecycle.LifecycleObserver;
+import androidx.lifecycle.LifecycleEventObserver;
 import androidx.lifecycle.LifecycleOwner;
-import androidx.lifecycle.OnLifecycleEvent;
 
 import com.didi.drouter.api.DRouter;
 import com.didi.drouter.router.Result;
 import com.didi.drouter.router.RouterCallback;
 import com.didi.drouter.utils.RouterLogger;
 
+import java.lang.ref.WeakReference;
 import java.util.Set;
 
 /**
@@ -57,10 +57,13 @@ public abstract class RouterPageAbs implements IPageRouter {
             }
             observers.add(listener);
             if (owner != null) {
-                owner.getLifecycle().addObserver(new LifecycleObserver() {
-                    @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
-                    public void onDestroy() {
-                        removePageObserver(listener);
+                final WeakReference<IPageObserver> reference = new WeakReference<>(listener);
+                owner.getLifecycle().addObserver(new LifecycleEventObserver() {
+                    @Override
+                    public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
+                        if (event == Lifecycle.Event.ON_DESTROY) {
+                            removePageObserver(reference.get());
+                        }
                     }
                 });
             }
@@ -69,7 +72,9 @@ public abstract class RouterPageAbs implements IPageRouter {
 
     @Override
     public void removePageObserver(IPageObserver listener) {
-        observers.remove(listener);
+        if (listener != null) {
+            observers.remove(listener);
+        }
     }
 
     /**

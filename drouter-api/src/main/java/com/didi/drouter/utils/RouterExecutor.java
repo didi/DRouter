@@ -17,7 +17,11 @@ import java.util.concurrent.Executors;
 public class RouterExecutor {
 
     private static final Handler mainHandler = new Handler(Looper.getMainLooper());
-    private static final ExecutorService threadPool = Executors.newCachedThreadPool();
+    private static ExecutorService threadPool = Executors.newCachedThreadPool();
+
+    public static void setThreadPool(ExecutorService threadPool) {
+        RouterExecutor.threadPool = threadPool;
+    }
 
     public static void execute(@Extend.Thread int mode, Runnable runnable) {
         switch (mode) {

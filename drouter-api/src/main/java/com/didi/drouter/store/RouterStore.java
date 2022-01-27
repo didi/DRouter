@@ -8,8 +8,8 @@ import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.collection.ArraySet;
 import androidx.lifecycle.Lifecycle;
-import androidx.lifecycle.LifecycleObserver;
-import androidx.lifecycle.OnLifecycleEvent;
+import androidx.lifecycle.LifecycleEventObserver;
+import androidx.lifecycle.LifecycleOwner;
 
 import com.didi.drouter.api.Extend;
 import com.didi.drouter.loader.host.InterceptorLoader;
@@ -20,6 +20,7 @@ import com.didi.drouter.utils.ReflectUtil;
 import com.didi.drouter.utils.RouterLogger;
 import com.didi.drouter.utils.TextUtils;
 
+import java.lang.ref.WeakReference;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -197,10 +198,14 @@ public class RouterStore {
             }
         }
         if (success && key.lifecycleOwner != null) {
-            key.lifecycleOwner.getLifecycle().addObserver(new LifecycleObserver() {
-                @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
-                public void onDestroy() {
-                    unregister(key, handler);
+            final WeakReference<Pair<RouterKey, IRouterHandler>> reference = new WeakReference<>(new Pair<>(key, handler));
+            key.lifecycleOwner.getLifecycle().addObserver(new LifecycleEventObserver() {
+                @Override
+                public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
+                    Pair<RouterKey, IRouterHandler> pair;
+                    if (event == Lifecycle.Event.ON_DESTROY && (pair = reference.get()) != null) {
+                        unregister(pair.first, pair.second);
+                    }
                 }
             });
         }
@@ -260,10 +265,14 @@ public class RouterStore {
         }
         metas.add(meta);
         if (key.lifecycleOwner != null) {
-            key.lifecycleOwner.getLifecycle().addObserver(new LifecycleObserver() {
-                @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
-                public void onDestroy() {
-                    unregister(key, service);
+            final WeakReference<Pair<ServiceKey<T>, T>> reference = new WeakReference<>(new Pair<>(key, service));
+            key.lifecycleOwner.getLifecycle().addObserver(new LifecycleEventObserver() {
+                @Override
+                public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
+                    Pair<ServiceKey<T>, T> pair;
+                    if (event == Lifecycle.Event.ON_DESTROY && (pair = reference.get()) != null) {
+                        unregister(pair.first, pair.second);
+                    }
                 }
             });
         }

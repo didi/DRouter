@@ -17,5 +17,14 @@ public class HandlerTest1 implements IRouterHandler {
     @Override
     public void handle(@NonNull Request request, @NonNull Result result) {
         RouterLogger.toast("主进程HandlerTest1执行成功");
+
+        result.putExtra("a", 1);
+        result.putAddition("b", 2);
+
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -23,13 +23,6 @@ android {
         main.resources.srcDirs += new File(buildDir, "/generated/drouter")
     }
 
-//    allprojects {
-//        gradle.projectsEvaluated {
-//            tasks.withType(JavaCompile) {
-//                options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
-//            }
-//        }
-//    }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_7
         targetCompatibility JavaVersion.VERSION_1_7

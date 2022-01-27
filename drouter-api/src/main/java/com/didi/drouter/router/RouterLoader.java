@@ -4,19 +4,21 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.Parcelable;
 import android.util.SparseArray;
 
 import androidx.annotation.NonNull;
 
+import com.didi.drouter.api.DRouter;
 import com.didi.drouter.api.Extend;
-import com.didi.drouter.remote.RemoteBridge;
+import com.didi.drouter.remote.IRemoteCallback;
+import com.didi.drouter.remote.RemoteFunction;
 import com.didi.drouter.store.RouterMeta;
 import com.didi.drouter.store.RouterStore;
 import com.didi.drouter.utils.RouterLogger;
 import com.didi.drouter.utils.TextUtils;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -32,6 +34,7 @@ class RouterLoader {
 
     private Request primaryRequest;
     private RouterCallback callback;
+    private IRemoteCallback.Type2<Bundle, Map<String, Object>> remoteCallback;
 
     private RouterLoader() {}
 
@@ -48,7 +51,7 @@ class RouterLoader {
                 "Request start -------------------------------------------------------------");
         RouterLogger.getCoreLogger().d("primary request \"%s\", router uri \"%s\", need callback \"%s\"",
                 primaryRequest.getNumber(), primaryRequest.getUri(), callback != null);
-        if (!TextUtils.isEmpty(primaryRequest.authority)) {
+        if (primaryRequest.strategy != null) {
             startRemote();
         } else {
             startLocal();
@@ -201,13 +204,6 @@ class RouterLoader {
         return output;
     }
 
-    private void startRemote() {
-        Result result = new Result(primaryRequest, Collections.singleton(primaryRequest), callback);
-        RemoteBridge.load(primaryRequest.authority, primaryRequest.resendStrategy,
-                primaryRequest.lifecycleOwner != null ? new WeakReference<>(primaryRequest.lifecycleOwner) : null)
-                .start(primaryRequest, result, callback);
-    }
-
     private static Request createBranchRequest(Request primaryRequest, boolean isBranch,
                                                @RouterType int type, int branchIndex) {
         primaryRequest.routerType = isBranch ? RouterType.MULTIPLE : type;
@@ -217,8 +213,7 @@ class RouterLoader {
             branchRequest.addition = primaryRequest.addition;
             branchRequest.context = primaryRequest.context;
             branchRequest.lifecycleOwner = primaryRequest.lifecycleOwner;
-            branchRequest.authority = primaryRequest.authority;
-            branchRequest.resendStrategy = primaryRequest.resendStrategy;
+            branchRequest.strategy = primaryRequest.strategy;
             branchRequest.holdTimeout = primaryRequest.holdTimeout;
             branchRequest.serialNumber = primaryRequest.getNumber() + "_" + branchIndex;
             branchRequest.routerType = type;
@@ -241,6 +236,33 @@ class RouterLoader {
             }
             return diff;
         }
+    }
+
+    private void startRemote() {
+        final Result result = new Result(primaryRequest, Collections.singleton(primaryRequest), callback);
+        if (callback != null) {
+            remoteCallback = new IRemoteCallback.Type2<Bundle, Map<String, Object>>() {
+                @Override
+                public void callback(Bundle p1, Map<String, Object> p2) {
+                    RouterLogger.getCoreLogger().w("[Client] \"%s\" callback success", primaryRequest);
+                    int routerSize = p1.getInt(RemoteFunction.IRemoteRequest.ROUTER_SIZE);
+                    p1.remove(RemoteFunction.IRemoteRequest.ROUTER_SIZE);
+                    boolean isActivityStarted = p1.getBoolean(RemoteFunction.IRemoteRequest.IS_ACTIVITY_STARTED);
+                    p1.remove(RemoteFunction.IRemoteRequest.IS_ACTIVITY_STARTED);
+                    result.isActivityStarted = isActivityStarted;
+                    result.routerSize = routerSize;
+                    result.extra = p1;
+                    result.addition = p2;
+                    RouterHelper.release(primaryRequest);
+                }
+            };
+        } else {
+            RouterHelper.release(primaryRequest);
+        }
+        DRouter.build(RemoteFunction.IRemoteRequest.class)
+                .setRemote(primaryRequest.strategy).setLifecycleOwner(primaryRequest.lifecycleOwner)
+                .getService().request(primaryRequest.getUri().toString(),
+                                      primaryRequest.extra, primaryRequest.addition, remoteCallback);
     }
 
 }

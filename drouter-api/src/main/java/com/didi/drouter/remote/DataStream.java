@@ -10,8 +10,10 @@ import androidx.collection.ArrayMap;
 import androidx.collection.ArraySet;
 
 import com.didi.drouter.api.DRouter;
+import com.didi.drouter.api.Extend;
 import com.didi.drouter.utils.JsonConverter;
 import com.didi.drouter.utils.ReflectUtil;
+import com.didi.drouter.utils.RouterExecutor;
 import com.didi.drouter.utils.RouterLogger;
 
 import java.lang.ref.WeakReference;
@@ -31,7 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Created by gaowei on 2019/1/25
  */
-class RemoteStream {
+class DataStream {
 
     static Object transform(Object o) {
         if (isParcelable(o)) {
@@ -59,7 +61,7 @@ class RemoteStream {
         } else if (o instanceof ObjectParcelable) {
             return ((ObjectParcelable) o).getObject();
         } else if (o instanceof RemoteCallbackParcelable) {
-            return ((RemoteCallbackParcelable) o).getObject();
+            return ((RemoteCallbackParcelable) o).getCallback();
         } else {
             return o;
         }
@@ -309,28 +311,42 @@ class RemoteStream {
 
     static class RemoteCallbackParcelable implements Parcelable {
 
-        // key is client IRemoteCallback instance, value is Binder
+        // key is client IRemoteCallback instance, value is Binder/BinderProxy
         // no need to remove, for week hash map can be removed auto
-        static Map<IRemoteCallback, IClientService> callbackPool =
-                Collections.synchronizedMap(new WeakHashMap<IRemoteCallback, IClientService>());
+        static Map<IRemoteCallback, IHostService> callbackPool =
+                Collections.synchronizedMap(new WeakHashMap<IRemoteCallback, IHostService>());
 
+        int type;
         IBinder binder;
 
         RemoteCallbackParcelable(Object object) {
             final IRemoteCallback callback = (IRemoteCallback) object;
-            IClientService callbackBinder = callbackPool.get(callback);
+            type = getType(callback);
+            IHostService callbackBinder = callbackPool.get(callback);
             if (callbackBinder == null) {
                 // avoid memory leak
-                final WeakReference<IRemoteCallback> callbackWeak = new WeakReference<>(callback);
-                callbackBinder = new IClientService.Stub() {
+                final WeakReference<IRemoteCallback> callbackWeakRef = new WeakReference<>(callback);
+                callbackBinder = new IHostService.Stub() {
                     @Override
-                    public RemoteResult callback(RemoteCommand callbackCommand) throws RemoteException {
-                        RouterLogger.getCoreLogger().d("[Client] receive server callback from binder");
-                        IRemoteCallback callback2 = callbackWeak.get();
-                        if (callback2 != null) {
-                            callback2.callback(callbackCommand.callbackData);
-                        }
+                    public RemoteResult call(RemoteCommand callbackCommand) {
                         return null;
+                    }
+                    @Override
+                    public void callAsync(final RemoteCommand command) {
+                        RouterLogger.getCoreLogger().d("[Client] receive server callback from binder");
+                        final IRemoteCallback callbackRef = callbackWeakRef.get();
+                        if (callbackRef != null) {
+                            int mode = Extend.Thread.POSTING;
+                            if (callbackRef instanceof IRemoteCallback.RemoteCallbackExtend) {
+                                mode = ((IRemoteCallback.RemoteCallbackExtend) callbackRef).mode();
+                            }
+                            RouterExecutor.execute(mode, new Runnable() {
+                                @Override
+                                public void run() {
+                                    callbackRef.callback(command.constructorArgs);
+                                }
+                            });
+                        }
                     }
                 };
                 callbackPool.put(callback, callbackBinder);
@@ -339,39 +355,114 @@ class RemoteStream {
         }
 
         RemoteCallbackParcelable(Parcel in) {
+            type = in.readInt();
             binder = in.readStrongBinder();
         }
 
         @Override
         public void writeToParcel(Parcel dest, int flags) {
+            dest.writeInt(type);
             dest.writeStrongBinder(binder);
         }
 
-        Object getObject() {
-            for (Map.Entry<IRemoteCallback, IClientService> entry : callbackPool.entrySet()) {
+        Object getCallback() {
+            for (Map.Entry<IRemoteCallback, IHostService> entry : callbackPool.entrySet()) {
                 if (entry.getValue().asBinder() == binder) {
                     return entry.getKey();
                 }
             }
-            final IClientService callbackService = IClientService.Stub.asInterface(binder);
-            IRemoteCallback callback = new IRemoteCallback() {
+            final IHostService binderProxy = IHostService.Stub.asInterface(binder);
+            IRemoteCallback callback = wrapTypedCallback(type, binder, new IRemoteCallback() {
                 @Override
-                public void callback(Object... data) throws RemoteException {
+                public void callback(Object... data) {
                     if (data == null) {
                         data = new Object[] {null};
                     }
                     RouterLogger.getCoreLogger().w("[Server] IRemoteCallback start callback invoke");
-                    RemoteCommand callbackCommand = new RemoteCommand(RemoteCommand.SERVICE_CALLBACK);
-                    callbackCommand.callbackData = data;
+                    RemoteCommand callbackCommand = new RemoteCommand();
+                    callbackCommand.constructorArgs = data;
                     try {
-                        callbackService.callback(callbackCommand);
+                        binderProxy.callAsync(callbackCommand);
                     } catch (RemoteException e) {
                         RouterLogger.getCoreLogger().e("[Server] IRemoteCallback invoke Exception %s", e);
-                        throw e;
                     }
                 }
-            };
-            callbackPool.put(callback, callbackService);
+            });
+            callbackPool.put(callback, binderProxy);
+            return callback;
+        }
+
+        private static int getType(IRemoteCallback object) {
+            if (object instanceof IRemoteCallback.Type0) {
+                return 0;
+            }
+            if (object instanceof IRemoteCallback.Type1) {
+                return 1;
+            }
+            if (object instanceof IRemoteCallback.Type2) {
+                return 2;
+            }
+            if (object instanceof IRemoteCallback.Type3) {
+                return 3;
+            }
+            if (object instanceof IRemoteCallback.Type4) {
+                return 4;
+            }
+            if (object instanceof IRemoteCallback.Type5) {
+                return 5;
+            }
+            return -1;
+        }
+
+        private static IRemoteCallback wrapTypedCallback(int type, IBinder binder, final IRemoteCallback callback) {
+            IRemoteCallback.RemoteCallbackExtend callbackExtend = null;
+            if (type == 0) {
+                callbackExtend = new IRemoteCallback.Type0() {
+                    @Override
+                    public void callback() {
+                        callback.callback();
+                    }
+                };
+            } else if (type == 1) {
+                callbackExtend = new IRemoteCallback.Type1<Object>() {
+                    @Override
+                    public void callback(Object p1) {
+                        callback.callback(p1);
+                    }
+                };
+            } else if (type == 2) {
+                callbackExtend = new IRemoteCallback.Type2<Object, Object>() {
+                    @Override
+                    public void callback(Object p1, Object p2) {
+                        callback.callback(p1, p2);
+                    }
+                };
+            } else if (type == 3) {
+                callbackExtend = new IRemoteCallback.Type3<Object, Object, Object>() {
+                    @Override
+                    public void callback(Object p1, Object p2, Object p3) {
+                        callback.callback(p1, p2, p3);
+                    }
+                };
+            } else if (type == 4) {
+                callbackExtend = new IRemoteCallback.Type4<Object, Object, Object, Object>() {
+                    @Override
+                    public void callback(Object p1, Object p2, Object p3, Object p4) {
+                        callback.callback(p1, p2, p3, p4);
+                    }
+                };
+            } else if (type == 5) {
+                callbackExtend = new IRemoteCallback.Type5<Object, Object, Object, Object, Object>() {
+                    @Override
+                    public void callback(Object p1, Object p2, Object p3, Object p4, Object p5) {
+                        callback.callback(p1, p2, p3, p4, p5);
+                    }
+                };
+            }
+            if (callbackExtend != null) {
+                callbackExtend.setBinder(binder);
+                return callbackExtend;
+            }
             return callback;
         }
 
