@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
 
 android {
     compileSdkVersion 31
@@ -53,8 +54,10 @@ dependencies {
     api 'androidx.lifecycle:lifecycle-runtime:2.2.0'
     api 'androidx.fragment:fragment:1.1.0'
 
-    implementation 'com.google.code.gson:gson:2.8.5'
+    implementation 'com.google.code.gson:gson:2.8.6'
     compileOnly project(':drouter-api-stub')
+//    implementation "androidx.core:core-ktx:1.3.1"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }
 
 task sourcesJar(type: Jar) {
@@ -67,4 +70,7 @@ version = '2.2.1'
 
 if (file("${rootProject.projectDir}/upload-maven.gradle").exists()) {
     apply from: "${rootProject.projectDir}/upload-maven.gradle"
+}
+repositories {
+    mavenCentral()
 }

@@ -10,9 +10,9 @@ import javassist.CtClass;
  */
 public class StoreUtil {
 
-    private static Map<String, String> pathMap = new HashMap<>();
-    private static Map<String, Class<?>> classMap = new HashMap<>();
-    private static Map<String, String> callAliasMap = new HashMap<>();
+    private static final Map<String, String> pathMap = new HashMap<>();
+    private static final Map<String, Class<?>> classMap = new HashMap<>();
+    private static final Map<String, String> callAliasMap = new HashMap<>();
 
     public static String insertUri(String uri, CtClass cc) {
         if (!pathMap.containsKey(uri)) {
@@ -28,7 +28,6 @@ public class StoreUtil {
         } else {
             //Class<?> clz = ctClass.toClass(loader, null);  // throw duplicate error, no reuse
             Class<?> clz = Class.forName(ctClass.getName(), false, loader);
-            ctClass.defrost();
             classMap.put(ctClass.getName(), clz);
             return clz;
         }

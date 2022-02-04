@@ -89,11 +89,7 @@ public class RouterTask {
             Logger.v("scan class size: " + count.get() + " | router class size: " + cachePathSet.size());
         } catch (Exception e) {
             JarUtils.check(e);
-            String message = e.getMessage();
-            if (message == null || !message.startsWith("Class:")) {
-                e.printStackTrace();
-            }
-            throw new GradleException("DRouter: Could not generate router table\n" + e.getMessage());
+            throw new GradleException("Could not generate d_router table\n" + e.getMessage(), e);
         } finally {
             executor.shutdown();
             FileUtils.deleteQuietly(wTmpDir);
@@ -112,8 +108,7 @@ public class RouterTask {
     private void loadFullPaths(final Queue<File> files) throws ExecutionException, InterruptedException, IOException {
         if (!RouterSetting.Parse.isDebug()) {
             final List<Future<Void>> taskList = new ArrayList<>();
-            int thread = CPU_COUNT;
-            for (int i = 0; i < thread; i++) {
+            for (int i = 0; i < CPU_COUNT; i++) {
                 taskList.add(executor.submit(new Callable<Void>() {
                     @Override
                     public Void call() throws Exception {

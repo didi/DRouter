@@ -1,10 +1,14 @@
 package com.didi.demo.remote;
 
 import android.content.Context;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.RemoteException;
+import android.os.SharedMemory;
+
+import androidx.annotation.RequiresApi;
 
 import com.didi.drouter.annotation.Assign;
 import com.didi.drouter.annotation.Remote;
@@ -17,6 +21,7 @@ import com.didi.drouter.remote.IRemoteCallback;
 import com.didi.drouter.utils.RouterExecutor;
 import com.didi.drouter.utils.RouterLogger;
 
+import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -104,6 +109,38 @@ public class RemoteFunction implements IRemoteFunction {
         return result;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O_MR1)
+    @Override
+    public void trans(final List<SharedMemory> memory) {
+
+        for (SharedMemory memory1 : memory) {
+            ByteBuffer buffer = null;
+            try {
+                buffer = memory1.mapReadWrite();
+                RouterLogger.getCoreLogger().e("print %s ", buffer.capacity());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        }
+//        RouterExecutor.main(new Runnable() {
+//            @RequiresApi(api = Build.VERSION_CODES.O_MR1)
+//            @Override
+//            public void run() {
+//
+//                try {
+//                    ByteBuffer buffer = memory.mapReadWrite();
+//                    for (int i = 0 ; i < buffer.capacity() ; i++) {
+//                        RouterLogger.getCoreLogger().e("print %s %s:", buffer.capacity(), buffer.get(i));
+//                    }
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+//                RouterExecutor.main(this, 3000);
+//            }
+//        });
+    }
+
     private static Set<IRemoteCallback> callbacks =
             Collections.newSetFromMap(new ConcurrentHashMap<IRemoteCallback, Boolean>());
 
@@ -148,5 +185,7 @@ public class RemoteFunction implements IRemoteFunction {
     public Integer cal(Integer a) {
         return 1;
     }
+
+
 
 }

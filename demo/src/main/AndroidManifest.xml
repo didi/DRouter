@@ -28,6 +28,7 @@
         <activity android:name="com.didi.demo.activity.ActivityTest2" />
         <activity android:name="com.didi.demo.activity.ActivityTest3" />
         <activity android:name="com.didi.demo.web.WebActivity" />
+        <activity android:name="com.didi.demo.activity.ActivityMemoryTest" />
         <activity
             android:name="com.didi.demo.activity.ActivityResultActivity"
             android:exported="false" >
@@ -60,6 +61,12 @@
 
         <activity
             android:name="com.didi.demo.remote.RemoteActivity"
+            android:process=":remote" />
+        <activity
+            android:name="com.didi.demo.remote.RemoteMemActivity"
+            android:process=":remote" />
+        <service
+            android:name="com.didi.demo.remote.RemoteService"
             android:process=":remote" />
         <activity android:name="com.didi.demo.handler.DynamicActivity" />
         <activity android:name="com.didi.demo.fragment.RouterPageViewPagerActivity" />
