@@ -1,6 +1,5 @@
 package com.didi.demo
 
-import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -11,12 +10,9 @@ import com.didi.drouter.api.DRouter
 import com.didi.drouter.api.Extend
 import com.didi.drouter.demo.R
 import com.didi.drouter.module_base.ParamObject
-import com.didi.drouter.module_base.remote.IRemoteFunction
-import com.didi.drouter.module_base.remote.RemoteFeature
 import com.didi.drouter.module_base.service.IServiceTest
 import com.didi.drouter.module_base.service.IServiceTest2
 import com.didi.drouter.module_base.service.ServiceFeature
-import com.didi.drouter.remote.Strategy
 import com.didi.drouter.router.RouterCallback.ActivityCallback
 import com.didi.drouter.service.ICallService
 import com.didi.drouter.utils.RouterLogger
@@ -31,7 +27,6 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
     }
 
-    @SuppressLint("NonConstantResourceId")
     fun onClick(view: View) {
         when (view.id) {
             R.id.start_activity1 -> DRouter.build("/activity/Test1_Value1_Value2?Arg3=Value3")
@@ -137,21 +132,10 @@ class MainActivity : AppCompatActivity() {
                     .getService()
                     .test2()
             R.id.start_dynamic_register -> DRouter.build("/activity/dynamic").putExtra("type", 2).start(this)
-            R.id.start_remote_page -> DRouter.build("/activity/remote").start(this)
-            R.id.start_remote_test -> {
-                val feature = RemoteFeature()
-                feature.a = 1
-                feature.b = "1"
-                DRouter.build(IRemoteFunction::class.java)
-                        .setFeature(feature)
-                        .setAlias("remote")
-                        .setRemote(Strategy("com.didi.drouter.remote.demo.remote"))
-                        .getService()
-                        .call()
-                RouterLogger.getAppLogger().d("aaaa  111" + Thread.currentThread().name)
-            }
+            R.id.start_remote_page -> DRouter.build("/activity/memory_test").start(this)
             else -> {
             }
         }
     }
+
 }

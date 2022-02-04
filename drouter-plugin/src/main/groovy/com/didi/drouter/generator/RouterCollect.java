@@ -237,8 +237,7 @@ class RouterCollect extends AbsRouterCollect {
                             "\nhas duplication of name with class: " + duplicate);
                 }
             } catch (Exception e) {
-                e.printStackTrace();
-                throw new Exception("Class: === " + routerCc.getName() + " ===\nCause: " + e.getMessage());
+                throw new Exception("Class: === " + routerCc.getName() + " ===\nCause: " + e.getMessage(), e);
             }
         }
         Collections.sort(items);

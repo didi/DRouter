@@ -267,8 +267,7 @@ public class ServiceCollect extends AbsRouterCollect {
                     items.add(itemBuilder.toString());
                 }
             } catch (Exception e) {
-                e.printStackTrace();
-                throw new Exception("Class: === " + serviceCc.getName() + " ===\nCause: " + e.getMessage());
+                throw new Exception("Class: === " + serviceCc.getName() + " ===\nCause: " + e.getMessage(), e);
             }
         }
         Collections.sort(items);

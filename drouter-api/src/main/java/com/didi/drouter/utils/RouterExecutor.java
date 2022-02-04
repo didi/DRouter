@@ -7,8 +7,13 @@ import androidx.annotation.RestrictTo;
 
 import com.didi.drouter.api.Extend;
 
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by gaowei on 2018/9/17
@@ -17,7 +22,10 @@ import java.util.concurrent.Executors;
 public class RouterExecutor {
 
     private static final Handler mainHandler = new Handler(Looper.getMainLooper());
-    private static ExecutorService threadPool = Executors.newCachedThreadPool();
+    private static ExecutorService threadPool = new RouterThreadExecutor(
+            0, Integer.MAX_VALUE,
+            60L, TimeUnit.SECONDS,
+            new SynchronousQueue<Runnable>());
 
     public static void setThreadPool(ExecutorService threadPool) {
         RouterExecutor.threadPool = threadPool;
@@ -42,7 +50,7 @@ public class RouterExecutor {
     }
 
     public static void main(Runnable runnable, long timeDelay) {
-        if (java.lang.Thread.currentThread() == Looper.getMainLooper().getThread() && timeDelay == 0) {
+        if (Thread.currentThread() == Looper.getMainLooper().getThread() && timeDelay == 0) {
             runnable.run();
         } else {
             mainHandler.postDelayed(runnable, timeDelay);
@@ -50,7 +58,8 @@ public class RouterExecutor {
     }
 
     public static void worker(Runnable runnable) {
-        if (java.lang.Thread.currentThread() == Looper.getMainLooper().getThread()) {
+        if (Thread.currentThread() == Looper.getMainLooper().getThread()
+                || Thread.currentThread().getName().contains("Binder")) {
             threadPool.submit(runnable);
         } else {
             runnable.run();
@@ -59,6 +68,30 @@ public class RouterExecutor {
 
     public static void submit(Runnable runnable) {
         threadPool.submit(runnable);
+    }
+
+    static class RouterThreadExecutor extends ThreadPoolExecutor {
+
+        public RouterThreadExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime,
+                                    TimeUnit unit, BlockingQueue<Runnable> workQueue) {
+            super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue);
+        }
+
+        @Override
+        protected void afterExecute(Runnable r, Throwable t) {
+            super.afterExecute(r, t);
+            if (t == null && r instanceof Future<?> && ((Future<?>)r).isDone()) {
+                try {
+                    ((Future<?>) r).get();
+                } catch (ExecutionException e) {
+                    t = e.getCause();
+                } catch (InterruptedException ignore) {
+                }
+            }
+            if (t != null) {
+                throw new RuntimeException(t);
+            }
+        }
     }
 
 }

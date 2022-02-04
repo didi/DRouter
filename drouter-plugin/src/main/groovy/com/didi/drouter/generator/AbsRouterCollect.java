@@ -103,7 +103,7 @@ abstract class AbsRouterCollect {
         boolean possible = ctClass.getName().contains("$");
         if (possible) {
             Class<?> clz = StoreUtil.getClass(ctClass, classLoader);
-            return (clz.isLocalClass() || clz.isMemberClass()) && (clz.getModifiers() & Modifier.STATIC) == 0;
+            return (clz.getModifiers() & Modifier.STATIC) == 0;
         }
         return false;
     }

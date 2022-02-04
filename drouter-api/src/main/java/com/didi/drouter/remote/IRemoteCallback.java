@@ -21,7 +21,7 @@ public interface IRemoteCallback {
 
 
     //----------------------------------------------------------------------------------------//
-    abstract class Type0 extends RemoteCallbackExtend {
+    abstract class Type0 extends Base {
         public abstract void callback();
         @Override @Deprecated
         public void callback(Object... data) {
@@ -29,7 +29,7 @@ public interface IRemoteCallback {
         }
     }
 
-    abstract class Type1<Param1> extends RemoteCallbackExtend {
+    abstract class Type1<Param1> extends Base {
         public abstract void callback(Param1 p1);
         @Override @Deprecated @SuppressWarnings("unchecked")
         // compatible with old interface, transform to new
@@ -40,7 +40,7 @@ public interface IRemoteCallback {
         }
     }
 
-    abstract class Type2<Param1, Param2> extends RemoteCallbackExtend {
+    abstract class Type2<Param1, Param2> extends Base {
         public abstract void callback(Param1 p1, Param2 p2);
         @Override @Deprecated @SuppressWarnings("unchecked")
         public void callback(Object... data) {
@@ -50,7 +50,7 @@ public interface IRemoteCallback {
         }
     }
 
-    abstract class Type3<Param1, Param2, Param3> extends RemoteCallbackExtend {
+    abstract class Type3<Param1, Param2, Param3> extends Base {
         public abstract void callback(Param1 p1, Param2 p2, Param3 p3);
         @Override @Deprecated @SuppressWarnings("unchecked")
         public void callback(Object... data) {
@@ -60,7 +60,7 @@ public interface IRemoteCallback {
         }
     }
 
-    abstract class Type4<Param1, Param2, Param3, Param4> extends RemoteCallbackExtend {
+    abstract class Type4<Param1, Param2, Param3, Param4> extends Base {
         public abstract void callback(Param1 p1, Param2 p2, Param3 p3, Param4 p4);
         @Override @Deprecated @SuppressWarnings("unchecked")
         public void callback(Object... data) {
@@ -70,7 +70,7 @@ public interface IRemoteCallback {
         }
     }
 
-    abstract class Type5<Param1, Param2, Param3, Param4, Param5> extends RemoteCallbackExtend {
+    abstract class Type5<Param1, Param2, Param3, Param4, Param5> extends Base {
         public abstract void callback(Param1 p1, Param2 p2, Param3 p3, Param4 p4, Param5 p5);
         @Override @Deprecated @SuppressWarnings("unchecked")
         public void callback(Object... data) {
@@ -80,8 +80,13 @@ public interface IRemoteCallback {
         }
     }
 
+    abstract class TypeN extends Base {
+
+    }
+
     //----------------------------------------------------------------------------------------//
-    abstract class RemoteCallbackExtend implements IInterface, IRemoteCallback {
+    // TODO 有时间重构一下这个
+    abstract class Base implements IInterface, IRemoteCallback {
         IBinder binder;
         void setBinder(@NonNull IBinder binder) {
             this.binder = binder;

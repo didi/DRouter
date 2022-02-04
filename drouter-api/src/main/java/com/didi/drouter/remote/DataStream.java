@@ -21,7 +21,6 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -313,16 +312,19 @@ class DataStream {
 
         // key is client IRemoteCallback instance, value is Binder/BinderProxy
         // no need to remove, for week hash map can be removed auto
-        static Map<IRemoteCallback, IHostService> callbackPool =
-                Collections.synchronizedMap(new WeakHashMap<IRemoteCallback, IHostService>());
+        static final Map<IRemoteCallback, IHostService> callbackPool = new WeakHashMap<>();
 
         int type;
         IBinder binder;
 
         RemoteCallbackParcelable(Object object) {
+            // callback is direct IRemoteCallback method args in client
             final IRemoteCallback callback = (IRemoteCallback) object;
             type = getType(callback);
-            IHostService callbackBinder = callbackPool.get(callback);
+            IHostService callbackBinder;
+            synchronized (callbackPool) {
+                callbackBinder = callbackPool.get(callback);
+            }
             if (callbackBinder == null) {
                 // avoid memory leak
                 final WeakReference<IRemoteCallback> callbackWeakRef = new WeakReference<>(callback);
@@ -333,12 +335,13 @@ class DataStream {
                     }
                     @Override
                     public void callAsync(final RemoteCommand command) {
-                        RouterLogger.getCoreLogger().d("[Client] receive server callback from binder");
                         final IRemoteCallback callbackRef = callbackWeakRef.get();
+                        RouterLogger.getCoreLogger().dw("[Client] receive callback \"%s\" from binder thread %s",
+                                callbackRef == null, callbackRef, Thread.currentThread().getName());
                         if (callbackRef != null) {
                             int mode = Extend.Thread.POSTING;
-                            if (callbackRef instanceof IRemoteCallback.RemoteCallbackExtend) {
-                                mode = ((IRemoteCallback.RemoteCallbackExtend) callbackRef).mode();
+                            if (callbackRef instanceof IRemoteCallback.Base) {
+                                mode = ((IRemoteCallback.Base) callbackRef).mode();
                             }
                             RouterExecutor.execute(mode, new Runnable() {
                                 @Override
@@ -349,7 +352,9 @@ class DataStream {
                         }
                     }
                 };
-                callbackPool.put(callback, callbackBinder);
+                synchronized (callbackPool) {
+                    callbackPool.put(callback, callbackBinder);
+                }
             }
             binder = callbackBinder.asBinder();
         }
@@ -366,12 +371,16 @@ class DataStream {
         }
 
         Object getCallback() {
-            for (Map.Entry<IRemoteCallback, IHostService> entry : callbackPool.entrySet()) {
-                if (entry.getValue().asBinder() == binder) {
-                    return entry.getKey();
+            synchronized (callbackPool) {
+                for (Map.Entry<IRemoteCallback, IHostService> entry : callbackPool.entrySet()) {
+                    if (entry.getValue().asBinder() == binder) {
+                        return entry.getKey();
+                    }
                 }
             }
             final IHostService binderProxy = IHostService.Stub.asInterface(binder);
+            // TODO
+            // callback is wrapped IRemoteCallback by recreate
             IRemoteCallback callback = wrapTypedCallback(type, binder, new IRemoteCallback() {
                 @Override
                 public void callback(Object... data) {
@@ -388,7 +397,9 @@ class DataStream {
                     }
                 }
             });
-            callbackPool.put(callback, binderProxy);
+            synchronized (callbackPool) {
+                callbackPool.put(callback, binderProxy);
+            }
             return callback;
         }
 
@@ -415,53 +426,53 @@ class DataStream {
         }
 
         private static IRemoteCallback wrapTypedCallback(int type, IBinder binder, final IRemoteCallback callback) {
-            IRemoteCallback.RemoteCallbackExtend callbackExtend = null;
+            IRemoteCallback.Base callbackBase = null;
             if (type == 0) {
-                callbackExtend = new IRemoteCallback.Type0() {
+                callbackBase = new IRemoteCallback.Type0() {
                     @Override
                     public void callback() {
                         callback.callback();
                     }
                 };
             } else if (type == 1) {
-                callbackExtend = new IRemoteCallback.Type1<Object>() {
+                callbackBase = new IRemoteCallback.Type1<Object>() {
                     @Override
                     public void callback(Object p1) {
                         callback.callback(p1);
                     }
                 };
             } else if (type == 2) {
-                callbackExtend = new IRemoteCallback.Type2<Object, Object>() {
+                callbackBase = new IRemoteCallback.Type2<Object, Object>() {
                     @Override
                     public void callback(Object p1, Object p2) {
                         callback.callback(p1, p2);
                     }
                 };
             } else if (type == 3) {
-                callbackExtend = new IRemoteCallback.Type3<Object, Object, Object>() {
+                callbackBase = new IRemoteCallback.Type3<Object, Object, Object>() {
                     @Override
                     public void callback(Object p1, Object p2, Object p3) {
                         callback.callback(p1, p2, p3);
                     }
                 };
             } else if (type == 4) {
-                callbackExtend = new IRemoteCallback.Type4<Object, Object, Object, Object>() {
+                callbackBase = new IRemoteCallback.Type4<Object, Object, Object, Object>() {
                     @Override
                     public void callback(Object p1, Object p2, Object p3, Object p4) {
                         callback.callback(p1, p2, p3, p4);
                     }
                 };
             } else if (type == 5) {
-                callbackExtend = new IRemoteCallback.Type5<Object, Object, Object, Object, Object>() {
+                callbackBase = new IRemoteCallback.Type5<Object, Object, Object, Object, Object>() {
                     @Override
                     public void callback(Object p1, Object p2, Object p3, Object p4, Object p5) {
                         callback.callback(p1, p2, p3, p4, p5);
                     }
                 };
             }
-            if (callbackExtend != null) {
-                callbackExtend.setBinder(binder);
-                return callbackExtend;
+            if (callbackBase != null) {
+                callbackBase.setBinder(binder);
+                return callbackBase;
             }
             return callback;
         }
