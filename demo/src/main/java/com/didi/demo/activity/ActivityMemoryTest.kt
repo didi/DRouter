@@ -69,7 +69,7 @@ class ActivityMemoryTest : AppCompatActivity() {
                     while (!stop) {
                         var time = System.currentTimeMillis()
                         try {
-                            bitmap = retriever.getFrameAtIndex(index++, option)
+                            bitmap = retriever.getFrameAtIndex(index++, option)!!
                         } catch (e: Exception) {
                             index = 0
                             continue

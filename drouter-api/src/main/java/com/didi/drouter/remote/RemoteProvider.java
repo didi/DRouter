@@ -134,20 +134,26 @@ public class RemoteProvider extends ContentProvider {
                 }
                 Bundle bundle = null;
                 for (int i = 0; i < 3; i++) {    // remote process killed case and retry, return null
+                    ContentProviderClient client = null;
                     try {
-                        ContentProviderClient client = DRouter.getContext().getContentResolver()
-                                .acquireUnstableContentProviderClient(authority);
-                        if (client != null) {
-                            bundle = client.call("", "", null);
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                                client.close();
-                            } else {
-                                client.release();
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                            client = DRouter.getContext().getContentResolver()
+                                    .acquireUnstableContentProviderClient(authority);
+                            if (client != null) {
+                                bundle = client.call("", "", null);
                             }
+                        } else {
+                            bundle = DRouter.getContext().getContentResolver().call(
+                                    Uri.parse(authority.startsWith("content://") ? authority : "content://" + authority),
+                                    "", "", null);
                         }
                     } catch (RuntimeException e) {
                         RouterLogger.getCoreLogger().e(
                                 "[Client] getHostService call provider, try time %s, exception: %s", i, e.getMessage());
+                    } finally {
+                        if (client != null) {
+                            client.release();
+                        }
                     }
                     if (bundle != null) {
                         break;
