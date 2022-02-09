@@ -14,7 +14,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name="com.didi.demo.MainActivity">
+        <activity
+            android:name="com.didi.demo.MainActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -26,14 +28,18 @@
         <activity android:name="com.didi.demo.activity.ActivityTest2" />
         <activity android:name="com.didi.demo.activity.ActivityTest3" />
         <activity android:name="com.didi.demo.web.WebActivity" />
-        <activity android:name="com.didi.demo.activity.ActivityResultActivity" >
+        <activity
+            android:name="com.didi.demo.activity.ActivityResultActivity"
+            android:exported="false" >
             <intent-filter>
                 <action android:name="com.intent.activity" />
                 <category android:name="android.intent.category.DEFAULT"/>
 
             </intent-filter>
         </activity>
-        <activity android:name="com.didi.demo.web.SchemeActivity">
+        <activity
+            android:name="com.didi.demo.web.SchemeActivity"
+            android:exported="true">
             <intent-filter>
                 <data android:scheme="didi" />
                 <action android:name="android.intent.action.VIEW" />

@@ -7,12 +7,11 @@ buildscript {
 //        maven { url uri(rootProject.rootDir.path + '/.aar/maven')}
         maven { url uri('https://s01.oss.sonatype.org/content/repositories/releases/')}
 
-        jcenter()
         mavenCentral()
         google()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.2.1'
+        classpath 'com.android.tools.build:gradle:4.2.2'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
 
         // DRouter Plugin
@@ -24,7 +23,6 @@ allprojects {
     repositories {
 //        maven { url uri(rootProject.rootDir.path + '/.aar/maven')}
         maven { url uri('https://s01.oss.sonatype.org/content/repositories/releases/')}
-        jcenter()
         mavenCentral()
         google()
     }
