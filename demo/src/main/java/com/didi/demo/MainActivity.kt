@@ -132,7 +132,7 @@ class MainActivity : AppCompatActivity() {
                     .getService()
                     .test2()
             R.id.start_dynamic_register -> DRouter.build("/activity/dynamic").putExtra("type", 2).start(this)
-            R.id.start_remote_page -> DRouter.build("/activity/memory_test").start(this)
+            R.id.start_remote_page -> DRouter.build("/activity/remote_test_activity").start(this)
             else -> {
             }
         }

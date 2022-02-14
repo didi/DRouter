@@ -3,7 +3,6 @@ package com.didi.demo.remote;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Build;
-import android.os.Bundle;
 import android.os.IBinder;
 
 import androidx.annotation.NonNull;
@@ -31,18 +30,19 @@ public class RemoteService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        for (int i = 0; i < 32; i++) {
-            MemoryClient client = new MemoryClient("com.didi.drouter.remote.demo.host", "host");
+        for (int i = 0; i < 1; i++) {
+            MemoryClient client = new MemoryClient(
+                    "com.didi.drouter.remote.demo.host", "host2", 0);
             final int finalI = i;
             client.registerObserver(new MemoryClient.MemCallback() {
                 @Override
-                public void onNotify(@NonNull ByteBuffer buffer, @org.jetbrains.annotations.Nullable Bundle config) {
+                public void onNotify(@NonNull ByteBuffer buffer) {
 
-                    try {
-                        Thread.sleep(10);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+//                    try {
+//                        Thread.sleep(13000);
+//                    } catch (InterruptedException e) {
+//                        e.printStackTrace();
+//                    }
                     RouterLogger.getAppLogger().d("SharedMemory onNotify %s", finalI);
                 }
 
@@ -50,7 +50,7 @@ public class RemoteService extends Service {
                 public void onServerClosed() {
                     RouterLogger.getAppLogger().e("SharedMemory server closed");
                 }
-            }, true);
+            });
         }
     }
 }

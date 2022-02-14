@@ -76,7 +76,7 @@ public class RemoteProvider extends ContentProvider {
                 hasSendBroadcast = true;
             }
         } else {
-            Log.e(RouterLogger.NAME,
+            Log.e(RouterLogger.CORE_TAG,
                     String.format("[%s] onCreate multiProcess? | Context: %s | Process: \"%s\"" ,
                             getClass().getSimpleName(), getContext(), process));
         }
@@ -136,6 +136,7 @@ public class RemoteProvider extends ContentProvider {
                 for (int i = 0; i < 3; i++) {    // remote process killed case and retry, return null
                     ContentProviderClient client = null;
                     try {
+                        // use unstable provider to avoid death with remote system process
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
                             client = DRouter.getContext().getContentResolver()
                                     .acquireUnstableContentProviderClient(authority);

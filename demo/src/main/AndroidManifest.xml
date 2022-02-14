@@ -5,6 +5,7 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
 
     <application
         android:name="com.didi.demo.Application"
@@ -28,7 +29,7 @@
         <activity android:name="com.didi.demo.activity.ActivityTest2" />
         <activity android:name="com.didi.demo.activity.ActivityTest3" />
         <activity android:name="com.didi.demo.web.WebActivity" />
-        <activity android:name="com.didi.demo.activity.ActivityMemoryTest" />
+        <activity android:name="com.didi.demo.activity.ActivityRemoteTest" />
         <activity
             android:name="com.didi.demo.activity.ActivityResultActivity"
             android:exported="false" >
@@ -63,11 +64,12 @@
             android:name="com.didi.demo.remote.RemoteActivity"
             android:process=":remote" />
         <activity
-            android:name="com.didi.demo.remote.RemoteMemActivity"
+            android:name="com.didi.demo.remote.RemoteMemoryActivity"
             android:process=":remote" />
         <service
             android:name="com.didi.demo.remote.RemoteService"
             android:process=":remote" />
+        <service android:name="com.didi.demo.activity.ActivityRemoteTest$MyService"/>
         <activity android:name="com.didi.demo.handler.DynamicActivity" />
         <activity android:name="com.didi.demo.fragment.RouterPageViewPagerActivity" />
         <activity android:name="com.didi.demo.fragment.RouterPageSingleActivity" />

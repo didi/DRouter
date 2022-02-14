@@ -1,5 +1,8 @@
 package com.didi.drouter.page;
 
+import static androidx.fragment.app.FragmentPagerAdapter.BEHAVIOR_SET_USER_VISIBLE_HINT;
+import static com.didi.drouter.page.IPageRouter.IPageObserver.CHANGED_BY_SHOW;
+
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -13,9 +16,6 @@ import androidx.viewpager.widget.ViewPager;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import static androidx.fragment.app.FragmentPagerAdapter.BEHAVIOR_SET_USER_VISIBLE_HINT;
-import static com.didi.drouter.page.IPageRouter.IPageObserver.CHANGED_BY_SHOW;
 
 /**
  * Created by gaowei on 2020/4/1

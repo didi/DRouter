@@ -21,7 +21,7 @@ import com.didi.drouter.utils.SystemUtil;
 public class LoadProvider extends ContentProvider {
     @Override
     public boolean onCreate() {
-        Log.d(RouterLogger.NAME, "[LoadProvider] onCreate and DRouter set application | " + getContext());
+        Log.d(RouterLogger.CORE_TAG, "[LoadProvider] onCreate and DRouter set application | " + getContext());
         SystemUtil.setApplication((Application) getContext());
         return false;
     }

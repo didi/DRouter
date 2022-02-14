@@ -4,8 +4,6 @@ import android.os.*
 import androidx.annotation.RequiresApi
 import com.didi.drouter.annotation.Remote
 import com.didi.drouter.annotation.Service
-import com.didi.drouter.remote.IRemoteCallback
-import com.didi.drouter.utils.RouterLogger
 
 /**
  * Created by gaowei on 2022/1/28
@@ -13,43 +11,47 @@ import com.didi.drouter.utils.RouterLogger
 @RequiresApi(api = Build.VERSION_CODES.O_MR1)
 interface ISharedMemory {
 
-    fun acquireMemory(name: String, filter: Int?, notify: IRemoteCallback.Type2<Boolean, Bundle?>): ServerMemory?
-    fun release(name: String, serial: Int?)
+    fun acquireMemory(name: String, delay: Int?, filter: Int?): ServerMemory?
+    fun openSocket(name: String, serial: Int?, socketName: String)
+    fun close(name: String, serial: Int?)
 
     @Service(function = [ISharedMemory::class])
     class SharedMemoryImpl : ISharedMemory {
         @Remote
-        override fun acquireMemory(name: String, filter: Int?, notify: IRemoteCallback.Type2<Boolean, Bundle?>): ServerMemory? {
-            val server = MemoryServer.servers[name]
-            if (server != null) {
-                val client = server.addClient(filter!!, notify)
+        override fun acquireMemory(name: String, delay: Int?, filter: Int?): ServerMemory? {
+            MemoryServer.servers[name]?.let { server ->
+                val client = server.addClient(delay!!, filter!!)
                 if (client != null) {
-                    return ServerMemory(server.memory, server.maxClient, client.serial)
+                    return ServerMemory(server.memory, server.maxClient, server.info, client.serial)
                 }
-            } else {
-                RouterLogger.getCoreLogger().e("[Server][SharedMemory] There is no server for name \"$name\"")
             }
             return null
         }
         @Remote
-        override fun release(name: String, serial: Int?) {
-            val server = MemoryServer.servers[name]
-            server?.removeClient(serial!!)
+        override fun openSocket(name: String, serial: Int?, socketName: String) {
+            MemoryServer.servers[name]?.openSocket(serial!!, socketName)
+        }
+        @Remote
+        override fun close(name: String, serial: Int?) {
+            MemoryServer.servers[name]?.removeClient(serial!!)
         }
     }
 
     class ServerMemory : Parcelable {
         internal val memory: SharedMemory
         internal val maxClient: Int
+        internal var info: Bundle? = null
         internal val serial: Int
-        constructor(memory: SharedMemory, maxClient: Int, serial: Int) {
+        constructor(memory: SharedMemory, maxClient: Int, info:Bundle?, serial: Int) {
             this.memory = memory
             this.maxClient = maxClient
+            this.info = info
             this.serial = serial
         }
         constructor(data: Parcel) {
             memory = data.readParcelable(javaClass.classLoader)!!
             maxClient = data.readInt()
+            info = data.readBundle(javaClass.classLoader)
             serial = data.readInt()
         }
         override fun describeContents(): Int {
@@ -58,6 +60,7 @@ interface ISharedMemory {
         override fun writeToParcel(dest: Parcel, flags: Int) {
             dest.writeParcelable(memory, 0)
             dest.writeInt(maxClient)
+            dest.writeBundle(info)
             dest.writeInt(serial)
         }
         companion object CREATOR : Parcelable.Creator<ServerMemory> {

@@ -3,8 +3,6 @@ package com.didi.drouter.utils;
 import android.os.Handler;
 import android.os.Looper;
 
-import androidx.annotation.RestrictTo;
-
 import com.didi.drouter.api.Extend;
 
 import java.util.concurrent.BlockingQueue;
@@ -18,7 +16,6 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by gaowei on 2018/9/17
  */
-@RestrictTo(RestrictTo.Scope.LIBRARY)
 public class RouterExecutor {
 
     private static final Handler mainHandler = new Handler(Looper.getMainLooper());
