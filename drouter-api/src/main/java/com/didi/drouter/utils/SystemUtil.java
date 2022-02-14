@@ -58,7 +58,7 @@ public class SystemUtil {
                 Method getProcessName = activityThread.getDeclaredMethod(methodName);
                 sProcessName = (String) getProcessName.invoke(null);
             } catch (Exception e) {
-                Log.e(RouterLogger.NAME, "getProcessName exception: " + e.getMessage());
+                Log.e(RouterLogger.CORE_TAG, "getProcessName exception: " + e.getMessage());
             }
         }
         if (!TextUtils.isEmpty(sProcessName)) {
@@ -81,7 +81,7 @@ public class SystemUtil {
             }
             sProcessName = context.getPackageName();
         } catch (Exception e) {
-            Log.e(RouterLogger.NAME, "getProcessName exception: " + e.getMessage());
+            Log.e(RouterLogger.CORE_TAG, "getProcessName exception: " + e.getMessage());
         }
 
         return sProcessName;

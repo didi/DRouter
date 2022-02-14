@@ -1,16 +1,17 @@
 package com.didi.drouter.mem
 
+import android.net.LocalSocket
+import android.net.LocalSocketAddress
 import android.os.Build
 import android.os.Bundle
 import android.os.SharedMemory
 import android.system.ErrnoException
 import android.system.OsConstants
 import androidx.annotation.RequiresApi
-import com.didi.drouter.remote.IRemoteCallback
 import com.didi.drouter.utils.RouterLogger
+import java.io.IOException
 import java.nio.ByteBuffer
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.CopyOnWriteArrayList
 
 /**
  * Created by gaowei on 2022/1/27
@@ -23,7 +24,7 @@ class MemoryServer private constructor() {
          const val CLIENT_STATE_FREE: Byte = 0
          const val CLIENT_STATE_BUSY: Byte = 1
 
-         fun create(memoryName: String, memorySize: Int, maxClient: Int): MemoryServer? {
+         fun create(memoryName: String, memorySize: Int, maxClient: Int = 16, info: Bundle? = null): MemoryServer? {
              if (servers.containsKey(memoryName)) {
                  RouterLogger.getCoreLogger().e(
                          "[Server][SharedMemory] last shared memory \"$memoryName\" has not closed")
@@ -39,6 +40,7 @@ class MemoryServer private constructor() {
                  val memoryServer = MemoryServer()
                  memoryServer.name = memoryName
                  memoryServer.maxClient = maxClient
+                 memoryServer.info = info
                  memoryServer.clientPlaceHolder = BooleanArray(maxClient)
                  memoryServer.memory = memory
                  // offset have to be 0
@@ -58,12 +60,12 @@ class MemoryServer private constructor() {
     private var close = false
     private var name = ""
     internal var maxClient = 0
+    internal var info: Bundle? = null
     private lateinit var oriBuffer: ByteBuffer
     private lateinit var dataBuffer: ByteBuffer
     internal lateinit var memory: SharedMemory
-    private val clients = CopyOnWriteArrayList<ClientInfo>()
+    private val clients = ConcurrentHashMap<Int, ClientInfo>()
     private lateinit var clientPlaceHolder: BooleanArray
-    private var frameCount = 0L
 
     /**
      * If closed, buffer can't be used.
@@ -72,78 +74,100 @@ class MemoryServer private constructor() {
     @Synchronized
     fun acquireBuffer(): ByteBuffer? {
         val tag = StringBuffer()
+        var skip = false
         var hasBusy = false
-        for (client in clients) {
-            if (oriBuffer.get(dataBuffer.capacity() + client.serial) == CLIENT_STATE_BUSY) {
-                client.copy = true
-                hasBusy = true
-                tag.append("${client.serial},")
+        for (client in clients.values) {
+            client.socket?.let {
+                if (oriBuffer.get(dataBuffer.capacity() + client.serial) == CLIENT_STATE_BUSY) {
+                    hasBusy = true
+                    tag.append("${client.serial},")
+                    if (client.delayCount++ < client.delay) {
+                        skip = true
+                    }
+                } else {
+                    client.delayCount = 0
+                }
             }
         }
-        RouterLogger.getCoreLogger().dw("[Server][SharedMemory] \"$name\" " +
-                "acquire buffer ${if (!hasBusy) "success" else "fail for (${tag.dropLast(1)}) is busy"}", hasBusy)
-        return if (!hasBusy) dataBuffer else null
+        if (hasBusy) {
+            RouterLogger.getCoreLogger().w("[Server][SharedMemory] $name acquire buffer (${tag.dropLast(1)}) is busy")
+        }
+        if (skip) {
+            RouterLogger.getCoreLogger().e("[Server][SharedMemory] $name acquire buffer fail")
+        }
+        return if (!skip) dataBuffer else null
     }
 
     @Synchronized
-    internal fun addClient(filter: Int, callback: IRemoteCallback.Type2<Boolean, Bundle?>): ClientInfo? {
+    internal fun addClient(delay: Int, filter: Int): ClientInfo? {
         if (!close) {
             for (i in clientPlaceHolder.indices) {
                 if (!clientPlaceHolder[i]) {
                     clientPlaceHolder[i] = true
-                    val client = ClientInfo(i, filter, callback)
-                    clients.add(client)
-                    RouterLogger.getCoreLogger().w("[Server][SharedMemory] \"$name\" add client serial: $i")
+                    val client = ClientInfo(i, delay, filter)
+                    clients[i] = client
+                    RouterLogger.getCoreLogger().w("[Server][SharedMemory] $name add client serial: $i")
                     return client
                 }
             }
         }
-        RouterLogger.getCoreLogger().e("[Server][SharedMemory] \"$name\" The client \"$name\" register fail")
+        RouterLogger.getCoreLogger().e("[Server][SharedMemory] $name The client register fail")
         return null
     }
 
     @Synchronized
-    internal fun removeClient(serial: Int) {
-        for (client in clients) {
-            if (client.serial == serial) {
-                RouterLogger.getCoreLogger().w("[Server][SharedMemory] \"$name\" remove client serial: $serial")
-                removeClient(client)
-                return
-            }
-        }
-    }
-
-    @Synchronized @JvmOverloads
-    fun notifyClient(bundle: Bundle? = null) {
-        RouterLogger.getCoreLogger().d("[Server][SharedMemory] \"$name\" notify client size ${clients.size}")
-        for (client in clients) {
-            if (client.callback.asBinder().isBinderAlive) {
-                val reason1 = close
-                val reason2 = client.filter <= 0 || frameCount % client.filter == 0L
-                if (reason1 || reason2) {
-                    oriBuffer.put(dataBuffer.capacity() + client.serial, CLIENT_STATE_BUSY)
-                    client.callback.callback(close, bundle)
-                } else {
-                    RouterLogger.getCoreLogger().w(
-                            "[Server][SharedMemory] \"$name\" frame $frameCount skip notify client ${client.serial}")
-                }
-            } else {
-                removeClient(client)
-            }
-        }
-        if (!close) {
-            dataBuffer.clear()
-            ++frameCount
+    internal fun openSocket(serial: Int, socketName: String) {
+        val socket = LocalSocket()
+        val address = LocalSocketAddress(socketName)
+        socket.connect(address)
+        clients[serial]?.let { client ->
+            client.socket = socket
         }
     }
 
     @Synchronized
-    private fun removeClient(client: ClientInfo) {
-        clients.remove(client)
-        // clear
-        clientPlaceHolder[client.serial] = false
-        oriBuffer.put(dataBuffer.capacity() + client.serial, CLIENT_STATE_FREE)
-        tryCloseInner()
+    internal fun removeClient(serial: Int) {
+        clients.remove(serial)?.let { client ->
+            // clear
+            clientPlaceHolder[client.serial] = false
+            oriBuffer.put(dataBuffer.capacity() + client.serial, CLIENT_STATE_FREE)
+            client.socket?.close()
+            tryCloseInner()
+            RouterLogger.getCoreLogger().w("[Server][SharedMemory] $name remove client serial: $serial")
+        }
+    }
+
+    @Synchronized
+    fun notifyClient() {
+        for (client in clients.values) {
+            client.socket?.let { socket ->
+                var notFilter = client.filter <= 0
+                if (!notFilter) {
+                    notFilter = (client.filterCount++) % (client.filter + 1) == 0
+                    if (client.filterCount == client.filter + 1) {
+                        client.filterCount = 0
+                    }
+                }
+                val free = oriBuffer.get(dataBuffer.capacity() + client.serial) == CLIENT_STATE_FREE
+                if (close || (notFilter && free)) {
+                    oriBuffer.put(dataBuffer.capacity() + client.serial, CLIENT_STATE_BUSY)
+                    try {
+                        socket.outputStream.write(if (close) 1 else 0)
+                    } catch (e: IOException) {
+                        RouterLogger.getCoreLogger().e(
+                            "[Server][SharedMemory] $name socket notify error for client ${client.serial}")
+                        removeClient(client.serial)
+                    }
+                }
+//                else {
+//                    RouterLogger.getCoreLogger().w(
+//                        "[Server][SharedMemory] $name frame ${client.filterCount} skip notify client ${client.serial}")
+//                }
+            }
+        }
+        if (!close) {
+            dataBuffer.clear()
+        }
     }
 
     @Synchronized
@@ -159,7 +183,7 @@ class MemoryServer private constructor() {
     @Synchronized
     private fun tryCloseInner() {
         if (close && clients.isEmpty() && servers.containsKey(name)) {
-            RouterLogger.getCoreLogger().w("[Server][SharedMemory] server \"$name\" real close")
+            RouterLogger.getCoreLogger().w("[Server][SharedMemory] server $name real close")
             servers.remove(name)
             SharedMemory.unmap(dataBuffer)
             SharedMemory.unmap(oriBuffer)
@@ -169,8 +193,11 @@ class MemoryServer private constructor() {
 
     internal class ClientInfo(
             val serial: Int,
-            val filter: Int,
-            val callback: IRemoteCallback.Type2<Boolean, Bundle?>) {
+            val delay: Int,
+            val filter: Int) {
+        var socket: LocalSocket? = null
         var copy = false
+        var delayCount = 0
+        var filterCount = 0
     }
 }

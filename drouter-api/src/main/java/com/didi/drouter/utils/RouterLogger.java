@@ -5,27 +5,39 @@ import android.widget.Toast;
 
 import com.didi.drouter.api.DRouter;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
  * Created by gaowei on 2018/9/6
  */
 public class RouterLogger {
 
-    public static final String NAME = "DRouterCore";
-    private static IRouterLogger logger = new InnerLogger();
-    private static final RouterLogger coreLogger = new RouterLogger(NAME);
-    private static final RouterLogger appLogger = new RouterLogger("DRouterApp");
+    public static final String CORE_TAG = "DRouterCore";
+    public static final String APP_TAG = "DRouterAPP";
+    private static ILogPrinter printer = new InnerLogPrinter();
+    private static final RouterLogger coreLogger = new RouterLogger(CORE_TAG);
+    private static RouterLogger appLogger;
 
     private final String tag;
+    private static Map<String, Long> time;
 
     private RouterLogger(String tag) {
         this.tag = tag;
     }
 
-    public static void setLogger(IRouterLogger logger) {
-        RouterLogger.logger = logger;
+    public static void setPrinter(ILogPrinter logger) {
+        RouterLogger.printer = logger;
     }
 
     public static RouterLogger getAppLogger() {
+        if (appLogger == null) {
+            synchronized (RouterLogger.class) {
+                if (appLogger == null) {
+                    appLogger = new RouterLogger(APP_TAG);
+                }
+            }
+        }
         return appLogger;
     }
 
@@ -34,46 +46,64 @@ public class RouterLogger {
     }
 
     public void d(String content, Object... args) {
-        if (content != null && logger != null) {
-            logger.d(tag, format(content, args));
+        if (content != null && printer != null) {
+            printer.d(tag, format(content, args));
         }
     }
 
     public void w(String content, Object... args) {
-        if (content != null && logger != null) {
-            logger.w(tag, format(content, args));
+        if (content != null && printer != null) {
+            printer.w(tag, format(content, args));
         }
     }
 
     public void e(String content, Object... args) {
-        if (content != null && logger != null) {
-            logger.e(tag, format(content, args));
+        if (content != null && printer != null) {
+            printer.e(tag, format(content, args));
+        }
+    }
+
+    public static void t1(String tag) {
+        if (time == null) {
+            synchronized (RouterLogger.class) {
+                if (time == null) {
+                    time = new ConcurrentHashMap<>();
+                }
+            }
+        }
+        time.put(tag, System.currentTimeMillis());
+    }
+
+    public static void t2(String tag) {
+        Long last = time.remove(tag);
+        if (last != null) {
+            getCoreLogger().d("RouterTimeTag:\"%s\" =>time:%s", tag, System.currentTimeMillis() - last);
         }
     }
 
     public void dw(String content, boolean isWarn, Object... args) {
-        if (content != null && logger != null) {
+        if (content != null && printer != null) {
             if (isWarn) {
-                logger.w(tag, format(content, args));
+                printer.w(tag, format(content, args));
             } else {
-                logger.d(tag, format(content, args));
+                printer.d(tag, format(content, args));
             }
         }
     }
 
     public void de(String content, boolean isError, Object... args) {
-        if (content != null && logger != null) {
+        if (content != null && printer != null) {
             if (isError) {
-                logger.e(tag, format(content, args));
+                printer.e(tag, format(content, args));
             } else {
-                logger.d(tag, format(content, args));
+                printer.d(tag, format(content, args));
             }
         }
     }
 
     public void crash(String content, Object... args) {
-        if (content != null && logger != null) {
-            logger.e(tag, format(content, args) +
+        if (content != null && printer != null) {
+            printer.e(tag, format(content, args) +
                     "\n Exception:" + Log.getStackTraceString(new Throwable()));
         }
         throw new RuntimeException(content);
@@ -98,7 +128,14 @@ public class RouterLogger {
         return String.format(s, args);
     }
 
-    private static class InnerLogger implements IRouterLogger {
+    public interface ILogPrinter {
+
+        void d(String TAG, String content);
+        void w(String TAG, String content);
+        void e(String TAG, String content);
+    }
+
+    private static class InnerLogPrinter implements ILogPrinter {
 
         @Override
         public void d(String tag, String content) {

@@ -61,13 +61,13 @@ public class RouterStore {
                 if (!loadRecord.contains(app)) {
                     loadRecord.add(app);
                     if (!async) {
-                        Log.d(RouterLogger.NAME, "DRouter start load router table sync");
+                        Log.d(RouterLogger.CORE_TAG, "DRouter start load router table sync");
                         load(app);
                     } else {
                         new Thread("drouter-table-thread") {
                             @Override
                             public void run() {
-                                Log.d(RouterLogger.NAME, "DRouter start load router table in drouter-table-thread");
+                                Log.d(RouterLogger.CORE_TAG, "DRouter start load router table in drouter-table-thread");
                                 load(app);
                             }
                         }.start();

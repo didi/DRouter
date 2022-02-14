@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <SurfaceView
+        android:id="@+id/surface"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+    <TextView
+        android:id="@+id/surface_frequency"
+        android:gravity="end|bottom"
+        android:textSize="15sp"
+        android:textColor="#FFFFFF"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginBottom="250dp"/>
+
+    <TextView
+        android:id="@+id/text"
+        android:gravity="center"
+        android:textSize="20sp"
+        android:text="无处理逻辑"
+        android:textColor="#FFFFFF"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"/>
+
+    <TextView
+        android:id="@+id/text_frequency"
+        android:gravity="end|bottom"
+        android:textSize="15sp"
+        android:textColor="#FFFFFF"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"/>
+</FrameLayout>
