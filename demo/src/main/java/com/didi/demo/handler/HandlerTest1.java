@@ -20,11 +20,5 @@ public class HandlerTest1 implements IRouterHandler {
 
         result.putExtra("a", 1);
         result.putAddition("b", 2);
-
-        try {
-            Thread.sleep(5000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 }

@@ -16,10 +16,10 @@ import androidx.appcompat.app.AppCompatActivity
 import com.didi.drouter.annotation.Router
 import com.didi.drouter.api.DRouter
 import com.didi.drouter.demo.R
-import com.didi.drouter.mem.MemoryServer
+import com.didi.drouter.memory.MemoryServer
 import com.didi.drouter.module_base.remote.IRemoteFunction
 import com.didi.drouter.module_base.remote.RemoteFeature
-import com.didi.drouter.remote.Strategy
+import com.didi.drouter.api.Strategy
 import com.didi.drouter.utils.RouterExecutor
 import java.nio.ByteBuffer
 

@@ -11,7 +11,6 @@ import android.os.SharedMemory;
 import androidx.annotation.RequiresApi;
 
 import com.didi.drouter.annotation.Assign;
-import com.didi.drouter.annotation.Remote;
 import com.didi.drouter.annotation.Service;
 import com.didi.drouter.module_base.ParamObject;
 import com.didi.drouter.module_base.ResultObject;
@@ -58,7 +57,6 @@ public class RemoteFunction implements IRemoteFunction {
     }
 
     @Override
-    @Remote
     public ResultObject handle(ParamObject[] x, ParamObject y, Integer z, Context context, final IRemoteCallback.Type2<String, Integer> callback) {
 
         RouterExecutor.main(new Runnable() {
@@ -145,7 +143,6 @@ public class RemoteFunction implements IRemoteFunction {
             Collections.newSetFromMap(new ConcurrentHashMap<IRemoteCallback, Boolean>());
 
     @Override
-    @Remote
     public void register(IRemoteCallback callback) {
         if (callbacks.contains(callback)) {
             RouterLogger.getAppLogger().e("RemoteRegister 重复注册");
@@ -156,7 +153,6 @@ public class RemoteFunction implements IRemoteFunction {
     }
 
     @Override
-    @Remote
     public void unregister(IRemoteCallback callback) {
         if (callbacks.contains(callback)) {
             callbacks.remove(callback);
@@ -167,7 +163,6 @@ public class RemoteFunction implements IRemoteFunction {
     }
 
     @Override
-    @Remote
     public void kill() {
         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
             @Override
@@ -177,11 +172,9 @@ public class RemoteFunction implements IRemoteFunction {
         }, 2000);
     }
 
-    @Remote
     public void call() {
     }
 
-    @Remote
     public Integer cal(Integer a) {
         return 1;
     }

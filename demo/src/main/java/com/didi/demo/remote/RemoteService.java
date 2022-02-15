@@ -9,7 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
-import com.didi.drouter.mem.MemoryClient;
+import com.didi.drouter.memory.MemoryClient;
 import com.didi.drouter.utils.RouterLogger;
 
 import java.nio.ByteBuffer;

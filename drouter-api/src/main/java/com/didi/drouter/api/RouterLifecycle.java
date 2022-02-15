@@ -10,7 +10,7 @@ import androidx.lifecycle.LifecycleRegistry;
  *
  * RouterLifecycle can be used to set resend switch.
  * When the state is create resend mode is turned on and when the state is destroy resend mode is turned off
- * {@link com.didi.drouter.api.Extend.Resend}
+ * {@link com.didi.drouter.api.Resend}
  */
 public class RouterLifecycle implements LifecycleOwner {
     

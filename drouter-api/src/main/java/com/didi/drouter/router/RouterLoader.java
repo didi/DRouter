@@ -12,8 +12,6 @@ import androidx.annotation.NonNull;
 
 import com.didi.drouter.api.DRouter;
 import com.didi.drouter.api.Extend;
-import com.didi.drouter.remote.IRemoteCallback;
-import com.didi.drouter.remote.IRemoteRequest;
 import com.didi.drouter.store.RouterMeta;
 import com.didi.drouter.store.RouterStore;
 import com.didi.drouter.utils.RouterLogger;
@@ -34,7 +32,7 @@ class RouterLoader {
 
     private Request primaryRequest;
     private RouterCallback callback;
-    private IRemoteCallback.Type2<Bundle, Map<String, Object>> remoteCallback;
+//    private IRemoteCallback.Type2<Bundle, Map<String, Object>> remoteCallback;
 
     private RouterLoader() {}
 
@@ -239,16 +237,21 @@ class RouterLoader {
     }
 
     private void startRemote() {
+        IRequestProxy service = DRouter.build(IRequestProxy.class).getService();
+        if (service == null) {
+            return;
+        }
         final Result result = new Result(primaryRequest, Collections.singleton(primaryRequest), callback);
+        IRequestProxy.RemoteCallback remoteCallback = null;
         if (callback != null) {
-            remoteCallback = new IRemoteCallback.Type2<Bundle, Map<String, Object>>() {
+            remoteCallback = new IRequestProxy.RemoteCallback() {
                 @Override
-                public void callback(Bundle p1, Map<String, Object> p2) {
+                public void data(Bundle p1, Map<String, Object> p2) {
                     RouterLogger.getCoreLogger().w("[Client] \"%s\" callback success", primaryRequest);
-                    int routerSize = p1.getInt(IRemoteRequest.ROUTER_SIZE);
-                    p1.remove(IRemoteRequest.ROUTER_SIZE);
-                    boolean isActivityStarted = p1.getBoolean(IRemoteRequest.IS_ACTIVITY_STARTED);
-                    p1.remove(IRemoteRequest.IS_ACTIVITY_STARTED);
+                    int routerSize = p1.getInt(IRequestProxy.ROUTER_SIZE);
+                    p1.remove(IRequestProxy.ROUTER_SIZE);
+                    boolean isActivityStarted = p1.getBoolean(IRequestProxy.IS_ACTIVITY_STARTED);
+                    p1.remove(IRequestProxy.IS_ACTIVITY_STARTED);
                     result.isActivityStarted = isActivityStarted;
                     result.routerSize = routerSize;
                     result.extra = p1;
@@ -259,10 +262,6 @@ class RouterLoader {
         } else {
             RouterHelper.release(primaryRequest);
         }
-        DRouter.build(IRemoteRequest.class)
-                .setRemote(primaryRequest.strategy).setLifecycleOwner(primaryRequest.lifecycleOwner)
-                .getService().request(primaryRequest.getUri().toString(),
-                                      primaryRequest.extra, primaryRequest.addition, remoteCallback);
+        service.request(primaryRequest, primaryRequest.strategy, remoteCallback);
     }
-
 }

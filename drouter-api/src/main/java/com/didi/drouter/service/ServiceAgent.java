@@ -4,16 +4,14 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.LifecycleOwner;
 
+import com.didi.drouter.api.DRouter;
 import com.didi.drouter.api.Extend;
-import com.didi.drouter.remote.RemoteBridge;
-import com.didi.drouter.remote.Strategy;
-import com.didi.drouter.router.Request;
+import com.didi.drouter.api.Strategy;
 import com.didi.drouter.store.IRouterProxy;
 import com.didi.drouter.store.RouterMeta;
 import com.didi.drouter.store.RouterStore;
 import com.didi.drouter.utils.ReflectUtil;
 import com.didi.drouter.utils.RouterLogger;
-import com.didi.drouter.utils.TextUtils;
 
 import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationHandler;
@@ -123,8 +121,11 @@ class ServiceAgent<T> {
     T getService(Object... constructors) {
         // remote
         if (strategy != null) {
-            return RemoteBridge.load(strategy, lifecycle)
-                    .getService(function, alias, feature, constructors);
+            IRemoteBridge bridge = DRouter.build(IRemoteBridge.class).getService();
+            if (bridge == null) {
+                return null;
+            }
+            return bridge.getService(strategy, lifecycle, function, alias, feature, constructors);
         }
         for (RouterMeta meta : orderMetaList) {
             if (match(meta.getServiceAlias(), meta.getFeatureMatcher())) {

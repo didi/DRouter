@@ -62,20 +62,6 @@ public class Extend {
             START_ACTIVITY_WITH_DEFAULT_SCHEME_HOST = "router_start_activity_with_default_scheme_host";
 
     @Retention(RetentionPolicy.SOURCE)
-    @IntDef({Resend.NO_RESEND, Resend.WAIT_ALIVE})
-    public @interface Resend {
-        /**
-         * Resend strategy: No resend
-         */
-        int NO_RESEND   = 0;
-        /**
-         * Resend strategy: Client command will retain and wait until Server restart
-         * Please refer to {@link RouterLifecycle} to control resend switch
-         */
-        int WAIT_ALIVE  = 1;
-    }
-
-    @Retention(RetentionPolicy.SOURCE)
     @IntDef({Thread.POSTING, Thread.MAIN, Thread.WORKER})
     public @interface Thread {
         /**

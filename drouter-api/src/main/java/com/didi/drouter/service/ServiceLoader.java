@@ -3,7 +3,7 @@ package com.didi.drouter.service;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LifecycleOwner;
 
-import com.didi.drouter.remote.Strategy;
+import com.didi.drouter.api.Strategy;
 
 import java.util.List;
 

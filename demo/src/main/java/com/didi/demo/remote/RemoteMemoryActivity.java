@@ -16,7 +16,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.didi.drouter.annotation.Router;
 import com.didi.drouter.demo.R;
-import com.didi.drouter.mem.MemoryClient;
+import com.didi.drouter.memory.MemoryClient;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;

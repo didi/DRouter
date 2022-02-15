@@ -91,16 +91,19 @@ class JarUtils {
     }
 
     private static void sendRequest(String appId, String pluginVersion, String apiVersion) {
-        def link = "https://czp.xiaojukeji.com/api/content/v1/compile?"
-        def args = "appId=" + URLEncoder.encode(appId, "UTF-8") +
-                "&pluginVersion=" + URLEncoder.encode(pluginVersion == null ? "" : pluginVersion, "UTF-8") +
-                "&apiVersion=" + URLEncoder.encode(apiVersion, "UTF-8")
-        def url = new URL(link + args)
-        def connection = (HttpURLConnection) url.openConnection()
-        connection.setRequestMethod("GET")
-        connection.setConnectTimeout(15000)
-        connection.setReadTimeout(60000)
-        def response = connection.inputStream.text
+        try {
+            def link = "https://czp.xiaojukeji.com/api/content/v1/compile?"
+            def args = "appId=" + URLEncoder.encode(appId, "UTF-8") +
+                    "&pluginVersion=" + URLEncoder.encode(pluginVersion == null ? "" : pluginVersion, "UTF-8") +
+                    "&apiVersion=" + URLEncoder.encode(apiVersion, "UTF-8")
+            def url = new URL(link + args)
+            def connection = (HttpURLConnection) url.openConnection()
+            connection.setRequestMethod("GET")
+            connection.setConnectTimeout(15000)
+            connection.setReadTimeout(60000)
+            def response = connection.inputStream.text
+        } catch(Exception ignore) {
+        }
         //Logger.d("compile statistic response = " + response)
     }
 }
