@@ -5,7 +5,7 @@ import com.google.gson.Gson;
 /**
  * Created by gaowei on 2018/11/2
  */
-public class JsonConverter {
+public class ObjConverter {
 
     private static IConvert jsonConvert = new InnerConvert();
 

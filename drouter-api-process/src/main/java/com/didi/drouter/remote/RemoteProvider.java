@@ -19,6 +19,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.didi.drouter.api.DRouter;
+import com.didi.drouter.utils.ProcUtil;
 import com.didi.drouter.utils.RouterLogger;
 import com.didi.drouter.utils.SystemUtil;
 
@@ -63,7 +64,7 @@ public class RemoteProvider extends ContentProvider {
 
     @Override
     public boolean onCreate() {
-        String process = SystemUtil.getProcessName();
+        String process = ProcUtil.getProcessName();
         if (getContext() instanceof Application) {
             SystemUtil.setApplication((Application) getContext());
             RouterLogger.getCoreLogger().d(
@@ -87,10 +88,10 @@ public class RemoteProvider extends ContentProvider {
     public Bundle call(@NonNull String method, @Nullable String arg, @Nullable Bundle extras) {
         RouterLogger.getCoreLogger().d(
                 "[%s] is called by client to get binder, process: \"%s\"",
-                getClass().getSimpleName(), SystemUtil.getProcessName());
+                getClass().getSimpleName(), ProcUtil.getProcessName());
         Bundle bundle = new Bundle();
         bundle.putParcelable(FIELD_REMOTE_BINDER, new BinderParcel(stub));
-        bundle.putString(FIELD_REMOTE_PROCESS, SystemUtil.getProcessName());
+        bundle.putString(FIELD_REMOTE_PROCESS, ProcUtil.getProcessName());
         return bundle;
     }
 

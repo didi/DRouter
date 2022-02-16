@@ -9,7 +9,7 @@ import androidx.collection.ArrayMap;
 import androidx.collection.ArraySet;
 
 import com.didi.drouter.api.DRouter;
-import com.didi.drouter.utils.JsonConverter;
+import com.didi.drouter.utils.ObjConverter;
 import com.didi.drouter.utils.ReflectUtil;
 
 import java.lang.reflect.Array;
@@ -265,7 +265,7 @@ class StreamTransfer {
                 object = DRouter.getContext();
             } else {
                 Class<?> clz = (Class<?>) in.readSerializable();
-                object = JsonConverter.toObject(in.readString(), clz);
+                object = ObjConverter.toObject(in.readString(), clz);
             }
         }
 
@@ -276,7 +276,7 @@ class StreamTransfer {
             } else {
                 dest.writeInt(1);
                 writeSerializable(dest, object.getClass());
-                dest.writeString(JsonConverter.toString(object));
+                dest.writeString(ObjConverter.toString(object));
             }
         }
 

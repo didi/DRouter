@@ -3,7 +3,7 @@ package com.didi.drouter.module_base;
 
 import androidx.annotation.Keep;
 
-import com.didi.drouter.utils.JsonConverter;
+import com.didi.drouter.utils.ObjConverter;
 
 /**
  * Created by gaowei on 2018/11/2
@@ -33,6 +33,6 @@ public class ParamObject {
 
     @Override
     public String toString() {
-        return "TestBean object gson: " + JsonConverter.toString(this);
+        return "TestBean object gson: " + ObjConverter.toString(this);
     }
 }

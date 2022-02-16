@@ -15,6 +15,7 @@ public class RouterLogger {
 
     public static final String CORE_TAG = "DRouterCore";
     public static final String APP_TAG = "DRouterAPP";
+    private static boolean enable = false;
     private static ILogPrinter printer = new InnerLogPrinter();
     private static final RouterLogger coreLogger = new RouterLogger(CORE_TAG);
     private static RouterLogger appLogger;
@@ -24,6 +25,10 @@ public class RouterLogger {
 
     private RouterLogger(String tag) {
         this.tag = tag;
+    }
+
+    public static void setEnable(boolean enable) {
+        RouterLogger.enable = enable;
     }
 
     public static void setPrinter(ILogPrinter logger) {
@@ -46,19 +51,19 @@ public class RouterLogger {
     }
 
     public void d(String content, Object... args) {
-        if (content != null && printer != null) {
+        if (content != null && isPrint()) {
             printer.d(tag, format(content, args));
         }
     }
 
     public void w(String content, Object... args) {
-        if (content != null && printer != null) {
+        if (content != null && isPrint()) {
             printer.w(tag, format(content, args));
         }
     }
 
     public void e(String content, Object... args) {
-        if (content != null && printer != null) {
+        if (content != null && isPrint()) {
             printer.e(tag, format(content, args));
         }
     }
@@ -82,7 +87,7 @@ public class RouterLogger {
     }
 
     public void dw(String content, boolean isWarn, Object... args) {
-        if (content != null && printer != null) {
+        if (content != null && isPrint()) {
             if (isWarn) {
                 printer.w(tag, format(content, args));
             } else {
@@ -92,7 +97,7 @@ public class RouterLogger {
     }
 
     public void de(String content, boolean isError, Object... args) {
-        if (content != null && printer != null) {
+        if (content != null && isPrint()) {
             if (isError) {
                 printer.e(tag, format(content, args));
             } else {
@@ -102,7 +107,7 @@ public class RouterLogger {
     }
 
     public void crash(String content, Object... args) {
-        if (content != null && printer != null) {
+        if (content != null && isPrint()) {
             printer.e(tag, format(content, args) +
                     "\n Exception:" + Log.getStackTraceString(new Throwable()));
         }
@@ -126,6 +131,10 @@ public class RouterLogger {
             }
         }
         return String.format(s, args);
+    }
+
+    private static boolean isPrint() {
+        return (SystemUtil.isDebug || enable) && printer != null;
     }
 
     public interface ILogPrinter {

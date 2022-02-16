@@ -1,19 +1,12 @@
 package com.didi.drouter.utils;
 
-import android.annotation.SuppressLint;
-import android.app.ActivityManager;
 import android.app.Application;
-import android.content.Context;
-import android.os.Build;
-import android.text.TextUtils;
+import android.content.pm.ApplicationInfo;
 import android.util.Log;
 
 import androidx.annotation.RestrictTo;
 
 import com.didi.drouter.api.DRouter;
-
-import java.lang.reflect.Method;
-import java.util.List;
 
 /**
  * Created by gaowei on 2018/11/5
@@ -22,7 +15,7 @@ import java.util.List;
 public class SystemUtil {
 
     private static Application sApplication;
-    private static String sProcessName;
+    static boolean isDebug;
 
     public static Application getApplication() {
         return sApplication;
@@ -30,61 +23,19 @@ public class SystemUtil {
 
     public static void setApplication(Application application) {
         if (application != null) {
+            initDebug(application);
             SystemUtil.sApplication = application;
         }
     }
 
-    public static String getProcessName() {
-
-        if (!TextUtils.isEmpty(sProcessName)) {
-            return sProcessName;
-        }
-
-        if (Build.VERSION.SDK_INT >= 28) {
-            sProcessName = Application.getProcessName();
-        } else {
-            // Using the same technique as Application.getProcessName() for older devices
-            // Using reflection since ActivityThread is an internal API
-            try {
-                @SuppressLint("PrivateApi")
-                Class<?> activityThread = Class.forName("android.app.ActivityThread");
-
-                // Before API 18, the method was incorrectly named "currentPackageName",
-                // but it still returned the process name
-                // See https://github.com/aosp-mirror/platform_frameworks_base/commit/b57a50bd16ce25db441da5c1b63d48721bb90687
-                String methodName =
-                        Build.VERSION.SDK_INT >= 18 ? "currentProcessName" : "currentPackageName";
-
-                Method getProcessName = activityThread.getDeclaredMethod(methodName);
-                sProcessName = (String) getProcessName.invoke(null);
-            } catch (Exception e) {
-                Log.e(RouterLogger.CORE_TAG, "getProcessName exception: " + e.getMessage());
-            }
-        }
-        if (!TextUtils.isEmpty(sProcessName)) {
-            return sProcessName;
-        }
-
+    private static void initDebug(Application application) {
+        if (sApplication != null) return;
         try {
-            Context context = DRouter.getContext();
-            ActivityManager am = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
-            if (am != null) {
-                List<ActivityManager.RunningAppProcessInfo> runningApps = am.getRunningAppProcesses();
-                if (runningApps != null) {
-                    for (ActivityManager.RunningAppProcessInfo processInfo : runningApps) {
-                        if (processInfo.pid == android.os.Process.myPid()) {
-                            sProcessName = processInfo.processName;
-                            return sProcessName;
-                        }
-                    }
-                }
-            }
-            sProcessName = context.getPackageName();
-        } catch (Exception e) {
-            Log.e(RouterLogger.CORE_TAG, "getProcessName exception: " + e.getMessage());
+            ApplicationInfo info = application.getApplicationInfo();
+            isDebug = (info.flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0;
+        } catch (Exception ignore) {
         }
-
-        return sProcessName;
+        Log.d(RouterLogger.CORE_TAG, "drouter is debug: " + isDebug);
     }
 
     public static String getAppName() {
