@@ -1,4 +1,4 @@
-// RemoteCommand.aidl
+// StreamCmd.aidl
 package com.didi.drouter.remote;
 
 // Declare any non-default types here with import statements
@@ -6,4 +6,4 @@ package com.didi.drouter.remote;
 /**
  * Created by gaowei on 2018/10/25
  */
-parcelable RemoteCommand;
+parcelable StreamCmd;

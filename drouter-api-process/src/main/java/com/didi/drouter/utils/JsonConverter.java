@@ -7,22 +7,21 @@ import com.google.gson.Gson;
  */
 public class JsonConverter {
 
-    private static IConvert jsonConvert;
+    private static IConvert jsonConvert = new InnerConvert();
 
     public static void setConverter(IConvert convert) {
         jsonConvert = convert;
     }
 
     public static String toString(Object object) {
-        check();
         return jsonConvert.toJson(object);
     }
 
     /**
      * Avoid RCE "com.android.internal.util.VirtualRefBasePtr", "{'mNativePtr':3735928551}"
      */
+    // TODO use stream
     public static <T> T toObject(String json, Class<T> cls) {
-        check();
         T t = null;
         if (cls != null && !cls.getName().contains("com.android.internal")) {
             t = jsonConvert.fromJson(json, cls);
@@ -33,12 +32,6 @@ public class JsonConverter {
                     json, cls != null ? cls.getSimpleName() : null);
         }
         return t;
-    }
-
-    private static void check() {
-        if (jsonConvert == null) {
-            jsonConvert = new InnerConvert();
-        }
     }
 
     public interface IConvert {

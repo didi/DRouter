@@ -1,11 +1,11 @@
 package com.didi.demo.remote;
 
 import android.os.Bundle;
-import android.os.Handler;
 import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.Lifecycle;
 
 import com.didi.drouter.annotation.Router;
 import com.didi.drouter.api.DRouter;
@@ -74,14 +74,18 @@ public class RemoteActivity extends AppCompatActivity {
                         public int mode() {
                             return super.mode();
                         }
-                    });
 
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    Runtime.getRuntime().gc();
-                }
-            }, 1000);
+                        @Override
+                        public Lifecycle getLifecycle() {
+                            return RemoteActivity.this.getLifecycle();
+                        }
+
+                        @Override
+                        protected void finalize() throws Throwable {
+                            super.finalize();
+                            RouterLogger.getAppLogger().e("client callback gc");
+                        }
+                    });
         }
 
         if (view.getId() == R.id.resend_callback) {
@@ -119,9 +123,9 @@ public class RemoteActivity extends AppCompatActivity {
         lifecycle.destroy();
     }
 
-    private final IRemoteCallback callback = new IRemoteCallback() {
+    private final IRemoteCallback.Type0 callback = new IRemoteCallback.Type0() {
         @Override
-        public void callback(Object... data) {
+        public void callback() {
 
         }
     };

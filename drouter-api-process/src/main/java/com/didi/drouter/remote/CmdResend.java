@@ -26,12 +26,12 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Created by gaowei on 2022/01/25
  */
-class RemoteResend {
+class CmdResend {
 
     // key is process
-    private static final Map<String, Set<RemoteCommand>> sRetainCommandMap = new ConcurrentHashMap<>();
+    private static final Map<String, Set<StreamCmd>> sRetainCommandMap = new ConcurrentHashMap<>();
 
-    static void tryPrepareResend(RemoteBridge bridge, final RemoteCommand command) {
+    static void tryPrepareResend(RemoteBridge bridge, final StreamCmd command) {
         if (bridge.strategy.resend == Strategy.Resend.WAIT_ALIVE) {
             final String process = RemoteProvider.getProcess(bridge.strategy.authority);
             if (TextUtils.isEmpty(process)) {
@@ -48,18 +48,18 @@ class RemoteResend {
                 RouterLogger.getCoreLogger().e("[Client] retain command fail, for lifecycle is assigned but destroyed");
                 return;
             }
-            Set<RemoteCommand> resendCommands = sRetainCommandMap.get(process);
+            Set<StreamCmd> resendCommands = sRetainCommandMap.get(process);
             if (resendCommands == null) {
                 synchronized (RemoteBridge.class) {
                     resendCommands = sRetainCommandMap.get(process);
                     if (resendCommands == null) {
-                        resendCommands = Collections.newSetFromMap(new ConcurrentHashMap<RemoteCommand, Boolean>());
+                        resendCommands = Collections.newSetFromMap(new ConcurrentHashMap<StreamCmd, Boolean>());
                         sRetainCommandMap.put(process, resendCommands);
                     }
                 }
             }
             if (!resendCommands.contains(command)) {
-                synchronized (RemoteResend.class) {
+                synchronized (CmdResend.class) {
                     if (!resendCommands.contains(command)) {
                         resendCommands.add(command);
                         if (lifecycle != null) {
@@ -67,7 +67,7 @@ class RemoteResend {
                                 @Override
                                 public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
                                     if (event == Lifecycle.Event.ON_DESTROY) {
-                                        Set<RemoteCommand> commands = sRetainCommandMap.get(process);
+                                        Set<StreamCmd> commands = sRetainCommandMap.get(process);
                                         if (commands != null) {
                                             commands.remove(command);
                                             RouterLogger.getCoreLogger().w(
@@ -100,9 +100,9 @@ class RemoteResend {
             String process = intent.getStringExtra(FIELD_REMOTE_LAUNCH_ACTION);
             RouterLogger.getCoreLogger().w(
                     "receive broadcast remote app launcher process: \"%s\"", process);
-            Set<RemoteCommand> commands = sRetainCommandMap.get(process);
+            Set<StreamCmd> commands = sRetainCommandMap.get(process);
             if (commands != null) {
-                for (RemoteCommand command : commands) {
+                for (StreamCmd command : commands) {
                     RouterLogger.getCoreLogger().w("execute resend command: \"%s\"", command);
                     command.bridge.execute(command);
                 }

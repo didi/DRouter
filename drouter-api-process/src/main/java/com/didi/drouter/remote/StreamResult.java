@@ -6,7 +6,7 @@ import android.os.Parcelable;
 /**
  * Created by gaowei on 2018/10/23
  */
-class RemoteResult implements Parcelable {
+class StreamResult implements Parcelable {
 
     static final String EXECUTING = "executing";
     static final String SUCCESS = "success";
@@ -15,27 +15,27 @@ class RemoteResult implements Parcelable {
     String state;
     Object result;
 
-    RemoteResult(String state) {
+    StreamResult(String state) {
         this.state = state;
     }
 
-    RemoteResult(Parcel in) {
+    StreamResult(Parcel in) {
         state = in.readString();
-        result = DataStream.reverse(in.readValue(getClass().getClassLoader()));
+        result = StreamTransfer.reverse(in.readValue(getClass().getClassLoader()));
     }
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(state);
-        dest.writeValue(DataStream.transform(result));
+        dest.writeValue(StreamTransfer.transform(result));
     }
 
-    public static final Creator<RemoteResult> CREATOR = new Creator<RemoteResult>() {
-        public RemoteResult createFromParcel(Parcel in) {
-            return new RemoteResult(in);
+    public static final Creator<StreamResult> CREATOR = new Creator<StreamResult>() {
+        public StreamResult createFromParcel(Parcel in) {
+            return new StreamResult(in);
         }
-        public RemoteResult[] newArray(int size) {
-            return new RemoteResult[size];
+        public StreamResult[] newArray(int size) {
+            return new StreamResult[size];
         }
     };
 

@@ -47,16 +47,16 @@ public class RemoteProvider extends ContentProvider {
 
     private static final IHostService.Stub stub = new IHostService.Stub() {
         @Override
-        public RemoteResult call(RemoteCommand command) {
+        public StreamResult call(StreamCmd command) {
             try {
-                return new RemoteDispatcher().call(command);
+                return new CmdDispatcher().call(command);
             } catch (RuntimeException e) {
                 RouterLogger.getCoreLogger().e("[Server] exception: %s", e);
                 throw e;  // will not crash
             }
         }
         @Override
-        public void callAsync(RemoteCommand command) {
+        public void callAsync(StreamCmd command) {
             call(command);
         }
     };
@@ -127,7 +127,7 @@ public class RemoteProvider extends ContentProvider {
             return hostService;
         }
         try {
-            synchronized (RemoteCommand.class) {
+            synchronized (StreamCmd.class) {
                 hostService = sHostServiceMap.get(authority);
                 if (hostService != null) {
                     return hostService;

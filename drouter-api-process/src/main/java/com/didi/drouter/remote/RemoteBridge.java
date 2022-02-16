@@ -21,7 +21,7 @@ import java.lang.reflect.Proxy;
  * Created by gaowei on 2018/11/01
  *
  * One service build will create one RemoteBridge instance,
- * but with multiple RemoteCommand when executes.
+ * but with multiple StreamCmd when executes.
  */
 @Service(function = IRemoteBridge.class)
 public class RemoteBridge implements IRemoteBridge {
@@ -55,7 +55,7 @@ public class RemoteBridge implements IRemoteBridge {
 
         @Override
         public Object invoke(Object proxy, Method method, @Nullable Object[] args) {
-            final RemoteCommand command = new RemoteCommand();
+            final StreamCmd command = new StreamCmd();
             command.bridge = RemoteBridge.this;
             command.serviceClass = serviceClass;
             command.alias = alias;
@@ -63,8 +63,8 @@ public class RemoteBridge implements IRemoteBridge {
             command.constructorArgs = constructorArgs;
             command.methodName = method.getName();
             command.methodArgs = args;
-            RemoteResult result = execute(command);
-            if (result != null && RemoteResult.SUCCESS.equals(result.state)) {
+            StreamResult result = execute(command);
+            if (result != null && StreamResult.SUCCESS.equals(result.state)) {
                 return result.result;
             } else {
                 Class<?> returnType = method.getReturnType();   // void、int...
@@ -84,25 +84,25 @@ public class RemoteBridge implements IRemoteBridge {
     }
 
     @Nullable
-    RemoteResult execute(RemoteCommand command) {
+    StreamResult execute(StreamCmd command) {
         RouterLogger.getCoreLogger().d("[Client] start " +
                 "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
         RouterLogger.getCoreLogger().d(
                 "[Client] \"%s\" start, authority \"%s\"", command, strategy.authority);
 
         IHostService hostService = RemoteProvider.getHostService(strategy.authority);
-        RemoteResult result = null;
+        StreamResult result = null;
         if (hostService != null) {
             try {
-                RemoteResend.tryPrepareResend(this, command);
+                CmdResend.tryPrepareResend(this, command);
                 if (strategy.callAsync) {
                     hostService.callAsync(command);
-                    result = new RemoteResult(RemoteResult.SUCCESS);
+                    result = new StreamResult(StreamResult.SUCCESS);
                 } else {
                     result = hostService.call(command);
                 }
                 if (result != null) {
-                    if (RemoteResult.SUCCESS.equals(result.state)) {
+                    if (StreamResult.SUCCESS.equals(result.state)) {
                         RouterLogger.getCoreLogger().d(
                                 "[Client] \"%s\" finish, and state success", command);
                     } else {

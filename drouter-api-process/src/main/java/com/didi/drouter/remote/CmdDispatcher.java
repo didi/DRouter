@@ -12,11 +12,11 @@ import com.didi.drouter.utils.RouterLogger;
 /**
  * Created by gaowei on 2018/11/2
  */
-class RemoteDispatcher {
+class CmdDispatcher {
 
     @NonNull
-    RemoteResult call(final RemoteCommand command) {
-        RemoteResult result = new RemoteResult(RemoteResult.EXECUTING);
+    StreamResult call(final StreamCmd command) {
+        StreamResult result = new StreamResult(StreamResult.EXECUTING);
         ServiceLoader<?> loader = DRouter.build(command.serviceClass)
                 .setAlias(command.alias)
                 .setFeature(command.feature);
@@ -38,13 +38,13 @@ class RemoteDispatcher {
                     result.result = ReflectUtil.invokeMethod(instance, command.methodName, command.methodArgs);
                 }
                 RouterLogger.getCoreLogger().d("[Server] \"%s\" execute success", command);
-                result.state = RemoteResult.SUCCESS;
+                result.state = StreamResult.SUCCESS;
                 return result;
             }
         } catch (Exception e) {
             RouterLogger.getCoreLogger().e("[Server] invoke Exception %s", e);
         }
-        result.state = RemoteResult.FAIL;
+        result.state = StreamResult.FAIL;
         return result;
     }
 }

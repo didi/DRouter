@@ -3,9 +3,7 @@ package com.didi.demo.remote;
 import android.content.Context;
 import android.os.Build;
 import android.os.Handler;
-import android.os.IBinder;
 import android.os.Looper;
-import android.os.RemoteException;
 import android.os.SharedMemory;
 
 import androidx.annotation.RequiresApi;
@@ -17,7 +15,6 @@ import com.didi.drouter.module_base.ResultObject;
 import com.didi.drouter.module_base.remote.IRemoteFunction;
 import com.didi.drouter.module_base.remote.RemoteFeature;
 import com.didi.drouter.remote.IRemoteCallback;
-import com.didi.drouter.utils.RouterExecutor;
 import com.didi.drouter.utils.RouterLogger;
 
 import java.nio.ByteBuffer;
@@ -59,28 +56,28 @@ public class RemoteFunction implements IRemoteFunction {
     @Override
     public ResultObject handle(ParamObject[] x, ParamObject y, Integer z, Context context, final IRemoteCallback.Type2<String, Integer> callback) {
 
-        RouterExecutor.main(new Runnable() {
-            @Override
-            public void run() {
-                RouterLogger.toast("主进程RemoteFunction执行成功");
-            }
-        });
-        RouterLogger.getAppLogger().d("RemoteFunction handle: TestBean[] x, String y=%s, int z=%s, %s", y, z, callback);
+//        RouterExecutor.main(new Runnable() {
+//            @Override
+//            public void run() {
+//                RouterLogger.toast("主进程RemoteFunction执行成功");
+//            }
+//        });
+//        RouterLogger.getAppLogger().d("RemoteFunction handle: TestBean[] x, String y=%s, int z=%s, %s", y, z, callback);
         final ResultObject result = new ResultObject();
         result.a = 100;
         result.i = "100";
-
-        try {
-            callback.asBinder().linkToDeath(new IBinder.DeathRecipient() {
-                @Override
-                public void binderDied() {
-                    RouterLogger.getAppLogger().d("Client death");
-                }
-            }, 0);
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        }
-
+//
+//        try {
+//            callback.asBinder().linkToDeath(new IBinder.DeathRecipient() {
+//                @Override
+//                public void binderDied() {
+//                    RouterLogger.getAppLogger().d("Client death");
+//                }
+//            }, 0);
+//        } catch (RemoteException e) {
+//            e.printStackTrace();
+//        }
+//
         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -139,11 +136,10 @@ public class RemoteFunction implements IRemoteFunction {
 //        });
     }
 
-    private static Set<IRemoteCallback> callbacks =
-            Collections.newSetFromMap(new ConcurrentHashMap<IRemoteCallback, Boolean>());
+    private static Set<IRemoteCallback> callbacks = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     @Override
-    public void register(IRemoteCallback callback) {
+    public void register(IRemoteCallback.Type0 callback) {
         if (callbacks.contains(callback)) {
             RouterLogger.getAppLogger().e("RemoteRegister 重复注册");
         } else {
@@ -153,7 +149,7 @@ public class RemoteFunction implements IRemoteFunction {
     }
 
     @Override
-    public void unregister(IRemoteCallback callback) {
+    public void unregister(IRemoteCallback.Type0 callback) {
         if (callbacks.contains(callback)) {
             callbacks.remove(callback);
             RouterLogger.getAppLogger().d("RemoteRegister 反注册成功");

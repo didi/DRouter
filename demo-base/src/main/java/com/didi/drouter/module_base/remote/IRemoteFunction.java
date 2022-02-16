@@ -21,9 +21,9 @@ public interface IRemoteFunction {
 
     void trans(List<SharedMemory> memory);
 
-    void register(IRemoteCallback callback);
+    void register(IRemoteCallback.Type0 callback);
 
-    void unregister(IRemoteCallback callback);
+    void unregister(IRemoteCallback.Type0 callback);
 
     void kill();
 

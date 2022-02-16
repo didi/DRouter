@@ -82,9 +82,9 @@ public class MainActivity extends AppCompatActivity {
         lifecycle.destroy();
     }
 
-    private final IRemoteCallback callback = new IRemoteCallback() {
+    private final IRemoteCallback.Type0 callback = new IRemoteCallback.Type0() {
         @Override
-        public void callback(Object... data) {
+        public void callback() {
 
         }
     };

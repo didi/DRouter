@@ -11,7 +11,7 @@ import java.util.Arrays;
 /**
  * Created by gaowei on 2018/10/23
  */
-class RemoteCommand implements Parcelable {
+class StreamCmd implements Parcelable {
 
     // ignore
     RemoteBridge bridge;
@@ -23,34 +23,34 @@ class RemoteCommand implements Parcelable {
     @Nullable Object[] constructorArgs;
     @Nullable Object[] methodArgs;
 
-    RemoteCommand() {
+    StreamCmd() {
     }
 
-    private RemoteCommand(Parcel in) {
+    private StreamCmd(Parcel in) {
         serviceClass = (Class<?>) in.readSerializable();
         alias = in.readString();
-        feature = DataStream.reverse(in.readValue(getClass().getClassLoader()));
+        feature = StreamTransfer.reverse(in.readValue(getClass().getClassLoader()));
         methodName = in.readString();
-        constructorArgs = (Object[]) DataStream.reverse(in.readValue(getClass().getClassLoader()));
-        methodArgs = (Object[]) DataStream.reverse(in.readValue(getClass().getClassLoader()));
+        constructorArgs = (Object[]) StreamTransfer.reverse(in.readValue(getClass().getClassLoader()));
+        methodArgs = (Object[]) StreamTransfer.reverse(in.readValue(getClass().getClassLoader()));
     }
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeSerializable(serviceClass);
         dest.writeString(alias);
-        dest.writeValue(DataStream.transform(feature));
+        dest.writeValue(StreamTransfer.transform(feature));
         dest.writeString(methodName);
-        dest.writeValue(DataStream.transform(constructorArgs));
-        dest.writeValue(DataStream.transform(methodArgs));
+        dest.writeValue(StreamTransfer.transform(constructorArgs));
+        dest.writeValue(StreamTransfer.transform(methodArgs));
     }
 
-    public static final Parcelable.Creator<RemoteCommand> CREATOR = new Parcelable.Creator<RemoteCommand>() {
-        public RemoteCommand createFromParcel(Parcel in) {
-            return new RemoteCommand(in);
+    public static final Parcelable.Creator<StreamCmd> CREATOR = new Parcelable.Creator<StreamCmd>() {
+        public StreamCmd createFromParcel(Parcel in) {
+            return new StreamCmd(in);
         }
-        public RemoteCommand[] newArray(int size) {
-            return new RemoteCommand[size];
+        public StreamCmd[] newArray(int size) {
+            return new StreamCmd[size];
         }
     };
 
@@ -62,8 +62,8 @@ class RemoteCommand implements Parcelable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof RemoteCommand)) return false;
-        RemoteCommand command = (RemoteCommand) o;
+        if (!(o instanceof StreamCmd)) return false;
+        StreamCmd command = (StreamCmd) o;
         return  equals(serviceClass, command.serviceClass) &&
                 equals(alias, command.alias) &&
                 equals(feature, command.feature) &&
