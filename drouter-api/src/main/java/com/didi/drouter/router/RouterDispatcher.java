@@ -122,18 +122,15 @@ class RouterDispatcher {
         }
         if (handler != null) {
             final IRouterHandler finalHandler = handler;
-            RouterExecutor.execute(meta.getThread(), new Runnable() {
-                @Override
-                public void run() {
-                    if (meta.isHold()) {
-                        RouterLogger.getCoreLogger().w("request \"%s\" will hold", request.getNumber());
-                    }
-                    finalHandler.handle(request, result);
-                    if (meta.isHold() && callback != null) {
-                        Monitor.startMonitor(request, result);
-                    } else {
-                        ResultAgent.release(request, ResultAgent.STATE_COMPLETE);
-                    }
+            RouterExecutor.execute(meta.getThread(), () -> {
+                if (meta.isHold()) {
+                    RouterLogger.getCoreLogger().w("request \"%s\" will hold", request.getNumber());
+                }
+                finalHandler.handle(request, result);
+                if (meta.isHold() && callback != null) {
+                    Monitor.startMonitor(request, result);
+                } else {
+                    ResultAgent.release(request, ResultAgent.STATE_COMPLETE);
                 }
             });
         } else {

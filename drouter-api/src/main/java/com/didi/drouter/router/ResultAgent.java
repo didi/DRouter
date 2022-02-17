@@ -56,12 +56,7 @@ class ResultAgent {
             }
         }
         if (primaryRequest.lifecycleOwner != null) {
-            RouterExecutor.main(new Runnable() {
-                @Override
-                public void run() {
-                    primaryRequest.lifecycleOwner.getLifecycle().addObserver(observer);
-                }
-            });
+            RouterExecutor.main(() -> primaryRequest.lifecycleOwner.getLifecycle().addObserver(observer));
         }
     }
 
@@ -149,12 +144,8 @@ class ResultAgent {
             result.agent.callback.onResult(result);
         }
         if (result.agent.primaryRequest.lifecycleOwner != null) {
-            RouterExecutor.main(new Runnable() {
-                @Override
-                public void run() {
-                    result.agent.primaryRequest.lifecycleOwner.getLifecycle().removeObserver(result.agent.observer);
-                }
-            });
+            RouterExecutor.main(() ->
+                    result.agent.primaryRequest.lifecycleOwner.getLifecycle().removeObserver(result.agent.observer));
         }
         if (!numberToResult.containsKey(result.agent.primaryRequest.getNumber())) {
             RouterLogger.getCoreLogger().d(

@@ -54,12 +54,7 @@ class StreamCallback implements Parcelable {
             RouterLogger.getCoreLogger().dw("[Client] receive callback \"%s\" from binder thread %s",
                     callback == null, callback, Thread.currentThread().getName());
             if (callback != null) {
-                RouterExecutor.execute(callback.thread(), new Runnable() {
-                    @Override
-                    public void run() {
-                        callback.callback(command.methodArgs);
-                    }
-                });
+                RouterExecutor.execute(callback.thread(), () -> callback.callback(command.methodArgs));
             }
         }
 
@@ -248,12 +243,7 @@ class StreamCallback implements Parcelable {
             // early to release, avoid the impact of server delay recycle
             listener.lifecycle = lifecycle;
             listener.lifeObserver = new CallbackLifeObserver(weakRef);
-            RouterExecutor.main(new Runnable() {
-                @Override
-                public void run() {
-                    clientCallback.lifecycle().addObserver(listener.lifeObserver);
-                }
-            });
+            RouterExecutor.main(() -> clientCallback.lifecycle().addObserver(listener.lifeObserver));
         }
         IBinder binderProxy = RemoteBridge.getHostBinder(clientCallback.authority);
         if (binderProxy != null) {
@@ -269,12 +259,7 @@ class StreamCallback implements Parcelable {
 
     private void unregister(final Listener listener) {
         if (listener != null && listener.lifecycle != null) {
-            RouterExecutor.main(new Runnable() {
-                @Override
-                public void run() {
-                    listener.lifecycle.removeObserver(listener.lifeObserver);
-                }
-            });
+            RouterExecutor.main(() -> listener.lifecycle.removeObserver(listener.lifeObserver));
         }
         if (listener != null && listener.binderProxy != null) {
             listener.binderProxy.unlinkToDeath(listener.deathRecipient, 0);

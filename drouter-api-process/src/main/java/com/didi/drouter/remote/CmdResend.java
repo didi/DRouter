@@ -8,7 +8,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 
-import androidx.annotation.NonNull;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleEventObserver;
 import androidx.lifecycle.LifecycleOwner;
@@ -64,24 +63,16 @@ class CmdResend {
                     if (!resendCommands.contains(command)) {
                         resendCommands.add(command);
                         if (lifecycle != null) {
-                            RouterExecutor.main(new Runnable() {
-                                @Override
-                                public void run() {
-                                    lifecycle.addObserver(new LifecycleEventObserver() {
-                                        @Override
-                                        public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
-                                            if (event == Lifecycle.Event.ON_DESTROY) {
-                                                Set<StreamCmd> commands = sRetainCommandMap.get(process);
-                                                if (commands != null) {
-                                                    commands.remove(command);
-                                                    RouterLogger.getCoreLogger().w(
-                                                            "[Client] remove resend command \"%s\"", command);
-                                                }
-                                            }
-                                        }
-                                    });
+                            RouterExecutor.main(() -> lifecycle.addObserver((LifecycleEventObserver) (source, event) -> {
+                                if (event == Lifecycle.Event.ON_DESTROY) {
+                                    Set<StreamCmd> commands = sRetainCommandMap.get(process);
+                                    if (commands != null) {
+                                        commands.remove(command);
+                                        RouterLogger.getCoreLogger().w(
+                                                "[Client] remove resend command \"%s\"", command);
+                                    }
                                 }
-                            });
+                            }));
                         }
                     }
                 }

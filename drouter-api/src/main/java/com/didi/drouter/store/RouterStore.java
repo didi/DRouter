@@ -8,7 +8,6 @@ import androidx.annotation.NonNull;
 import androidx.collection.ArraySet;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleEventObserver;
-import androidx.lifecycle.LifecycleOwner;
 
 import com.didi.drouter.api.Extend;
 import com.didi.drouter.loader.host.InterceptorLoader;
@@ -198,20 +197,12 @@ public class RouterStore {
         }
         if (success && key.lifecycleOwner != null) {
             final WeakReference<Pair<RouterKey, IRouterHandler>> reference = new WeakReference<>(new Pair<>(key, handler));
-            RouterExecutor.main(new Runnable() {
-                @Override
-                public void run() {
-                    key.lifecycleOwner.getLifecycle().addObserver(new LifecycleEventObserver() {
-                        @Override
-                        public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
-                            Pair<RouterKey, IRouterHandler> pair;
-                            if (event == Lifecycle.Event.ON_DESTROY && (pair = reference.get()) != null) {
-                                unregister(pair.first, pair.second);
-                            }
-                        }
-                    });
+            RouterExecutor.main(() -> key.lifecycleOwner.getLifecycle().addObserver((LifecycleEventObserver) (source, event) -> {
+                Pair<RouterKey, IRouterHandler> pair;
+                if (event == Lifecycle.Event.ON_DESTROY && (pair = reference.get()) != null) {
+                    unregister(pair.first, pair.second);
                 }
-            });
+            }));
         }
         RouterLogger.getCoreLogger().dw("register \"%s\" with handler \"%s\" %s",
                 !success,
@@ -262,26 +253,18 @@ public class RouterStore {
         key.meta = meta;
         Set<RouterMeta> metas = serviceMetas.get(key.function);
         if (metas == null) {
-            metas = Collections.newSetFromMap(new ConcurrentHashMap<RouterMeta, Boolean>());
+            metas = Collections.newSetFromMap(new ConcurrentHashMap<>());
             serviceMetas.put(key.function, metas);
         }
         metas.add(meta);
         if (key.lifecycleOwner != null) {
             final WeakReference<Pair<ServiceKey<T>, T>> reference = new WeakReference<>(new Pair<>(key, service));
-            RouterExecutor.main(new Runnable() {
-                @Override
-                public void run() {
-                    key.lifecycleOwner.getLifecycle().addObserver(new LifecycleEventObserver() {
-                        @Override
-                        public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
-                            Pair<ServiceKey<T>, T> pair;
-                            if (event == Lifecycle.Event.ON_DESTROY && (pair = reference.get()) != null) {
-                                unregister(pair.first, pair.second);
-                            }
-                        }
-                    });
+            RouterExecutor.main(() -> key.lifecycleOwner.getLifecycle().addObserver((LifecycleEventObserver) (source, event) -> {
+                Pair<ServiceKey<T>, T> pair;
+                if (event == Lifecycle.Event.ON_DESTROY && (pair = reference.get()) != null) {
+                    unregister(pair.first, pair.second);
                 }
-            });
+            }));
         }
         RouterLogger.getCoreLogger().d("register \"%s\" with service \"%s\" success, size:%s",
                 key.function.getName(), service, metas.size());

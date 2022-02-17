@@ -23,11 +23,6 @@ android {
     sourceSets {
         main.resources.srcDirs += new File(buildDir, "/generated/drouter")
     }
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_7
-        targetCompatibility JavaVersion.VERSION_1_7
-    }
 }
 
 task generateVersion {

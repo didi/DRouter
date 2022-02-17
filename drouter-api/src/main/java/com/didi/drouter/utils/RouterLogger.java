@@ -115,12 +115,7 @@ public class RouterLogger {
     }
 
     public static void toast(final String string, final Object... args) {
-        RouterExecutor.main(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(DRouter.getContext(), format(string, args), Toast.LENGTH_SHORT).show();
-            }
-        });
+        RouterExecutor.main(() -> Toast.makeText(DRouter.getContext(), format(string, args), Toast.LENGTH_SHORT).show());
     }
 
     private static String format(String s, Object... args) {

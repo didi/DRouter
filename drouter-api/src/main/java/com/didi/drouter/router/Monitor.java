@@ -19,17 +19,9 @@ class Monitor {
             check();
             RouterLogger.getCoreLogger().d("monitor for request \"%s\" start, count down \"%sms\"",
                     request.getNumber(), period);
-            timeoutHandler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    RouterExecutor.submit(new Runnable() {
-                        @Override
-                        public void run() {
-                            ResultAgent.release(request, ResultAgent.STATE_TIMEOUT);
-                        }
-                    });
-                }
-            }, period);
+            timeoutHandler.postDelayed(() ->
+                    RouterExecutor.submit(() ->
+                            ResultAgent.release(request, ResultAgent.STATE_TIMEOUT)), period);
         }
     }
 
