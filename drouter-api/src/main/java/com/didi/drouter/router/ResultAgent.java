@@ -7,6 +7,7 @@ import androidx.lifecycle.LifecycleEventObserver;
 import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.LifecycleOwner;
 
+import com.didi.drouter.utils.RouterExecutor;
 import com.didi.drouter.utils.RouterLogger;
 import com.didi.drouter.utils.TextUtils;
 
@@ -55,7 +56,12 @@ class ResultAgent {
             }
         }
         if (primaryRequest.lifecycleOwner != null) {
-            primaryRequest.lifecycleOwner.getLifecycle().addObserver(observer);
+            RouterExecutor.main(new Runnable() {
+                @Override
+                public void run() {
+                    primaryRequest.lifecycleOwner.getLifecycle().addObserver(observer);
+                }
+            });
         }
     }
 
@@ -133,7 +139,7 @@ class ResultAgent {
     }
 
     // finish
-    private synchronized static void completePrimary(@NonNull Result result) {
+    private synchronized static void completePrimary(@NonNull final Result result) {
         RouterLogger.getCoreLogger().d(
                 "primary request \"%s\" complete, router uri \"%s\", all reason %s",
                 result.agent.primaryRequest.getNumber(), result.agent.primaryRequest.getUri(),
@@ -143,7 +149,12 @@ class ResultAgent {
             result.agent.callback.onResult(result);
         }
         if (result.agent.primaryRequest.lifecycleOwner != null) {
-            result.agent.primaryRequest.lifecycleOwner.getLifecycle().removeObserver(result.agent.observer);
+            RouterExecutor.main(new Runnable() {
+                @Override
+                public void run() {
+                    result.agent.primaryRequest.lifecycleOwner.getLifecycle().removeObserver(result.agent.observer);
+                }
+            });
         }
         if (!numberToResult.containsKey(result.agent.primaryRequest.getNumber())) {
             RouterLogger.getCoreLogger().d(

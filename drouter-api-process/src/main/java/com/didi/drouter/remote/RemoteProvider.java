@@ -22,6 +22,7 @@ import com.didi.drouter.api.DRouter;
 import com.didi.drouter.utils.ProcUtil;
 import com.didi.drouter.utils.RouterLogger;
 import com.didi.drouter.utils.SystemUtil;
+import com.didi.drouter.utils.TextUtils;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -123,6 +124,7 @@ public class RemoteProvider extends ContentProvider {
     }
 
     static IHostService getHostService(final String authority) {
+        if (TextUtils.isEmpty(authority)) return null;
         IHostService hostService = sHostServiceMap.get(authority);
         if (hostService != null) {
             return hostService;

@@ -14,16 +14,17 @@ import com.didi.drouter.utils.RouterExecutor;
 import com.didi.drouter.utils.RouterLogger;
 
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 class StreamCallback implements Parcelable {
 
     // key is Binder, key will be recycled after binder-proxy recycle
-    static final List<WeakReference<IHostService>> clientStubPool = new ArrayList<>();
+    static final Map<WeakReference<IHostService>, Listener> clientStubPool = new ConcurrentHashMap<>();
     // key is BinderProxy
-    static final List<WeakReference<IRemoteCallback.Base>> serverProxyPool = new ArrayList<>();
+    static final List<WeakReference<IRemoteCallback.Base>> serverProxyPool = new CopyOnWriteArrayList<>();
     // for client and server, Binder/BinderProxy
     IHostService binder;
     int type;
@@ -37,9 +38,7 @@ class StreamCallback implements Parcelable {
     }
 
     static class HostStub extends IHostService.Stub {
-
         IRemoteCallback.Base clientCallback;
-
         HostStub(IRemoteCallback.Base clientCallback) {
             this.clientCallback = clientCallback;
         }
@@ -55,10 +54,10 @@ class StreamCallback implements Parcelable {
             RouterLogger.getCoreLogger().dw("[Client] receive callback \"%s\" from binder thread %s",
                     callback == null, callback, Thread.currentThread().getName());
             if (callback != null) {
-                RouterExecutor.execute(callback.mode(), new Runnable() {
+                RouterExecutor.execute(callback.thread(), new Runnable() {
                     @Override
                     public void run() {
-                        callback.callback(command.constructorArgs);
+                        callback.callback(command.methodArgs);
                     }
                 });
             }
@@ -72,55 +71,52 @@ class StreamCallback implements Parcelable {
     }
 
     // client
+    // HostStub -> realCallback
     StreamCallback(Object callback) {
-        // callback is direct IRemoteCallback method args in client
         IRemoteCallback.Base clientCallback = (IRemoteCallback.Base) callback;
         type = getType(clientCallback);
-        synchronized (clientStubPool) {
-            Iterator<WeakReference<IHostService>> iterator = clientStubPool.iterator();
-            while (iterator.hasNext()) {
-                IHostService stubRef = iterator.next().get();
-                if (stubRef == null) {
-                    iterator.remove();
-                } else if (((HostStub)stubRef).clientCallback == clientCallback) {
-                    binder = stubRef;
-                }
+        for (Map.Entry<WeakReference<IHostService>, Listener> weakRef : clientStubPool.entrySet()) {
+            IHostService stubRef = weakRef.getKey().get();
+            if (stubRef == null) {
+                Listener listener = clientStubPool.remove(weakRef.getKey());
+                unregister(listener);
+            } else if (((HostStub) stubRef).clientCallback == clientCallback) {
+                binder = stubRef;
             }
         }
-        if (binder == null) {
-            binder = new HostStub(clientCallback);
-            WeakReference<IHostService> weakRef = new WeakReference<>(binder);
-            if (clientCallback.getLifecycle() != null) {
-                // early to release, avoid the impact of server delay recycle
-                clientCallback.getLifecycle().addObserver(new CallbackLifeObserver(weakRef));
-            }
-            synchronized (clientStubPool) {
-                clientStubPool.add(weakRef);
-            }
+        if (binder != null) {
+            return;
         }
+        binder = new HostStub(clientCallback);
+        WeakReference<IHostService> weakRef = new WeakReference<>(binder);
+        clientStubPool.put(weakRef, register(clientCallback, weakRef));
+    }
+
+    static class Listener {
+        Lifecycle lifecycle;
+        CallbackLifeObserver lifeObserver;
+        IBinder binderProxy;
+        DeathRecipient deathRecipient;
     }
 
     // server
+    // realCallback -> StreamCallback -> binderProxy -> linkToDeath
+    // realCallback -> binderProxy -> linkToDeath
     Object getCallback() {
         IRemoteCallback.Base realCallback = null;
-        synchronized (serverProxyPool) {
-            Iterator<WeakReference<IRemoteCallback.Base>> iterator = serverProxyPool.iterator();
-            while (iterator.hasNext()) {
-                IRemoteCallback.Base callback = iterator.next().get();
-                if (callback == null) {
-                    iterator.remove();
-                } else if (callback.binder == binder.asBinder()) {
-                    realCallback = callback;
-                }
+        for (WeakReference<IRemoteCallback.Base> weakRef : serverProxyPool) {
+            IRemoteCallback.Base callback = weakRef.get();
+            if (callback == null) {
+                serverProxyPool.remove(weakRef);
+            } else if (callback.binder == binder.asBinder()) {
+                realCallback = callback;
             }
         }
         if (realCallback != null) {
             return realCallback;
         }
         realCallback = createRealCallback(type, binder.asBinder());
-        synchronized (serverProxyPool) {
-            serverProxyPool.add(new WeakReference<>(realCallback));
-        }
+        serverProxyPool.add(new WeakReference<>(realCallback));
         return realCallback;
     }
 
@@ -144,12 +140,9 @@ class StreamCallback implements Parcelable {
     }
 
     private void callbackToClient(Object... data) {
-        if (data == null) {
-            data = new Object[] {null};
-        }
         RouterLogger.getCoreLogger().w("[Server] start remote callback");
         StreamCmd callbackCommand = new StreamCmd();
-        callbackCommand.constructorArgs = data;
+        callbackCommand.methodArgs = data;
         try {
             binder.callAsync(callbackCommand);
         } catch (RemoteException e) {
@@ -204,14 +197,14 @@ class StreamCallback implements Parcelable {
         } else if (type == -1) {
             realCallback = new IRemoteCallback.TypeN() {
                 @Override
-                void callback(Object... data) {
+                public void callback(Object... data) {
                     callbackToClient(data);
                 }
             };
         } else {
             throw new RuntimeException("[Server] callback type error");
         }
-        realCallback.setBinder(binder);
+        realCallback.binder = binder;
         return realCallback;
     }
 
@@ -226,6 +219,73 @@ class StreamCallback implements Parcelable {
                 IHostService stub = weakRef.get();
                 if (stub != null) {
                     ((HostStub)stub).clientCallback = null;
+                }
+            }
+        }
+    }
+
+    static class DeathRecipient implements IBinder.DeathRecipient {
+        WeakReference<IHostService> weakRef;
+        DeathRecipient(WeakReference<IHostService> weakRef) {
+            this.weakRef = weakRef;
+        }
+        @Override
+        public void binderDied() {
+            IHostService stub = weakRef.get();
+            if (stub != null) {
+                IRemoteCallback.Base callback = ((HostStub)stub).clientCallback;
+                if (callback != null) {
+                    callback.onServerDead();
+                }
+            }
+        }
+    }
+
+    private Listener register(final IRemoteCallback.Base clientCallback, WeakReference<IHostService> weakRef) {
+        final Listener listener = new Listener();
+        Lifecycle lifecycle = clientCallback.lifecycle();
+        if (lifecycle != null) {
+            // early to release, avoid the impact of server delay recycle
+            listener.lifecycle = lifecycle;
+            listener.lifeObserver = new CallbackLifeObserver(weakRef);
+            RouterExecutor.main(new Runnable() {
+                @Override
+                public void run() {
+                    clientCallback.lifecycle().addObserver(listener.lifeObserver);
+                }
+            });
+        }
+        IBinder binderProxy = RemoteBridge.getHostBinder(clientCallback.authority);
+        if (binderProxy != null) {
+            try {
+                listener.binderProxy = binderProxy;
+                listener.deathRecipient = new DeathRecipient(weakRef);
+                binderProxy.linkToDeath(listener.deathRecipient, 0);
+            } catch (RemoteException ignore) {
+            }
+        }
+        return listener;
+    }
+
+    private void unregister(final Listener listener) {
+        if (listener != null && listener.lifecycle != null) {
+            RouterExecutor.main(new Runnable() {
+                @Override
+                public void run() {
+                    listener.lifecycle.removeObserver(listener.lifeObserver);
+                }
+            });
+        }
+        if (listener != null && listener.binderProxy != null) {
+            listener.binderProxy.unlinkToDeath(listener.deathRecipient, 0);
+        }
+    }
+
+    static void preprocess(Object[] args, String authority) {
+        if (args != null) {
+            for (Object arg : args) {
+                if (arg instanceof IRemoteCallback.Base) {
+                    ((IRemoteCallback.Base) arg).authority = authority;
                 }
             }
         }

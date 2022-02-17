@@ -4,7 +4,6 @@ import android.net.Uri;
 import android.util.Log;
 import android.util.Pair;
 
-import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.collection.ArraySet;
 import androidx.lifecycle.Lifecycle;
@@ -17,6 +16,7 @@ import com.didi.drouter.loader.host.RouterLoader;
 import com.didi.drouter.loader.host.ServiceLoader;
 import com.didi.drouter.router.IRouterHandler;
 import com.didi.drouter.utils.ReflectUtil;
+import com.didi.drouter.utils.RouterExecutor;
 import com.didi.drouter.utils.RouterLogger;
 import com.didi.drouter.utils.TextUtils;
 
@@ -166,7 +166,6 @@ public class RouterStore {
     }
 
     @NonNull
-    @MainThread
     public synchronized static IRegister register(final RouterKey key, final IRouterHandler handler) {
         if (key == null || handler == null) {
             throw new IllegalArgumentException("argument null illegal error");
@@ -199,13 +198,18 @@ public class RouterStore {
         }
         if (success && key.lifecycleOwner != null) {
             final WeakReference<Pair<RouterKey, IRouterHandler>> reference = new WeakReference<>(new Pair<>(key, handler));
-            key.lifecycleOwner.getLifecycle().addObserver(new LifecycleEventObserver() {
+            RouterExecutor.main(new Runnable() {
                 @Override
-                public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
-                    Pair<RouterKey, IRouterHandler> pair;
-                    if (event == Lifecycle.Event.ON_DESTROY && (pair = reference.get()) != null) {
-                        unregister(pair.first, pair.second);
-                    }
+                public void run() {
+                    key.lifecycleOwner.getLifecycle().addObserver(new LifecycleEventObserver() {
+                        @Override
+                        public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
+                            Pair<RouterKey, IRouterHandler> pair;
+                            if (event == Lifecycle.Event.ON_DESTROY && (pair = reference.get()) != null) {
+                                unregister(pair.first, pair.second);
+                            }
+                        }
+                    });
                 }
             });
         }
@@ -217,7 +221,6 @@ public class RouterStore {
         return new RouterRegister(key, handler);
     }
 
-    @MainThread
     synchronized static void unregister(RouterKey key, IRouterHandler handler) {
         if (key != null && handler != null) {
             RouterMeta meta = RouterMeta.build(RouterMeta.HANDLER).assembleRouter(
@@ -247,7 +250,6 @@ public class RouterStore {
     }
 
     @NonNull
-    @MainThread
     public synchronized static <T> IRegister register(final ServiceKey<T> key, final T service) {
         if (key == null || key.function == null || service == null) {
             throw new IllegalArgumentException("argument null illegal error");
@@ -266,13 +268,18 @@ public class RouterStore {
         metas.add(meta);
         if (key.lifecycleOwner != null) {
             final WeakReference<Pair<ServiceKey<T>, T>> reference = new WeakReference<>(new Pair<>(key, service));
-            key.lifecycleOwner.getLifecycle().addObserver(new LifecycleEventObserver() {
+            RouterExecutor.main(new Runnable() {
                 @Override
-                public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
-                    Pair<ServiceKey<T>, T> pair;
-                    if (event == Lifecycle.Event.ON_DESTROY && (pair = reference.get()) != null) {
-                        unregister(pair.first, pair.second);
-                    }
+                public void run() {
+                    key.lifecycleOwner.getLifecycle().addObserver(new LifecycleEventObserver() {
+                        @Override
+                        public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
+                            Pair<ServiceKey<T>, T> pair;
+                            if (event == Lifecycle.Event.ON_DESTROY && (pair = reference.get()) != null) {
+                                unregister(pair.first, pair.second);
+                            }
+                        }
+                    });
                 }
             });
         }

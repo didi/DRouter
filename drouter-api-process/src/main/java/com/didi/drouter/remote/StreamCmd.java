@@ -13,7 +13,7 @@ import java.util.Arrays;
  */
 class StreamCmd implements Parcelable {
 
-    // ignore
+    // ignore, client
     RemoteBridge bridge;
 
     Class<?> serviceClass;
@@ -29,8 +29,8 @@ class StreamCmd implements Parcelable {
     private StreamCmd(Parcel in) {
         serviceClass = (Class<?>) in.readSerializable();
         alias = in.readString();
-        feature = StreamTransfer.reverse(in.readValue(getClass().getClassLoader()));
         methodName = in.readString();
+        feature = StreamTransfer.reverse(in.readValue(getClass().getClassLoader()));
         constructorArgs = (Object[]) StreamTransfer.reverse(in.readValue(getClass().getClassLoader()));
         methodArgs = (Object[]) StreamTransfer.reverse(in.readValue(getClass().getClassLoader()));
     }
@@ -39,8 +39,8 @@ class StreamCmd implements Parcelable {
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeSerializable(serviceClass);
         dest.writeString(alias);
-        dest.writeValue(StreamTransfer.transform(feature));
         dest.writeString(methodName);
+        dest.writeValue(StreamTransfer.transform(feature));
         dest.writeValue(StreamTransfer.transform(constructorArgs));
         dest.writeValue(StreamTransfer.transform(methodArgs));
     }

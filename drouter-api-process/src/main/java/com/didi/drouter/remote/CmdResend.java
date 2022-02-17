@@ -15,6 +15,7 @@ import androidx.lifecycle.LifecycleOwner;
 
 import com.didi.drouter.api.DRouter;
 import com.didi.drouter.api.Strategy;
+import com.didi.drouter.utils.RouterExecutor;
 import com.didi.drouter.utils.RouterLogger;
 import com.didi.drouter.utils.TextUtils;
 
@@ -63,17 +64,22 @@ class CmdResend {
                     if (!resendCommands.contains(command)) {
                         resendCommands.add(command);
                         if (lifecycle != null) {
-                            lifecycle.addObserver(new LifecycleEventObserver() {
+                            RouterExecutor.main(new Runnable() {
                                 @Override
-                                public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
-                                    if (event == Lifecycle.Event.ON_DESTROY) {
-                                        Set<StreamCmd> commands = sRetainCommandMap.get(process);
-                                        if (commands != null) {
-                                            commands.remove(command);
-                                            RouterLogger.getCoreLogger().w(
-                                                    "[Client] remove resend command \"%s\"", command);
+                                public void run() {
+                                    lifecycle.addObserver(new LifecycleEventObserver() {
+                                        @Override
+                                        public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
+                                            if (event == Lifecycle.Event.ON_DESTROY) {
+                                                Set<StreamCmd> commands = sRetainCommandMap.get(process);
+                                                if (commands != null) {
+                                                    commands.remove(command);
+                                                    RouterLogger.getCoreLogger().w(
+                                                            "[Client] remove resend command \"%s\"", command);
+                                                }
+                                            }
                                         }
-                                    }
+                                    });
                                 }
                             });
                         }

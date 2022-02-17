@@ -71,16 +71,12 @@ public interface IRemoteCallback {
 
     abstract class TypeN extends Base {
         @Override
-        abstract void callback(Object... data);
+        protected abstract void callback(Object... data);
     }
 
-    //----------------------------------------------------------------------------------------//
-    // TODO 有时间重构一下这个
     abstract class Base implements IInterface, IRemoteCallback {
+        String authority;
         IBinder binder;
-        void setBinder(@NonNull IBinder binder) {
-            this.binder = binder;
-        }
         void callback(Object... data) {
         }
 
@@ -88,12 +84,16 @@ public interface IRemoteCallback {
             return binder;
         }
 
-        @Extend.Thread public int mode() {
-            return Extend.Thread.MAIN;
+        @Extend.Thread protected int thread() {
+            return Extend.Thread.POSTING;
         }
 
-        public Lifecycle getLifecycle() {
+        // this callback object lifecycle, default it will depend on server recycle.
+        protected Lifecycle lifecycle() {
             return null;
+        }
+
+        protected void onServerDead() {
         }
     }
 }

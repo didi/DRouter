@@ -63,6 +63,7 @@ public class RemoteBridge implements IRemoteBridge {
             command.constructorArgs = constructorArgs;
             command.methodName = method.getName();
             command.methodArgs = args;
+            StreamCallback.preprocess(args, strategy.authority);
             StreamResult result = execute(command);
             if (result != null && StreamResult.SUCCESS.equals(result.state)) {
                 return result.result;
