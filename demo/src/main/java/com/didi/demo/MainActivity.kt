@@ -96,7 +96,7 @@ class MainActivity : AppCompatActivity() {
             R.id.start_handler2 -> DRouter.build("didi://router/handler/test2").start(this) { }
             R.id.start_handler3 ->                 // 延迟5s返回结果，目标异步返回结束不阻塞当前线程
                 DRouter.build("/handler/test3")
-                        .setLifecycleOwner(this) //绑定生命周期，防止内存泄漏
+                        .setLifecycle(lifecycle) //绑定生命周期，防止内存泄漏
                         .setHoldTimeout(1000) // 设置超时时间
                         .start(this) { RouterLogger.toast("HandlerTest3执行结束") }
             R.id.start_webview -> DRouter.build("/activity/webview")

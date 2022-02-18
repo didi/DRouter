@@ -1,7 +1,7 @@
 package com.didi.drouter.store;
 
-import androidx.lifecycle.LifecycleOwner;
 import androidx.annotation.NonNull;
+import androidx.lifecycle.Lifecycle;
 
 import com.didi.drouter.service.IFeatureMatcher;
 
@@ -14,7 +14,7 @@ public class ServiceKey<T> {
     @NonNull String alias = "";
     IFeatureMatcher<?> feature;
     int priority;
-    LifecycleOwner lifecycleOwner;
+    Lifecycle lifecycle;
     RouterMeta meta;
 
     private ServiceKey() {}
@@ -40,8 +40,8 @@ public class ServiceKey<T> {
         return this;
     }
 
-    public ServiceKey<T> setLifecycleOwner(LifecycleOwner owner) {
-        this.lifecycleOwner = owner;
+    public ServiceKey<T> setLifecycle(Lifecycle lifecycle) {
+        this.lifecycle = lifecycle;
         return this;
     }
 }

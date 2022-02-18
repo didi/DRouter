@@ -210,7 +210,7 @@ class RouterLoader {
             branchRequest.extra = primaryRequest.extra;
             branchRequest.addition = primaryRequest.addition;
             branchRequest.context = primaryRequest.context;
-            branchRequest.lifecycleOwner = primaryRequest.lifecycleOwner;
+            branchRequest.lifecycle = primaryRequest.lifecycle;
             branchRequest.strategy = primaryRequest.strategy;
             branchRequest.holdTimeout = primaryRequest.holdTimeout;
             branchRequest.serialNumber = primaryRequest.getNumber() + "_" + branchIndex;

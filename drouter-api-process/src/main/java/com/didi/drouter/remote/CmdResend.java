@@ -10,7 +10,6 @@ import android.content.IntentFilter;
 
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleEventObserver;
-import androidx.lifecycle.LifecycleOwner;
 
 import com.didi.drouter.api.DRouter;
 import com.didi.drouter.api.Strategy;
@@ -41,9 +40,7 @@ class CmdResend {
             tryRegisterBroadcast(process);
             // If lifecycle exists, resend command can be removed when destroyed
             // check lifecycle state
-            LifecycleOwner owner;
-            final Lifecycle lifecycle = bridge.lifecycle != null ?
-                    ((owner = bridge.lifecycle.get()) != null ? owner.getLifecycle() : null) : null;
+            final Lifecycle lifecycle = bridge.lifecycle;
             if (lifecycle != null && lifecycle.getCurrentState() == Lifecycle.State.DESTROYED) {
                 RouterLogger.getCoreLogger().e("[Client] retain command fail, for lifecycle is assigned but destroyed");
                 return;

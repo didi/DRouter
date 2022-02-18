@@ -34,7 +34,7 @@ public class RouterPageStackActivity extends AppCompatActivity {
             }
         }, true, this);
         DRouter.register(
-                ServiceKey.build(IPageRouter.class).setAlias("router_page_stack").setLifecycleOwner(this),
+                ServiceKey.build(IPageRouter.class).setAlias("router_page_stack").setLifecycle(getLifecycle()),
                 pageRouter);
 
         ((TextView)findViewById(R.id.btn1)).setText("添加页面");

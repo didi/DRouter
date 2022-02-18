@@ -34,7 +34,7 @@ class StreamCallback implements Parcelable {
         super.finalize();
         String b = "Server";
         if (binder instanceof HostStub) b = "Client";
-        RouterLogger.getCoreLogger().w("[%s] StreamCallback recycle", b);
+        RouterLogger.getCoreLogger().e("[%s] StreamCallback recycle", b);
     }
 
     static class HostStub extends IHostService.Stub {
@@ -60,7 +60,7 @@ class StreamCallback implements Parcelable {
 
         @Override
         protected void finalize() throws Throwable {
-            RouterLogger.getCoreLogger().w("[Client] IHostService.Stub recycle");
+            RouterLogger.getCoreLogger().e("[Client] IHostService.Stub recycle");
             super.finalize();
         }
     }
@@ -73,8 +73,7 @@ class StreamCallback implements Parcelable {
         for (Map.Entry<WeakReference<IHostService>, Listener> weakRef : clientStubPool.entrySet()) {
             IHostService stubRef = weakRef.getKey().get();
             if (stubRef == null) {
-                Listener listener = clientStubPool.remove(weakRef.getKey());
-                unregister(listener);
+                unregister(clientStubPool.remove(weakRef.getKey()));
             } else if (((HostStub) stubRef).clientCallback == clientCallback) {
                 binder = stubRef;
             }
@@ -85,13 +84,6 @@ class StreamCallback implements Parcelable {
         binder = new HostStub(clientCallback);
         WeakReference<IHostService> weakRef = new WeakReference<>(binder);
         clientStubPool.put(weakRef, register(clientCallback, weakRef));
-    }
-
-    static class Listener {
-        Lifecycle lifecycle;
-        CallbackLifeObserver lifeObserver;
-        IBinder binderProxy;
-        DeathRecipient deathRecipient;
     }
 
     // server
@@ -203,7 +195,7 @@ class StreamCallback implements Parcelable {
         return realCallback;
     }
 
-    static class CallbackLifeObserver implements LifecycleEventObserver {
+    private static class CallbackLifeObserver implements LifecycleEventObserver {
         WeakReference<IHostService> weakRef;
         CallbackLifeObserver(WeakReference<IHostService> weakRef) {
             this.weakRef = weakRef;
@@ -219,7 +211,7 @@ class StreamCallback implements Parcelable {
         }
     }
 
-    static class DeathRecipient implements IBinder.DeathRecipient {
+    private static class DeathRecipient implements IBinder.DeathRecipient {
         WeakReference<IHostService> weakRef;
         DeathRecipient(WeakReference<IHostService> weakRef) {
             this.weakRef = weakRef;
@@ -234,6 +226,13 @@ class StreamCallback implements Parcelable {
                 }
             }
         }
+    }
+
+    private static class Listener {
+        Lifecycle lifecycle;
+        CallbackLifeObserver lifeObserver;
+        IBinder binderProxy;
+        DeathRecipient deathRecipient;
     }
 
     private Listener register(final IRemoteCallback.Base clientCallback, WeakReference<IHostService> weakRef) {

@@ -2,7 +2,7 @@ package com.didi.drouter.store;
 
 import android.net.Uri;
 
-import androidx.lifecycle.LifecycleOwner;
+import androidx.lifecycle.Lifecycle;
 
 import com.didi.drouter.api.Extend;
 import com.didi.drouter.router.IRouterInterceptor;
@@ -18,7 +18,7 @@ public class RouterKey {
     int thread;
     boolean hold;
     int priority;
-    LifecycleOwner lifecycleOwner;
+    Lifecycle lifecycle;
 
     private RouterKey() {}
 
@@ -53,8 +53,8 @@ public class RouterKey {
         return this;
     }
 
-    public RouterKey setLifecycleOwner(LifecycleOwner owner) {
-        this.lifecycleOwner = owner;
+    public RouterKey setLifecycle(Lifecycle lifecycle) {
+        this.lifecycle = lifecycle;
         return this;
     }
 }

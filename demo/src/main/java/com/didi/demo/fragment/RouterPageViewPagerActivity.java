@@ -1,5 +1,7 @@
 package com.didi.demo.fragment;
 
+import static androidx.fragment.app.FragmentPagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT;
+
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,8 +20,6 @@ import com.didi.drouter.page.RouterPageViewPager;
 import com.didi.drouter.store.ServiceKey;
 import com.didi.drouter.utils.RouterLogger;
 
-import static androidx.fragment.app.FragmentPagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT;
-
 @Router(path = "/activity/router_page_viewpager")
 public class RouterPageViewPagerActivity extends AppCompatActivity {
 
@@ -36,7 +36,7 @@ public class RouterPageViewPagerActivity extends AppCompatActivity {
 
         pageRouter = new RouterPageViewPager(getSupportFragmentManager(), viewPager, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
         DRouter.register(
-                ServiceKey.build(IPageRouter.class).setAlias("router_page_viewpager").setLifecycleOwner(this),
+                ServiceKey.build(IPageRouter.class).setAlias("router_page_viewpager").setLifecycle(getLifecycle()),
                 pageRouter);
 
 

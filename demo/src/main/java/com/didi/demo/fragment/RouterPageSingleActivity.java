@@ -34,7 +34,7 @@ public class RouterPageSingleActivity extends AppCompatActivity {
             }
         }, true, this);
         DRouter.register(
-                ServiceKey.build(IPageRouter.class).setAlias("router_page_single").setLifecycleOwner(this),
+                ServiceKey.build(IPageRouter.class).setAlias("router_page_single").setLifecycle(getLifecycle()),
                 pageRouter);
 
         ((TextView)findViewById(R.id.btn1)).setText("替换页面");

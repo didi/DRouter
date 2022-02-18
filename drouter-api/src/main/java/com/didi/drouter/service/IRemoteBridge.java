@@ -3,11 +3,9 @@ package com.didi.drouter.service;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
-import androidx.lifecycle.LifecycleOwner;
+import androidx.lifecycle.Lifecycle;
 
 import com.didi.drouter.api.Strategy;
-
-import java.lang.ref.WeakReference;
 
 /**
  * Created by gaowei on 2022/02/15
@@ -15,6 +13,6 @@ import java.lang.ref.WeakReference;
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public interface IRemoteBridge {
 
-    <T> T getService(@NonNull Strategy strategy, WeakReference<LifecycleOwner> lifecycle,
+    <T> T getService(@NonNull Strategy strategy, Lifecycle lifecycle,
                      Class<T> serviceClass, String alias, Object feature, @Nullable Object... constructor);
 }

@@ -3,7 +3,9 @@ package com.didi.demo.remote;
 import android.content.Context;
 import android.os.Build;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Looper;
+import android.os.RemoteException;
 import android.os.SharedMemory;
 
 import androidx.annotation.RequiresApi;
@@ -19,7 +21,6 @@ import com.didi.drouter.utils.RouterLogger;
 
 import java.nio.ByteBuffer;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -66,28 +67,28 @@ public class RemoteFunction implements IRemoteFunction {
         final ResultObject result = new ResultObject();
         result.a = 100;
         result.i = "100";
-//
-//        try {
-//            callback.asBinder().linkToDeath(new IBinder.DeathRecipient() {
-//                @Override
-//                public void binderDied() {
-//                    RouterLogger.getAppLogger().d("Client death");
-//                }
-//            }, 0);
-//        } catch (RemoteException e) {
-//            e.printStackTrace();
-//        }
-//
-        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                HashMap<String, Object> map = new HashMap<>();
-                map.put("result", result);
-                if (callback.asBinder().isBinderAlive()) {
-                    callback.callback("aaa", 1);
+
+        try {
+            callback.asBinder().linkToDeath(new IBinder.DeathRecipient() {
+                @Override
+                public void binderDied() {
+                    RouterLogger.getAppLogger().d("Client death");
                 }
-            }
-        }, 3000);
+            }, 0);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+
+//        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+//            @Override
+//            public void run() {
+//                HashMap<String, Object> map = new HashMap<>();
+//                map.put("result", result);
+//                if (callback.asBinder().isBinderAlive()) {
+//                    callback.callback("aaa", 1);
+//                }
+//            }
+//        }, 3000);
 
 //        scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
 //            @Override

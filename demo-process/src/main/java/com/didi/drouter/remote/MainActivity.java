@@ -128,7 +128,7 @@ public class MainActivity extends AppCompatActivity {
                     .setResend(Strategy.Resend.WAIT_ALIVE))
                     .setAlias("remote")
                     .setFeature(feature)
-                    .setLifecycleOwner(lifecycle)
+                    .setLifecycle(lifecycle.getLifecycle())
                     .getService(new ParamObject[]{new ParamObject()}, map, list, set, 1);
         }
     }

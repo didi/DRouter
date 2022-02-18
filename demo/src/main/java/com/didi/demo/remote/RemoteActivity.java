@@ -18,8 +18,10 @@ import com.didi.drouter.module_base.remote.RemoteFeature;
 import com.didi.drouter.remote.IRemoteCallback;
 import com.didi.drouter.router.Result;
 import com.didi.drouter.router.RouterCallback;
+import com.didi.drouter.utils.RouterExecutor;
 import com.didi.drouter.utils.RouterLogger;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -33,6 +35,7 @@ public class RemoteActivity extends AppCompatActivity {
     private IRemoteFunction remoteFunction;
     private IRemoteFunction resentRemoteFunction;
     private final RouterLifecycle lifecycle = new RouterLifecycle();
+    List<Object> xx = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,48 +47,81 @@ public class RemoteActivity extends AppCompatActivity {
 
         if (view.getId() == R.id.request) {
 
-            DRouter.build("/handler/test1")
-                    .putExtra("1", 1)
-                    .putExtra("2", new Bundle())
-                    .putAddition("3", new ParamObject())
-                    .setLifecycleOwner(this)
-                    .setRemote(new Strategy("com.didi.drouter.remote.demo.host"))
-                    .start(DRouter.getContext(), new RouterCallback() {
-                        @Override
-                        public void onResult(@NonNull Result result) {
-                            RouterLogger.toast("子进程收到主进程的回调");
-                            RouterLogger.getAppLogger().d("callback 参数 %s %s",
-                                    result.getInt("a"), result.getAddition("b"));
+            RouterExecutor.submit(new Runnable() {
+                @Override
+                public void run() {
+                    while (true) {
+                        DRouter.build("/handler/test1")
+                                .putExtra("1", 1)
+                                .putExtra("2", new Bundle())
+                                .putAddition("3", new ParamObject())
+                                .setLifecycle(RemoteActivity.this.getLifecycle())
+                                .setRemote(new Strategy("com.didi.drouter.remote.demo.host"))
+                                .start(DRouter.getContext(), new RouterCallback() {
+                                    @Override
+                                    public void onResult(@NonNull Result result) {
+//                                        RouterLogger.toast("子进程收到主进程的回调");
+                                        RouterLogger.getAppLogger().d("callback 参数 %s %s",
+                                                result.getInt("a"), result.getAddition("b"));
+                                    }
+                                });
+                        try {
+                            Thread.sleep(1150);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
                         }
-                    });
+                    }
+                }
+            });
         }
 
         if (view.getId() == R.id.service) {
             bindRemote();
-            remoteFunction.handle(new ParamObject[]{}, new ParamObject(), 2, this,
-                    new IRemoteCallback.Type2<String, Integer>() {
-                        @Override
-                        public void callback(String s, Integer i) {
-                            RouterLogger.getAppLogger().d("callback 参数 %s %s", s, i);
-                            RouterLogger.toast("子进程收到主进程的回调");
-                        }
+            RouterExecutor.submit(new Runnable() {
+                @Override
+                public void run() {
+//                    while (true) {
+                        xx.add(new Object());
+                        remoteFunction.handle(new ParamObject[]{}, new ParamObject(), 2, RemoteActivity.this,
+                                new IRemoteCallback.Type2<String, Integer>() {
+                                    @Override
+                                    public void callback(String s, Integer i) {
+                                        RouterLogger.getAppLogger().d("callback 参数 %s %s", s, i);
+//                                        RouterLogger.toast("子进程收到主进程的回调");
+                                    }
 
-                        @Override
-                        public int mode() {
-                            return super.mode();
-                        }
+                                    @Override
+                                    public int thread() {
+                                        return super.thread();
+                                    }
 
-                        @Override
-                        public Lifecycle getLifecycle() {
-                            return RemoteActivity.this.getLifecycle();
-                        }
+                                    @Override
+                                    public Lifecycle lifecycle() {
+                                        return RemoteActivity.this.getLifecycle();
+                                    }
 
-                        @Override
-                        protected void finalize() throws Throwable {
-                            super.finalize();
-                            RouterLogger.getAppLogger().e("client callback gc");
+                                    @Override
+                                    protected void finalize() throws Throwable {
+                                        super.finalize();
+                                        RouterLogger.getAppLogger().e("client callback gc");
+                                    }
+
+                                    @Override
+                                    protected void onServerDead() {
+                                        super.onServerDead();
+                                        RouterLogger.getAppLogger().e("onServerDead");
+                                    }
+                                });
+
+                        try {
+                            Thread.sleep(1100);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
                         }
-                    });
+//                    }
+                }
+            });
+
         }
 
         if (view.getId() == R.id.resend_callback) {
@@ -172,7 +208,7 @@ public class RemoteActivity extends AppCompatActivity {
                     .setFeature(feature)
                     // 如果设置了生命周期，则由生命周期来控制重试策略
                     // 当生命周期是create，重试功能打开
-                    .setLifecycleOwner(lifecycle)
+                    .setLifecycle(lifecycle.getLifecycle())
                     .getService(new ParamObject[]{new ParamObject()}, map, list, set, 1);
         }
     }

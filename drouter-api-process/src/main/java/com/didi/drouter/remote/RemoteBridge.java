@@ -5,14 +5,13 @@ import android.os.RemoteException;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.lifecycle.LifecycleOwner;
+import androidx.lifecycle.Lifecycle;
 
 import com.didi.drouter.annotation.Service;
 import com.didi.drouter.api.Strategy;
 import com.didi.drouter.service.IRemoteBridge;
 import com.didi.drouter.utils.RouterLogger;
 
-import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -27,11 +26,11 @@ import java.lang.reflect.Proxy;
 public class RemoteBridge implements IRemoteBridge {
 
     Strategy strategy;
-    WeakReference<LifecycleOwner> lifecycle;
+    Lifecycle lifecycle;
     private boolean reTry;
 
     @Override @SuppressWarnings("unchecked")
-    public <T> T getService(@NonNull Strategy strategy, WeakReference<LifecycleOwner> lifecycle,
+    public <T> T getService(@NonNull Strategy strategy, Lifecycle lifecycle,
                             Class<T> serviceClass, String alias, Object feature, @Nullable Object... constructor) {
         this.strategy = strategy;
         this.lifecycle = lifecycle;

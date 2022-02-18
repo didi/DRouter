@@ -6,7 +6,7 @@ import android.content.Context;
 import android.net.Uri;
 
 import androidx.annotation.NonNull;
-import androidx.lifecycle.LifecycleOwner;
+import androidx.lifecycle.Lifecycle;
 
 import com.didi.drouter.api.DRouter;
 import com.didi.drouter.api.Strategy;
@@ -22,7 +22,7 @@ public class Request extends DataExtras<Request> {
 
     private final Uri uri;
     Context context;
-    LifecycleOwner lifecycleOwner;
+    Lifecycle lifecycle;
     Strategy strategy;
     @RouterType int routerType;
     long holdTimeout;
@@ -86,8 +86,8 @@ public class Request extends DataExtras<Request> {
         return this;
     }
 
-    public Request setLifecycleOwner(LifecycleOwner owner) {
-        this.lifecycleOwner = owner;
+    public Request setLifecycle(Lifecycle lifecycle) {
+        this.lifecycle = lifecycle;
         return this;
     }
 

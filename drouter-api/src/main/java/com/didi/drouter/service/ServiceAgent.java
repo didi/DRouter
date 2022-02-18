@@ -2,7 +2,7 @@ package com.didi.drouter.service;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.lifecycle.LifecycleOwner;
+import androidx.lifecycle.Lifecycle;
 
 import com.didi.drouter.api.DRouter;
 import com.didi.drouter.api.Extend;
@@ -41,7 +41,7 @@ class ServiceAgent<T> {
     private @NonNull String alias = "";
     private Object feature;
     private Strategy strategy;
-    private WeakReference<LifecycleOwner> lifecycle;
+    private Lifecycle lifecycle;
     private @Nullable T defaultService;
 
     ServiceAgent(Class<T> function) {
@@ -67,8 +67,8 @@ class ServiceAgent<T> {
         this.strategy = strategy;
     }
 
-    void setLifecycleOwner(LifecycleOwner owner) {
-        this.lifecycle = owner != null ? new WeakReference<>(owner) : null;
+    void setLifecycle(Lifecycle lifecycle) {
+        this.lifecycle = lifecycle;
     }
 
     void setDefaultIfEmpty(T defaultService) {

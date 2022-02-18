@@ -195,9 +195,9 @@ public class RouterStore {
                 routerMetas.put(standardRouterKey, meta);
             }
         }
-        if (success && key.lifecycleOwner != null) {
+        if (success && key.lifecycle != null) {
             final WeakReference<Pair<RouterKey, IRouterHandler>> reference = new WeakReference<>(new Pair<>(key, handler));
-            RouterExecutor.main(() -> key.lifecycleOwner.getLifecycle().addObserver((LifecycleEventObserver) (source, event) -> {
+            RouterExecutor.main(() -> key.lifecycle.addObserver((LifecycleEventObserver) (source, event) -> {
                 Pair<RouterKey, IRouterHandler> pair;
                 if (event == Lifecycle.Event.ON_DESTROY && (pair = reference.get()) != null) {
                     unregister(pair.first, pair.second);
@@ -257,9 +257,9 @@ public class RouterStore {
             serviceMetas.put(key.function, metas);
         }
         metas.add(meta);
-        if (key.lifecycleOwner != null) {
+        if (key.lifecycle != null) {
             final WeakReference<Pair<ServiceKey<T>, T>> reference = new WeakReference<>(new Pair<>(key, service));
-            RouterExecutor.main(() -> key.lifecycleOwner.getLifecycle().addObserver((LifecycleEventObserver) (source, event) -> {
+            RouterExecutor.main(() -> key.lifecycle.addObserver((LifecycleEventObserver) (source, event) -> {
                 Pair<ServiceKey<T>, T> pair;
                 if (event == Lifecycle.Event.ON_DESTROY && (pair = reference.get()) != null) {
                     unregister(pair.first, pair.second);

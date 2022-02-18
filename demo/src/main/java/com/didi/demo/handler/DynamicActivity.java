@@ -28,14 +28,14 @@ public class DynamicActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dynamic);
 
-        iRegister1 = DRouter.register(RouterKey.build("/dynamic/handler").setLifecycleOwner(this),
+        iRegister1 = DRouter.register(RouterKey.build("/dynamic/handler").setLifecycle(getLifecycle()),
                 new IRouterHandler() {
                     @Override
                     public void handle(@NonNull Request request, @NonNull Result result) {
                         RouterLogger.toast("动态Handler执行成功");
                     }
                 });
-        iRegister2 = DRouter.register(ServiceKey.build(IDynamicService.class).setLifecycleOwner(this),
+        iRegister2 = DRouter.register(ServiceKey.build(IDynamicService.class).setLifecycle(getLifecycle()),
                 new IDynamicService() {
                     @Override
                     public void execute() {

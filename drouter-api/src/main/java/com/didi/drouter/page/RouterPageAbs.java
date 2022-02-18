@@ -28,7 +28,7 @@ import java.util.Set;
  */
 public abstract class RouterPageAbs implements IPageRouter {
 
-    private Set<IPageObserver> observers = new ArraySet<>();
+    private final Set<IPageObserver> observers = new ArraySet<>();
     private IPageBean currentPage = new IPageBean.EmptyPageBean();
     // for stick
     private IPageBean lastPage = new IPageBean.EmptyPageBean();
@@ -58,12 +58,9 @@ public abstract class RouterPageAbs implements IPageRouter {
             observers.add(listener);
             if (owner != null) {
                 final WeakReference<IPageObserver> reference = new WeakReference<>(listener);
-                owner.getLifecycle().addObserver(new LifecycleEventObserver() {
-                    @Override
-                    public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
-                        if (event == Lifecycle.Event.ON_DESTROY) {
-                            removePageObserver(reference.get());
-                        }
+                owner.getLifecycle().addObserver((LifecycleEventObserver) (source, event) -> {
+                    if (event == Lifecycle.Event.ON_DESTROY) {
+                        removePageObserver(reference.get());
                     }
                 });
             }

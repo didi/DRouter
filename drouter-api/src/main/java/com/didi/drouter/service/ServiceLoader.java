@@ -1,7 +1,7 @@
 package com.didi.drouter.service;
 
 import androidx.annotation.NonNull;
-import androidx.lifecycle.LifecycleOwner;
+import androidx.lifecycle.Lifecycle;
 
 import com.didi.drouter.api.Strategy;
 
@@ -42,8 +42,8 @@ public class ServiceLoader<T> {
      * If set, it will auto stop resend behavior when lifecycle is destroy
      * {@link Strategy#setResend}
      */
-    public ServiceLoader<T> setLifecycleOwner(LifecycleOwner owner) {
-        serviceAgent.setLifecycleOwner(owner);
+    public ServiceLoader<T> setLifecycle(Lifecycle lifecycle) {
+        serviceAgent.setLifecycle(lifecycle);
         return this;
     }
 

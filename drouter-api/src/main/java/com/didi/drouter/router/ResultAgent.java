@@ -55,8 +55,8 @@ class ResultAgent {
                 branchRequestMap.put(branch.getNumber(), branch);
             }
         }
-        if (primaryRequest.lifecycleOwner != null) {
-            RouterExecutor.main(() -> primaryRequest.lifecycleOwner.getLifecycle().addObserver(observer));
+        if (primaryRequest.lifecycle != null) {
+            RouterExecutor.main(() -> primaryRequest.lifecycle.addObserver(observer));
         }
     }
 
@@ -66,9 +66,8 @@ class ResultAgent {
             if (event == Lifecycle.Event.ON_DESTROY) {
                 if (numberToResult.containsKey(primaryRequest.getNumber())) {
                     RouterLogger.getCoreLogger().w(
-                            "request \"%s\" lifecycleOwner \"%s\" destroy and complete",
-                            primaryRequest.getNumber(),
-                            primaryRequest.lifecycleOwner.getLifecycle().getClass().getSimpleName());
+                            "request \"%s\" lifecycleOwner destroy and complete",
+                            primaryRequest.getNumber());
                     release(primaryRequest.getNumber(), STATE_REQUEST_CANCEL);
                 }
             }
@@ -143,9 +142,9 @@ class ResultAgent {
         if (result.agent.callback != null) {
             result.agent.callback.onResult(result);
         }
-        if (result.agent.primaryRequest.lifecycleOwner != null) {
+        if (result.agent.primaryRequest.lifecycle != null) {
             RouterExecutor.main(() ->
-                    result.agent.primaryRequest.lifecycleOwner.getLifecycle().removeObserver(result.agent.observer));
+                    result.agent.primaryRequest.lifecycle.removeObserver(result.agent.observer));
         }
         if (!numberToResult.containsKey(result.agent.primaryRequest.getNumber())) {
             RouterLogger.getCoreLogger().d(
