@@ -16,6 +16,7 @@ public class Strategy {
 
     public String authority;
     public boolean callAsync;
+    public boolean bindPassive;
     public @Resend int resend;
 
     public Strategy(String authority) {

@@ -19,7 +19,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.didi.drouter.api.DRouter;
+import com.didi.drouter.utils.ProcChecker;
 import com.didi.drouter.utils.ProcUtil;
+import com.didi.drouter.utils.RouterExecutor;
 import com.didi.drouter.utils.RouterLogger;
 import com.didi.drouter.utils.SystemUtil;
 import com.didi.drouter.utils.TextUtils;
@@ -37,10 +39,10 @@ public class RemoteProvider extends ContentProvider {
     static final String FIELD_REMOTE_BINDER = "field_remote_binder";
     static final String FIELD_REMOTE_PROCESS = "field_remote_process";
     static final String FIELD_REMOTE_LAUNCH_ACTION = "field_remote_launch_action";
-    static final String BROADCAST_ACTION = "drouter.process.action.";
+    static final String BROADCAST_ACTION = "d.router.process.action.";
 
     // ensure once in process lifecycle
-    private static boolean hasSendBroadcast;
+    private static boolean procLaunchBroadcast;
 
     // key is authority
     private static final Map<String, IHostService> sHostServiceMap = new ConcurrentHashMap<>();
@@ -51,6 +53,7 @@ public class RemoteProvider extends ContentProvider {
         @Override
         public StreamResult call(StreamCmd command) {
             try {
+                ProcChecker.checkApplication();
                 return new CmdDispatcher().call(command);
             } catch (RuntimeException e) {
                 RouterLogger.getCoreLogger().e("[Server] exception: %s", e);
@@ -71,11 +74,13 @@ public class RemoteProvider extends ContentProvider {
             RouterLogger.getCoreLogger().d(
                     "[%s] onCreate | Context: %s | Process: \"%s\"" ,
                     getClass().getSimpleName(), getContext(), process);
-            if (!hasSendBroadcast) {
-                Intent intent = new Intent(BROADCAST_ACTION + process);
-                intent.putExtra(FIELD_REMOTE_LAUNCH_ACTION, process);
-                getContext().sendBroadcast(intent);
-                hasSendBroadcast = true;
+            if (!procLaunchBroadcast) {
+                RouterExecutor.main(() -> {
+                    Intent intent = new Intent(BROADCAST_ACTION + process);
+                    intent.putExtra(FIELD_REMOTE_LAUNCH_ACTION, process);
+                    getContext().sendBroadcast(intent);
+                }, 10_000);
+                procLaunchBroadcast = true;
             }
         } else {
             Log.e(RouterLogger.CORE_TAG,

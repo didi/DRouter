@@ -4,6 +4,10 @@ import android.annotation.SuppressLint;
 import android.app.ActivityManager;
 import android.app.Application;
 import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.ProviderInfo;
 import android.os.Build;
 import android.text.TextUtils;
 import android.util.Log;
@@ -68,5 +72,25 @@ public class ProcUtil {
         }
 
         return sProcessName;
+    }
+
+    public static void notifyClient(Class<?> provider) {
+        try {
+            PackageInfo packageInfo = DRouter.getContext().getPackageManager()
+                    .getPackageInfo(DRouter.getContext().getPackageName(), PackageManager.GET_PROVIDERS);
+            ProviderInfo[] providerIfs = packageInfo.providers;
+            for (ProviderInfo providerInfo : providerIfs) {
+                if (providerInfo.name.equals(provider.getName())) {
+                    Intent intent = new Intent();
+                    intent.setAction(providerInfo.authority);
+                    RouterLogger.getCoreLogger().e(
+                            "[Client] \"%s\" Current status available", providerInfo.authority);
+                    DRouter.getContext().sendBroadcast(intent);
+                    break;
+                }
+            }
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 }
