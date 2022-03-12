@@ -7,7 +7,6 @@ import com.didi.drouter.utils.SystemUtil
 import com.google.common.collect.ImmutableSet
 import org.apache.commons.io.FileUtils
 import org.gradle.api.Project
-import sun.rmi.runtime.Log
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -87,32 +86,39 @@ class RouterTransform extends Transform {
 
     void handleDirectory(TransformInvocation invocation, TransformInput transformInput) {
         for (DirectoryInput directoryInput : transformInput.directoryInputs) {
+            // directoryInput is app module root folder
             compilePath.add(directoryInput.file)
+            if (!directoryInput.getFile().exists()) {
+                Logger.w("DirectoryInput: " + directoryInput.file + "\n but it is removed, transform todo?")
+            } else {
+                Logger.d("DirectoryInput: " + directoryInput.file)
+            }
 
             File directoryDesc = invocation.outputProvider.getContentLocation(
                     directoryInput.name, directoryInput.contentTypes, directoryInput.scopes, Format.DIRECTORY)
             if (invocation.incremental) {
-                Map<File, Status> fileStatusMap = directoryInput.changedFiles
-                for (Map.Entry<File, Status> changedEntry : fileStatusMap.entrySet()) {
+                Map<File, Status> changedFiles = directoryInput.changedFiles
+                for (Map.Entry<File, Status> changedEntry : changedFiles.entrySet()) {
                     File changedSource = changedEntry.key
                     Status status = changedEntry.value
-                    File changedSourceDest = new File(directoryDesc, changedSource.absolutePath.substring(
+                    // changedDest and changedSource has same suffix, such as 'class' or 'folder'
+                    File changedDest = new File(directoryDesc, changedSource.absolutePath.substring(
                             directoryInput.file.absolutePath.length()))
                     if (status != Status.NOTCHANGED) {
                         Logger.p("status: " + status)
                         Logger.p(" changed file: " + changedSource.absolutePath)
-                        Logger.p(" transform to: " + changedSourceDest.absolutePath)
+                        Logger.p(" transform to: " + changedDest.absolutePath)
                     }
                     switch (status) {
                         case Status.ADDED:     // rename or add
                         case Status.CHANGED:   // modified
                             if (changedSource.isFile()) {
-                                FileUtils.copyFile(changedSource, changedSourceDest)
+                                FileUtils.copyFile(changedSource, changedDest)
                                 if (changedSource.absolutePath.endsWith(".class")) {
                                     cachePathSet.add(changedSource.absolutePath)
                                 }
                             } else {
-                                FileUtils.copyDirectory(changedSource, changedSourceDest)
+                                FileUtils.copyDirectory(changedSource, changedDest)
                                 FileUtils.listFiles(changedSource, null, true).each {
                                     if (it.absolutePath.endsWith(".class")) {
                                         cachePathSet.add(it.absolutePath)
@@ -121,16 +127,18 @@ class RouterTransform extends Transform {
                             }
                             break
                         case Status.REMOVED:   // rename or delete
-                            // changed source file has been deleted
-                            compilePath.remove(directoryInput.file)
-                            if (changedSourceDest.isFile()) {
-                                changedSourceDest.delete()
+                            // changedSource has been deleted by system, so
+                            // delete changedDest file manually
+                            if (changedDest.isFile()) {
+                                changedDest.delete()
+                                // update cache
                                 if (changedSource.absolutePath.endsWith(".class")) {
                                     cachePathSet.remove(changedSource.absolutePath)
                                 }
                             } else {
-                                // delete all classes under this folder
-                                changedSourceDest.deleteDir()
+                                // delete changedDest folder manually
+                                changedDest.deleteDir()
+                                // update cache
                                 Iterator<String> iterator = cachePathSet.iterator()
                                 while (iterator.hasNext()) {
                                     if (iterator.next().startsWith(changedSource.absolutePath + "/")) {
@@ -155,16 +163,16 @@ class RouterTransform extends Transform {
                     jarInput.name, jarInput.contentTypes, jarInput.scopes, Format.JAR)
             if (invocation.incremental) {
                 File changedSource = jarInput.file
-                File changedSourceDest = jarDesc
+                File changedDest = jarDesc
                 if (jarInput.status != Status.NOTCHANGED) {
                     Logger.p("status: " + jarInput.status)
                     Logger.p(" changed jar : " + changedSource.absolutePath)
-                    Logger.p(" transform to: " + changedSourceDest.absolutePath)
+                    Logger.p(" transform to: " + changedDest.absolutePath)
                 }
                 switch (jarInput.status) {
                     case Status.ADDED:
                     case Status.CHANGED:
-                        FileUtils.copyFile(changedSource, changedSourceDest)
+                        FileUtils.copyFile(changedSource, changedDest)
                         // add again, and remove it later after resolving jar
                         cachePathSet.add(changedSource.absolutePath)
                         if (jarInput.status == Status.CHANGED) {
@@ -179,7 +187,7 @@ class RouterTransform extends Transform {
                         break
                     case Status.REMOVED:
                         compilePath.remove(jarInput.file)
-                        changedSourceDest.delete()
+                        changedDest.delete()
                         Iterator<String> iterator = cachePathSet.iterator()
                         while (iterator.hasNext()) {
                             if (iterator.next().startsWith("jar:file:" + changedSource.absolutePath)) {
