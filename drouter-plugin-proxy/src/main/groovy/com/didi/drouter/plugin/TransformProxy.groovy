@@ -79,31 +79,22 @@ class TransformProxy extends Transform {
     }
 
     static void copyFile(TransformInvocation invocation) {
-        if (!invocation.incremental) {
-            invocation.outputProvider.deleteAll()
-        }
-        Queue<File> compilePath = new ConcurrentLinkedQueue<>()
+        invocation.outputProvider.deleteAll()
         for (TransformInput transformInput : invocation.inputs) {
             for (JarInput jarInput : transformInput.jarInputs) {
-                compilePath.add(jarInput.file)
-                File dest = invocation.outputProvider.getContentLocation(
-                        jarInput.name, jarInput.contentTypes,
-                        jarInput.scopes, Format.JAR)
-                try {
+                if (jarInput.file.exists()) {
+                    File dest = invocation.outputProvider.getContentLocation(
+                            jarInput.name, jarInput.contentTypes,
+                            jarInput.scopes, Format.JAR)
                     FileUtils.copyFile(jarInput.file, dest)
-                } catch (IOException e) {
-                    throw new RuntimeException(e)
                 }
             }
             for (DirectoryInput directoryInput : transformInput.directoryInputs) {
-                compilePath.add(directoryInput.file)
-                File dest = invocation.outputProvider.getContentLocation(
-                        directoryInput.name, directoryInput.contentTypes,
-                        directoryInput.scopes, Format.DIRECTORY)
-                try {
+                if (directoryInput.file.exists()) {
+                    File dest = invocation.outputProvider.getContentLocation(
+                            directoryInput.name, directoryInput.contentTypes,
+                            directoryInput.scopes, Format.DIRECTORY)
                     FileUtils.copyDirectory(directoryInput.file, dest)
-                } catch (IOException e) {
-                    throw new RuntimeException(e)
                 }
             }
         }
