@@ -4,6 +4,8 @@ import androidx.annotation.NonNull;
 
 /**
  * Created by gaowei on 2022/3/12
+ *
+ * GlobalListener to receive request result.
  */
 public interface IRouterResult {
 
