@@ -26,6 +26,7 @@ DRouter是18年滴滴乘客端自研的一套Android路由框架，基于平台�
 - 简单易用的跨进程执行RouterHandler、Service
 - 跨进程访问无需提前绑定、如同本地调用一样进行访问
 - 支持客户端进程和服务端进程自动重连
+- 共享内存
 - 支持VirtualApk
 - 适配AndroidX
 
@@ -45,8 +46,8 @@ DRouter是18年滴滴乘客端自研的一套Android路由框架，基于平台�
 |  :-- | :--  |
 Router | Native和H5导航Activity、Fragment、View、RouterHandler，支持切入拦截器
 Service | 基于spi通过接口的形式查找到实现类，支持过滤和优先级配置
-Remote | 跨进程访问Router、Service
 Page | 支持单Page、栈Page、ViewPager三种形式的Fragment加载
+Process | 跨进程访问Router、Service，共享内存
 
 ## 使用文档
 
@@ -55,7 +56,9 @@ Page | 支持单Page、栈Page、ViewPager三种形式的Fragment加载
 ``` java
 /** 最新版本 **/
 classpath "io.github.didi:drouter-plugin-proxy:1.0.2"
-api "io.github.didi:drouter-api:2.2.2"   // 该版本为androidx, 如需support版本1.1.0
+api "io.github.didi:drouter-api:2.3.0"           // Router、Service
+api "io.github.didi:drouter-api-page:1.0.0"      // Page
+api "io.github.didi:drouter-api-process:1.0.0"   // Process
 ```
 
 ## 微信交流群
