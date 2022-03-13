@@ -22,7 +22,7 @@ class RouterDispatcher {
 
         RouterLogger.getCoreLogger().d("request \"%s\", class \"%s\" start execute",
                 request.getNumber(),
-                meta.getRouterClass() != null ? meta.getRouterClass().getSimpleName() : meta.getDynamicHandler());
+                meta.getSimpleClassName());
         switch (meta.getRouterType()) {
             case RouterType.ACTIVITY:
                 startActivity(request, meta, result, callback);

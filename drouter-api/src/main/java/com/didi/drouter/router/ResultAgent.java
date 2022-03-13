@@ -7,6 +7,7 @@ import androidx.lifecycle.LifecycleEventObserver;
 import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.LifecycleOwner;
 
+import com.didi.drouter.api.DRouter;
 import com.didi.drouter.utils.RouterExecutor;
 import com.didi.drouter.utils.RouterLogger;
 import com.didi.drouter.utils.TextUtils;
@@ -40,20 +41,19 @@ class ResultAgent {
     // primary
     @NonNull Request primaryRequest;
     private final RouterCallback callback;
+    private final IRouterResult routerResult;
 
-    // if only primary, branchRequests will only contains this primary request
-    // branchRequests is null or size >= 1
-    ResultAgent(@NonNull final Request primaryRequest, @Nullable Collection<Request> branchRequests,
+    // if only primary with one target, branchRequests will be primary self
+    ResultAgent(@NonNull final Request primaryRequest, @NonNull Collection<Request> branchRequests,
                 @NonNull final Result result,
                 RouterCallback callback) {
         numberToResult.put(primaryRequest.getNumber(), result);
+        this.routerResult = DRouter.build(IRouterResult.class).getService();
         this.primaryRequest = primaryRequest;
         this.callback = callback;
-        if (branchRequests != null) {
-            for (Request branch : branchRequests) {
-                numberToResult.put(branch.getNumber(), result);
-                branchRequestMap.put(branch.getNumber(), branch);
-            }
+        for (Request branch : branchRequests) {
+            numberToResult.put(branch.getNumber(), result);
+            branchRequestMap.put(branch.getNumber(), branch);
         }
         if (primaryRequest.lifecycle != null) {
             RouterExecutor.main(() -> primaryRequest.lifecycle.addObserver(observer));
@@ -68,7 +68,7 @@ class ResultAgent {
                     RouterLogger.getCoreLogger().w(
                             "request \"%s\" lifecycleOwner destroy and complete",
                             primaryRequest.getNumber());
-                    release(primaryRequest.getNumber(), STATE_REQUEST_CANCEL);
+                    release(primaryRequest, STATE_REQUEST_CANCEL);
                 }
             }
         }
@@ -86,29 +86,25 @@ class ResultAgent {
         return numberToResult.get(requestNumber);
     }
 
-    static void release(Request request, String reason) {
-        if (request != null) {
-            release(request.getNumber(), reason);
-        }
-    }
-
-    // primary or branch.
-    private synchronized static void release(String requestNumber, String reason) {
+    // primary or branch
+    synchronized static void release(Request request, String reason) {
+        if (request == null) return;
+        String requestNumber = request.getNumber();
         Result result = getResult(requestNumber);
         if (result != null) {
             if (result.agent.primaryRequest.getNumber().equals(requestNumber)) {
-                // all clear
                 if (result.agent.branchRequestMap.size() > 1) {
                     RouterLogger.getCoreLogger().w(
                             "be careful, all request \"%s\" will be cleared", requestNumber);
                 }
+                // all clear
                 for (String number : result.agent.branchRequestMap.keySet()) {
                     if (!result.agent.branchReasonMap.containsKey(number)) {
                         completeBranch(number, reason);
                     }
                 }
             } else {
-                // branch only
+                // clear branch only
                 completeBranch(requestNumber, reason);
             }
             // check and release primary
@@ -118,6 +114,7 @@ class ResultAgent {
         }
     }
 
+    // branch only, if primary only, this is primary self
     private synchronized static void completeBranch(String branchNumber, String reason) {
         Result result = numberToResult.get(branchNumber);
         if (result != null) {
@@ -126,6 +123,7 @@ class ResultAgent {
                         "request \"%s\" time out and force-complete", branchNumber);
             }
             result.agent.branchReasonMap.put(branchNumber, reason);
+            result.agent.throwState(result.agent.branchRequestMap.get(branchNumber), reason);
             numberToResult.remove(branchNumber);
             RouterLogger.getCoreLogger().d(
                     "==== request \"%s\" complete, reason \"%s\" ====", branchNumber, reason);
@@ -146,10 +144,20 @@ class ResultAgent {
             RouterExecutor.main(() ->
                     result.agent.primaryRequest.lifecycle.removeObserver(result.agent.observer));
         }
-        if (!numberToResult.containsKey(result.agent.primaryRequest.getNumber())) {
-            RouterLogger.getCoreLogger().d(
-                    "Request finish " +
-                            "------------------------------------------------------------");
+        RouterLogger.getCoreLogger().d(
+                "Request finish ------------------------------------------------------------");
+    }
+
+    private synchronized void throwState(Request request, String reason) {
+        if (routerResult != null && request != null) {
+            int state = RouterState.OK;
+            if (STATE_NOT_FOUND.equals(reason)) {
+                state = RouterState.NOT_FOUND;
+            } else if (STATE_STOP_BY_INTERCEPTOR.equals(reason) ||
+                    STATE_STOP_BY_ROUTER_TARGET.equals(reason)) {
+                state = RouterState.INTERCEPT;
+            }
+            routerResult.onResult(request, state);
         }
     }
 }

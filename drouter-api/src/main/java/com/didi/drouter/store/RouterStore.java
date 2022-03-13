@@ -41,7 +41,7 @@ public class RouterStore {
     // key is REGEX_ROUTER，value is map<uriKey, meta>
     private static final Map<String, Object> routerMetas = new ConcurrentHashMap<>();
     // key is interceptor impl or string name
-    private static Map<Object, RouterMeta> interceptorMetas = new ConcurrentHashMap<>();
+    private static final Map<Object, RouterMeta> interceptorMetas = new ConcurrentHashMap<>();
     // key is interface，value is set, with dynamic
     private static final Map<Class<?>, Set<RouterMeta>> serviceMetas = new ConcurrentHashMap<>();
 

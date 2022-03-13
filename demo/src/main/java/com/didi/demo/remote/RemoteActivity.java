@@ -50,7 +50,7 @@ public class RemoteActivity extends AppCompatActivity {
             RouterExecutor.submit(new Runnable() {
                 @Override
                 public void run() {
-                    while (true) {
+//                    while (true) {
                         DRouter.build("/handler/test1")
                                 .putExtra("1", 1)
                                 .putExtra("2", new Bundle())
@@ -60,17 +60,17 @@ public class RemoteActivity extends AppCompatActivity {
                                 .start(DRouter.getContext(), new RouterCallback() {
                                     @Override
                                     public void onResult(@NonNull Result result) {
-//                                        RouterLogger.toast("子进程收到主进程的回调");
+                                        RouterLogger.toast("子进程收到主进程的回调");
                                         RouterLogger.getAppLogger().d("callback 参数 %s %s",
                                                 result.getInt("a"), result.getAddition("b"));
                                     }
                                 });
-                        try {
-                            Thread.sleep(1150);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
+//                        try {
+//                            Thread.sleep(1150);
+//                        } catch (InterruptedException e) {
+//                            e.printStackTrace();
+//                        }
+//                    }
                 }
             });
         }
@@ -87,7 +87,7 @@ public class RemoteActivity extends AppCompatActivity {
                                     @Override
                                     public void callback(String s, Integer i) {
                                         RouterLogger.getAppLogger().d("callback 参数 %s %s", s, i);
-//                                        RouterLogger.toast("子进程收到主进程的回调");
+                                        RouterLogger.toast("子进程收到主进程的回调");
                                     }
 
                                     @Override
@@ -113,11 +113,11 @@ public class RemoteActivity extends AppCompatActivity {
                                     }
                                 });
 
-                        try {
-                            Thread.sleep(1100);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
+//                        try {
+//                            Thread.sleep(1100);
+//                        } catch (InterruptedException e) {
+//                            e.printStackTrace();
+//                        }
 //                    }
                 }
             });

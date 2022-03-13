@@ -28,10 +28,11 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 
     implementation 'com.google.code.gson:gson:2.8.9'
-
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    api project(":drouter-api")
-//    api 'io.github.didi:drouter-api:2.2.1'
+
+//    api project(":drouter-api")
+    api 'io.github.didi:drouter-api:2.3.0'
+
 }
 
 task sourcesJar(type: Jar) {
@@ -42,8 +43,5 @@ task sourcesJar(type: Jar) {
 version = '1.0.0'
 
 if (file("${rootProject.projectDir}/upload-maven.gradle").exists()) {
-    apply from: "${rootProject.projectDir}/upload-local.gradle"
-}
-repositories {
-    mavenCentral()
+    apply from: "${rootProject.projectDir}/upload-maven.gradle"
 }

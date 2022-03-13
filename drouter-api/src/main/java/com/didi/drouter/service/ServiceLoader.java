@@ -39,6 +39,7 @@ public class ServiceLoader<T> {
     }
 
     /**
+     * Used for IPC
      * If set, it will auto stop resend behavior when lifecycle is destroy
      * {@link Strategy#setResend}
      */
@@ -48,7 +49,8 @@ public class ServiceLoader<T> {
     }
 
     /**
-     * When there is no service return from {@link ServiceLoader#getService(Object...)} with no remote,
+     * Avoid NullPointerException
+     * When there is no service returned from {@link ServiceLoader#getService(Object...)},
      * this object can be returned by default.
      */
     public ServiceLoader<T> setDefaultIfEmpty(T defaultService) {
@@ -57,8 +59,8 @@ public class ServiceLoader<T> {
     }
 
     /**
-     * Remote process support.
-     * When executed locally, null may be returned, but not if executed through remote process.
+     * IPC support
+     * When get local service, nullable
      */
     public T getService(Object... parameter) {
         return serviceAgent.getService(parameter);

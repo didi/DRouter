@@ -86,11 +86,11 @@ public class ServiceCollect extends AbsRouterCollect {
                         functionCcList.add(functionCc);
                         String[] superClassNames;
                         if ("com.didi.drouter.service.ICallService".equals(functionCmv.getValue())) {
-                            superClassNames = new String[11];
-                            for (int j = 0; j < 10; j++) {
-                                superClassNames[j] = "com.didi.drouter.service.ICallService" + j;
+                            superClassNames = new String[7];
+                            for (int j = 0; j < 6; j++) {
+                                superClassNames[j] = "com.didi.drouter.service.ICallService$Type" + j;
                             }
-                            superClassNames[10] = "com.didi.drouter.service.ICallServiceN";
+                            superClassNames[6] = "com.didi.drouter.service.ICallService$TypeN";
                         } else {
                             superClassNames = new String[] {functionCc.getName()};
                         }

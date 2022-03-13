@@ -1,10 +1,10 @@
 package com.didi.drouter.router;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
-import android.os.Bundle;
 import android.os.Parcelable;
 import android.util.SparseArray;
 
@@ -32,7 +32,6 @@ class RouterLoader {
 
     private Request primaryRequest;
     private RouterCallback callback;
-//    private IRemoteCallback.Type2<Bundle, Map<String, Object>> remoteCallback;
 
     private RouterLoader() {}
 
@@ -57,52 +56,64 @@ class RouterLoader {
     }
 
     private void startLocal() {
-        TextUtils.appendExtra(primaryRequest.getExtra(), TextUtils.getQuery(primaryRequest.getUri()));
-        // with order, priority first then exact match first
-        Map<Request, RouterMeta> requestMap = makeRequest();
-        if (requestMap.isEmpty()) {
-            RouterLogger.getCoreLogger().w("warning: there is no request target match");
-            new Result(primaryRequest, null, callback);
-            ResultAgent.release(primaryRequest, ResultAgent.STATE_NOT_FOUND);
-            return;
-        }
-        final Result result = new Result(primaryRequest, requestMap.keySet(), callback);
-        if (requestMap.size() > 1) {
-            RouterLogger.getCoreLogger().w("warning: request match %s targets", requestMap.size());
-        }
-        final boolean[] stopByRouterTarget = {false};
-        for (final Map.Entry<Request, RouterMeta> entry : requestMap.entrySet()) {
-            if (stopByRouterTarget[0]) {
-                // one by one
-                ResultAgent.release(entry.getKey(), ResultAgent.STATE_STOP_BY_ROUTER_TARGET);
-                continue;
-            }
-            InterceptorHandler.handle(entry.getKey(), entry.getValue(), new IRouterInterceptor.IInterceptor() {
-                @Override
-                public void onContinue() {
-                    entry.getKey().interceptor = new IRouterInterceptor.IInterceptor() {
+        InterceptorHandler.handleGlobal(primaryRequest, new IRouterInterceptor.IInterceptor() {
+            @Override
+            public void onContinue() {
+                primaryRequest.canRedirect = false;
+                TextUtils.appendExtra(primaryRequest.getExtra(), TextUtils.getQuery(primaryRequest.getUri()));
+                // ordered, priority -> exact match -> regex match
+                Map<Request, RouterMeta> requestMap = makeRequest();
+                if (requestMap.isEmpty()) {
+                    RouterLogger.getCoreLogger().w("warning: there is no request target match");
+                    new Result(primaryRequest, Collections.singleton(primaryRequest), 0, callback);
+                    ResultAgent.release(primaryRequest, ResultAgent.STATE_NOT_FOUND);
+                    return;
+                }
+                final Result result = new Result(primaryRequest, requestMap.keySet(), requestMap.size(), callback);
+                if (requestMap.size() > 1) {
+                    RouterLogger.getCoreLogger().w("warning: request match %s targets", requestMap.size());
+                }
+                final boolean[] stopByRouterTarget = {false};
+                for (final Map.Entry<Request, RouterMeta> entry : requestMap.entrySet()) {
+                    if (stopByRouterTarget[0]) {
+                        // one by one
+                        ResultAgent.release(entry.getKey(), ResultAgent.STATE_STOP_BY_ROUTER_TARGET);
+                        continue;
+                    }
+                    InterceptorHandler.handleRelated(entry.getKey(), entry.getValue(), new IRouterInterceptor.IInterceptor() {
                         @Override
                         public void onContinue() {
+                            entry.getKey().interceptor = new IRouterInterceptor.IInterceptor() {
+                                @Override
+                                public void onContinue() {
+                                }
+
+                                @Override
+                                public void onInterrupt() {
+                                    RouterLogger.getCoreLogger().w(
+                                            "request \"%s\" stop all remains requests", entry.getKey().getNumber());
+                                    stopByRouterTarget[0] = true;
+                                }
+                            };
+                            // it will release branch auto when no hold or no target
+                            RouterDispatcher.start(entry.getKey(), entry.getValue(), result, callback);
+                            entry.getKey().interceptor = null;
                         }
 
                         @Override
                         public void onInterrupt() {
-                            RouterLogger.getCoreLogger().w(
-                                    "request \"%s\" stop all remains requests", entry.getKey().getNumber());
-                            stopByRouterTarget[0] = true;
+                            ResultAgent.release(entry.getKey(), ResultAgent.STATE_STOP_BY_INTERCEPTOR);
                         }
-                    };
-                    // it will release branch auto when no hold or no target
-                    RouterDispatcher.start(entry.getKey(), entry.getValue(), result, callback);
-                    entry.getKey().interceptor = null;
+                    });
                 }
+            }
 
-                @Override
-                public void onInterrupt() {
-                    ResultAgent.release(entry.getKey(), ResultAgent.STATE_STOP_BY_INTERCEPTOR);
-                }
-            });
-        }
+            @Override
+            public void onInterrupt() {
+                new Result(primaryRequest, Collections.singleton(primaryRequest), 0, callback);
+                ResultAgent.release(primaryRequest, ResultAgent.STATE_STOP_BY_INTERCEPTOR);
+            }
+        });
     }
 
     @NonNull
@@ -114,6 +125,7 @@ class RouterLoader {
             Intent intent = (Intent) parcelable;
             RouterLogger.getCoreLogger().d("request %s, intent \"%s\"", primaryRequest.getNumber(), intent);
             PackageManager pm = primaryRequest.getContext().getPackageManager();
+            @SuppressLint("QueryPermissionsNeeded")
             List<ResolveInfo> activities = pm.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
             if (!activities.isEmpty()) {
                 primaryRequest.routerType = RouterType.ACTIVITY;
@@ -146,7 +158,7 @@ class RouterLoader {
     }
 
     @NonNull
-    // many handler -> activity -> fragment -> view
+    // multi handler -> activity -> fragment -> view
     private List<RouterMeta> getAllRouterMetas() {
         List<RouterMeta> output = new ArrayList<>();
         List<RouterMeta> routerMetas = new ArrayList<>(RouterStore.getRouterMetas(primaryRequest.getUri()));
@@ -241,23 +253,20 @@ class RouterLoader {
         if (service == null) {
             return;
         }
-        final Result result = new Result(primaryRequest, Collections.singleton(primaryRequest), callback);
+        final Result result = new Result(primaryRequest, Collections.singleton(primaryRequest), -1, callback);
         IRequestProxy.RemoteCallback remoteCallback = null;
         if (callback != null) {
-            remoteCallback = new IRequestProxy.RemoteCallback() {
-                @Override
-                public void data(Bundle p1, Map<String, Object> p2) {
-                    RouterLogger.getCoreLogger().w("[Client] \"%s\" callback success", primaryRequest);
-                    int routerSize = p1.getInt(IRequestProxy.ROUTER_SIZE);
-                    p1.remove(IRequestProxy.ROUTER_SIZE);
-                    boolean isActivityStarted = p1.getBoolean(IRequestProxy.IS_ACTIVITY_STARTED);
-                    p1.remove(IRequestProxy.IS_ACTIVITY_STARTED);
-                    result.isActivityStarted = isActivityStarted;
-                    result.routerSize = routerSize;
-                    result.extra = p1;
-                    result.addition = p2;
-                    RouterHelper.release(primaryRequest);
-                }
+            remoteCallback = (p1, p2) -> {
+                RouterLogger.getCoreLogger().w("[Client] \"%s\" callback success", primaryRequest);
+                int routerSize = p1.getInt(IRequestProxy.ROUTER_SIZE);
+                p1.remove(IRequestProxy.ROUTER_SIZE);
+                boolean isActivityStarted = p1.getBoolean(IRequestProxy.IS_ACTIVITY_STARTED);
+                p1.remove(IRequestProxy.IS_ACTIVITY_STARTED);
+                result.isActivityStarted = isActivityStarted;
+                result.routerSize = routerSize;
+                result.extra = p1;
+                result.addition = p2;
+                RouterHelper.release(primaryRequest);
             };
         } else {
             RouterHelper.release(primaryRequest);

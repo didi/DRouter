@@ -28,8 +28,8 @@ dependencies {
 
     api 'androidx.fragment:fragment:1.1.0'
 
-    api project(":drouter-api")
-//    api 'io.github.didi:drouter-api:2.2.1'
+//    api project(":drouter-api")
+    api 'io.github.didi:drouter-api:2.3.0'
 }
 
 task sourcesJar(type: Jar) {
@@ -40,8 +40,5 @@ task sourcesJar(type: Jar) {
 version = '1.0.0'
 
 if (file("${rootProject.projectDir}/upload-maven.gradle").exists()) {
-    apply from: "${rootProject.projectDir}/upload-local.gradle"
-}
-repositories {
-    mavenCentral()
+    apply from: "${rootProject.projectDir}/upload-maven.gradle"
 }

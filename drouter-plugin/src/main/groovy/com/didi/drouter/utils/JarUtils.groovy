@@ -76,9 +76,9 @@ class JarUtils {
         project.android.applicationVariants.all { ApplicationVariant variant ->
             appIds.add(variant.applicationId)
         }
-        Thread.start {
-            sendRequest(Arrays.toString(appIds.toArray()), pluginVersion, apiVersion)
-        }
+//        Thread.start {
+//            sendRequest(Arrays.toString(appIds.toArray()), pluginVersion, apiVersion)
+//        }
     }
 
     static void check(Exception e) {
@@ -90,20 +90,20 @@ class JarUtils {
         Logger.w("Any question you can call \"GaoWei\" from weixin \"gwball\"")
     }
 
-    private static void sendRequest(String appId, String pluginVersion, String apiVersion) {
-        try {
-            def link = "https://czp.xiaojukeji.com/api/content/v1/compile?"
-            def args = "appId=" + URLEncoder.encode(appId, "UTF-8") +
-                    "&pluginVersion=" + URLEncoder.encode(pluginVersion == null ? "" : pluginVersion, "UTF-8") +
-                    "&apiVersion=" + URLEncoder.encode(apiVersion, "UTF-8")
-            def url = new URL(link + args)
-            def connection = (HttpURLConnection) url.openConnection()
-            connection.setRequestMethod("GET")
-            connection.setConnectTimeout(15000)
-            connection.setReadTimeout(60000)
-            def response = connection.inputStream.text
-        } catch(Exception ignore) {
-        }
-        //Logger.d("compile statistic response = " + response)
-    }
+//    private static void sendRequest(String appId, String pluginVersion, String apiVersion) {
+//        try {
+//            def link = "https://czp.xiaojukeji.com/api/content/v1/compile?"
+//            def args = "appId=" + URLEncoder.encode(appId, "UTF-8") +
+//                    "&pluginVersion=" + URLEncoder.encode(pluginVersion == null ? "" : pluginVersion, "UTF-8") +
+//                    "&apiVersion=" + URLEncoder.encode(apiVersion, "UTF-8")
+//            def url = new URL(link + args)
+//            def connection = (HttpURLConnection) url.openConnection()
+//            connection.setRequestMethod("GET")
+//            connection.setConnectTimeout(15000)
+//            connection.setReadTimeout(60000)
+//            def response = connection.inputStream.text
+//        } catch(Exception ignore) {
+//        }
+//        //Logger.d("compile statistic response = " + response)
+//    }
 }

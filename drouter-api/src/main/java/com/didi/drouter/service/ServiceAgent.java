@@ -248,7 +248,7 @@ class ServiceAgent<T> {
         }
 
         static boolean isCallService(Object instance) {
-            return instance instanceof ICallService.Type0 ||
+            return  instance instanceof ICallService.Type0 ||
                     instance instanceof ICallService.Type1 ||
                     instance instanceof ICallService.Type2 ||
                     instance instanceof ICallService.Type3 ||

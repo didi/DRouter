@@ -13,11 +13,17 @@ import java.util.Queue;
  */
 class InterceptorHandler {
 
-    static void handle(final Request request,
+    static void handleGlobal(Request request, IRouterInterceptor.IInterceptor callback) {
+        RouterLogger.getCoreLogger().d(">> Enter request \"%s\" (global) interceptors", request.getNumber());
+        Queue<IRouterInterceptor> interceptors = InterceptorLoader.loadGlobal();
+        handleNext(interceptors, request, callback);
+    }
+
+    static void handleRelated(Request request,
                               RouterMeta meta,
-                              final IRouterInterceptor.IInterceptor callback) {
-        RouterLogger.getCoreLogger().d(">> Enter request \"%s\" all interceptors", request.getNumber());
-        Queue<IRouterInterceptor> interceptors = InterceptorLoader.load(meta);
+                              IRouterInterceptor.IInterceptor callback) {
+        RouterLogger.getCoreLogger().d(">> Enter request \"%s\" (related) interceptors", request.getNumber());
+        Queue<IRouterInterceptor> interceptors = InterceptorLoader.loadRelated(meta);
         handleNext(interceptors, request, callback);
     }
 
@@ -26,12 +32,13 @@ class InterceptorHandler {
                                    final IRouterInterceptor.IInterceptor callback) {
         final IRouterInterceptor interceptor = interceptors.poll();
         if (interceptor == null) {
-            RouterLogger.getCoreLogger().d("<< Pass request \"%s\" all interceptors", request.getNumber());
+            RouterLogger.getCoreLogger().d("<< Pass request \"%s\" interceptors", request.getNumber());
             callback.onContinue();
             return;
         }
 
         RouterMeta interceptorMeta = RouterStore.getInterceptors().get(interceptor.getClass());
+        assert interceptorMeta != null;
         RouterLogger.getCoreLogger().d(
                 "interceptor \"%s\" execute, for request \"%s\", global:%s, priority:%s",
                 interceptor.getClass().getSimpleName(),

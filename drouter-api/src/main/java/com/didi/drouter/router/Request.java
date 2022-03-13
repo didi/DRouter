@@ -20,7 +20,7 @@ public class Request extends DataExtras<Request> {
 
     private static final AtomicInteger counter = new AtomicInteger(0);
 
-    private final Uri uri;
+    private Uri uri;
     Context context;
     Lifecycle lifecycle;
     Strategy strategy;
@@ -28,6 +28,7 @@ public class Request extends DataExtras<Request> {
     long holdTimeout;
     String serialNumber;
     IRouterInterceptor.IInterceptor interceptor;
+    boolean canRedirect = true;
 
     private Request(@NonNull Uri uri) {
         this.uri = uri;
@@ -69,8 +70,19 @@ public class Request extends DataExtras<Request> {
         return routerType;
     }
 
-    public @NonNull String getNumber() {
+    public String getNumber() {
         return serialNumber;
+    }
+
+    /**
+     * can only redirect in global interceptor or before
+     * @param uri new uri
+     */
+    public Request setRedirect(String uri) {
+        if (canRedirect) {
+            this.uri = uri == null ? Uri.EMPTY : Uri.parse(uri);
+        }
+        return this;
     }
 
     public Request setHoldTimeout(long millisecond) {
@@ -79,7 +91,7 @@ public class Request extends DataExtras<Request> {
     }
 
     /**
-     * @param strategy for remote process.
+     * @param strategy for IPC config
      */
     public Request setRemote(Strategy strategy) {
         this.strategy = strategy;

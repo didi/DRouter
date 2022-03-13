@@ -42,25 +42,35 @@ class InterceptorLoader {
         }
     }
 
-    static @NonNull Queue<IRouterInterceptor> load(@NonNull RouterMeta meta) {
-        Set<Class<? extends IRouterInterceptor>> allInterceptorClz = new ArraySet<>(globalInterceptor);
-        Class<? extends IRouterInterceptor>[] interceptors = meta.getInterceptors();
-        if (interceptors != null) {
-            allInterceptorClz.addAll(Arrays.asList(interceptors));
-        }
-        String[] interceptorNames = meta.getInterceptorNames();
-        if (interceptorNames != null) {
-            for (String str : interceptorNames) {
-                allInterceptorClz.add(getInterceptorClz(str));
-            }
-        }
-        Queue<IRouterInterceptor> result = new PriorityQueue<>(11, new InterceptorComparator());
-        for (Class<? extends IRouterInterceptor> interceptorClass : allInterceptorClz) {
+    static @NonNull Queue<IRouterInterceptor> loadGlobal() {
+        Set<Class<? extends IRouterInterceptor>> globalInterceptorClz = new ArraySet<>(globalInterceptor);
+        Queue<IRouterInterceptor> result = new PriorityQueue<>(5, new InterceptorComparator());
+        for (Class<? extends IRouterInterceptor> interceptorClass : globalInterceptorClz) {
             result.add(getInstance(interceptorClass));
         }
         return result;
     }
 
+    static @NonNull Queue<IRouterInterceptor> loadRelated(@NonNull RouterMeta meta) {
+        Set<Class<? extends IRouterInterceptor>> targetInterceptorClz = new ArraySet<>();
+        Class<? extends IRouterInterceptor>[] interceptors = meta.getInterceptors();
+        if (interceptors != null) {
+            targetInterceptorClz.addAll(Arrays.asList(interceptors));
+        }
+        String[] interceptorNames = meta.getInterceptorNames();
+        if (interceptorNames != null) {
+            for (String str : interceptorNames) {
+                targetInterceptorClz.add(getInterceptorClz(str));
+            }
+        }
+        Queue<IRouterInterceptor> result = new PriorityQueue<>(5, new InterceptorComparator());
+        for (Class<? extends IRouterInterceptor> interceptorClass : targetInterceptorClz) {
+            result.add(getInstance(interceptorClass));
+        }
+        return result;
+    }
+
+    // global priority
     // from large to small
     private static class InterceptorComparator implements Comparator<IRouterInterceptor> {
         @Override

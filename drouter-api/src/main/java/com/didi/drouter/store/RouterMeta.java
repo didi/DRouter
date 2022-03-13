@@ -92,7 +92,7 @@ public class RouterMeta {
         return this;
     }
 
-    // key is uri, for fragment/view/handler
+    // key is uri, for fragment/view/handler/interceptor
     public RouterMeta assembleRouter(String scheme, String host, String path,
                                      Class<?> routerClass, IRouterProxy routerProxy,
                                      Class<? extends IRouterInterceptor>[] interceptors,

@@ -22,7 +22,7 @@ public class RouterExecutor {
     private static ExecutorService threadPool = new RouterThreadExecutor(
             0, Integer.MAX_VALUE,
             60L, TimeUnit.SECONDS,
-            new SynchronousQueue<Runnable>());
+            new SynchronousQueue<>());
 
     public static void setThreadPool(ExecutorService threadPool) {
         RouterExecutor.threadPool = threadPool;

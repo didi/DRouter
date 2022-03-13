@@ -29,7 +29,7 @@ task generateVersion {
         File file = new File(buildDir, "/generated/drouter/META-INF")
         file.mkdirs()
         file = new File(file, "drouter")
-        file.text = "api-version : ${version}" + "\n" + "plugin-min-support : 1.2.2"
+        file.text = "api-version : ${version}" + "\n" + "plugin-min-support : 1.3.0"
     }
 }
 
@@ -55,12 +55,9 @@ task sourcesJar(type: Jar) {
     from android.sourceSets.main.java.source
 }
 
-version = '2.2.2'
+version = '2.3.0'
 // latest test version: 2.1.0.0.0.1
 
 if (file("${rootProject.projectDir}/upload-maven.gradle").exists()) {
-    apply from: "${rootProject.projectDir}/upload-local.gradle"
-}
-repositories {
-    mavenCentral()
+    apply from: "${rootProject.projectDir}/upload-maven.gradle"
 }
