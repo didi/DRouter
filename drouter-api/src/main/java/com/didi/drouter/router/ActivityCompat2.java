@@ -53,7 +53,7 @@ public class ActivityCompat2 {
         } else {
             active = new HolderFragment();
         }
-        RouterLogger.getCoreLogger().d("HoldFragment start, put %s callback and page | isV4:",
+        RouterLogger.getCoreLogger().d("HoldFragment start, put %s callback and page | isV4: %b",
                 cur, active instanceof HolderFragmentV4);
         active.getCompat().cur = cur;
         active.attach(activity, intent, requestCode);
