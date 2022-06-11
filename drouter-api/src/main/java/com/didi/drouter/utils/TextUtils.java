@@ -50,42 +50,11 @@ public class TextUtils {
         if (rawUri == null) {
             return Collections.emptyMap();
         }
-        return getQuery(rawUri.toString());
-    }
-
-    private static @NonNull Map<String, String> getQuery(String rawUri) {
-        if (rawUri == null) {
-            return Collections.emptyMap();
-        }
-
-        int index = rawUri.indexOf("?");
-        String query = index != -1 ? rawUri.substring(index + 1) : rawUri;
-        index = query.indexOf("#");
-        query = index != -1 ? query.substring(0, index) : query;
-
         Map<String, String> paramMap = new ArrayMap<>();
-        int start = 0;
-        do {
-            int next = query.indexOf('&', start);
-            int end = (next == -1) ? query.length() : next;
-
-            int separator = query.indexOf('=', start);
-            if (separator > end || separator == -1) {
-                separator = end;
-            }
-
-            String name = query.substring(start, separator);
-
-            if (!android.text.TextUtils.isEmpty(name)) {
-                String value = (separator == end ? "" : query.substring(separator + 1, end));
-                paramMap.put(name, value);
-            }
-
-            // Move start to end of name.
-            start = end + 1;
-        } while (start < query.length());
-
-        return Collections.unmodifiableMap(paramMap);
+        for (String key : rawUri.getQueryParameterNames()) {
+            paramMap.put(key, rawUri.getQueryParameter(key));
+        }
+        return paramMap;
     }
 
     public static void appendExtra(Bundle bundle, Map<String, String> extra) {
