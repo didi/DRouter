@@ -30,7 +30,7 @@ dependencies {
 
     api project(':drouter-api-page')
     api project(':drouter-api-process')
-//    api 'io.github.didi:drouter-api:2.3.0'
+//    api 'io.github.didi:drouter-api:2.3.1'
 //    api 'io.github.didi:drouter-api-page:1.0.0'
 //    api 'io.github.didi:drouter-api-process:1.0.0'
 
