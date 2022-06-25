@@ -30,8 +30,8 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.8.9'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
-//    api project(":drouter-api")
-    api 'io.github.didi:drouter-api:2.3.0'
+    api project(":drouter-api")
+//    api 'io.github.didi:drouter-api:2.3.1'
 
 }
 
