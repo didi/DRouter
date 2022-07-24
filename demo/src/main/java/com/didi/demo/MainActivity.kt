@@ -1,10 +1,13 @@
 package com.didi.demo
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContract
 import androidx.appcompat.app.AppCompatActivity
 import com.didi.drouter.api.DRouter
 import com.didi.drouter.api.Extend
@@ -13,7 +16,6 @@ import com.didi.drouter.module_base.ParamObject
 import com.didi.drouter.module_base.service.IServiceTest
 import com.didi.drouter.module_base.service.IServiceTest2
 import com.didi.drouter.module_base.service.ServiceFeature
-import com.didi.drouter.router.RouterCallback.ActivityCallback
 import com.didi.drouter.service.ICallService
 import com.didi.drouter.utils.RouterLogger
 
@@ -22,9 +24,28 @@ import com.didi.drouter.utils.RouterLogger
  * Created by gaowei on 2018/9/1
  */
 class MainActivity : AppCompatActivity() {
+
+    var launcher: ActivityResultLauncher<Intent>? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        launcher = registerForActivityResult(MyResultContract()) {
+            it?.let {
+                RouterLogger.toast(it)
+            }
+        }
+    }
+
+    class MyResultContract : ActivityResultContract<Intent, String?>() {
+        override fun createIntent(context: Context, input: Intent): Intent {
+            return input
+        }
+
+        override fun parseResult(resultCode: Int, intent: Intent?): String? {
+            return intent?.getStringExtra("result")
+        }
     }
 
     fun onClick(view: View) {
@@ -58,26 +79,17 @@ class MainActivity : AppCompatActivity() {
                     Toast.makeText(this@MainActivity, "router not found", Toast.LENGTH_LONG).show()
                 }
             }
-            R.id.start_activity_for_result -> DRouter.build("/activity/result")
-                    .start(this@MainActivity, object : ActivityCallback() {
-                        override fun onActivityResult(resultCode: Int, data: Intent?) {
-                            if (data != null) {
-                                RouterLogger.toast(data.getStringExtra("result"))
-                            }
-                        }
-                    })
+            R.id.start_activity_for_result ->
+                DRouter.build("/activity/result")
+                    .setActivityLauncher(launcher)
+                    .start(this@MainActivity)
             R.id.start_activity_result_intent -> {
                 // 兼容通过intent启动Activity
                 val intent = Intent("com.intent.activity")
                 DRouter.build("")
                         .putExtra(Extend.START_ACTIVITY_VIA_INTENT, intent)
-                        .start(this, object : ActivityCallback() {
-                            override fun onActivityResult(resultCode: Int, data: Intent?) {
-                                if (data != null) {
-                                    RouterLogger.toast(data.getStringExtra("result"))
-                                }
-                            }
-                        })
+                        .setActivityLauncher(launcher)
+                        .start(this)
             }
             R.id.start_fragment1 -> DRouter.build("/fragment/first/1").start(this) { result ->
                 if (result.fragment != null) {

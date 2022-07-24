@@ -1,6 +1,8 @@
 package com.didi.drouter.router;
 
 import android.content.Intent;
+
+import androidx.activity.result.ActivityResultLauncher;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -14,7 +16,11 @@ public interface RouterCallback {
     /**
      * ActivityResult for {@link android.app.Activity#startActivityForResult(Intent, int)} request.
      * You can also assign request code, {@link com.didi.drouter.api.Extend#START_ACTIVITY_REQUEST_CODE}
+     *
+     * @deprecated use
+     * {@link Request#setActivityLauncher(ActivityResultLauncher)}
      */
+    @Deprecated
     abstract class ActivityCallback implements RouterCallback {
         public @Override void onResult(@NonNull Result result) {}
         public abstract void onActivityResult(int resultCode, @Nullable Intent data);

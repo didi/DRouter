@@ -1,5 +1,6 @@
 package com.didi.demo.fragment;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -7,6 +8,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContract;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
@@ -14,7 +18,6 @@ import com.didi.drouter.annotation.Router;
 import com.didi.drouter.api.DRouter;
 import com.didi.drouter.api.Extend;
 import com.didi.drouter.demo.R;
-import com.didi.drouter.router.RouterCallback;
 import com.didi.drouter.utils.RouterLogger;
 
 /**
@@ -22,6 +25,8 @@ import com.didi.drouter.utils.RouterLogger;
  */
 @Router(path = "/fragment/first/.*")
 public class FragmentFirst extends Fragment {
+
+    private ActivityResultLauncher<Intent> launcher;
 
     private String name;
 
@@ -34,6 +39,19 @@ public class FragmentFirst extends Fragment {
         super.onCreate(savedInstanceState);
         name = getArguments().getString(Extend.REQUEST_BUILD_URI);
         RouterLogger.getAppLogger().d(name + " onCreate");
+
+        launcher = registerForActivityResult(new ActivityResultContract<Intent, String>() {
+            @NonNull
+            @Override
+            public Intent createIntent(@NonNull Context context, Intent input) {
+                return input;
+            }
+
+            @Override
+            public String parseResult(int resultCode, @Nullable Intent intent) {
+                return intent != null ? intent.getStringExtra("result") : "";
+            }
+        }, RouterLogger::toast);
     }
 
     @Nullable
@@ -44,14 +62,8 @@ public class FragmentFirst extends Fragment {
             @Override
             public void onClick(View v) {
                 DRouter.build("/activity/result")
-                        .start(getContext(), new RouterCallback.ActivityCallback() {
-                            @Override
-                            public void onActivityResult(int resultCode, Intent data) {
-                                if (data != null) {
-                                    RouterLogger.toast(data.getStringExtra("result"));
-                                }
-                            }
-                        });
+                        .setActivityLauncher(launcher)
+                        .start(getContext());
             }
         });
 

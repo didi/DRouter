@@ -3,8 +3,10 @@ package com.didi.drouter.router;
 import static com.didi.drouter.api.Extend.REQUEST_BUILD_URI;
 
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 
+import androidx.activity.result.ActivityResultLauncher;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.Lifecycle;
 
@@ -29,6 +31,7 @@ public class Request extends DataExtras<Request> {
     String serialNumber;
     IRouterInterceptor.IInterceptor interceptor;
     boolean canRedirect = true;
+    ActivityResultLauncher<Intent> launcher;
 
     private Request(@NonNull Uri uri) {
         this.uri = uri;
@@ -72,6 +75,11 @@ public class Request extends DataExtras<Request> {
 
     public String getNumber() {
         return serialNumber;
+    }
+
+    public Request setActivityLauncher(ActivityResultLauncher<Intent> launcher) {
+        this.launcher = launcher;
+        return this;
     }
 
     /**

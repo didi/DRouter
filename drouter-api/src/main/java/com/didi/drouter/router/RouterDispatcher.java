@@ -64,7 +64,9 @@ class RouterDispatcher {
         intent.putExtras(request.getExtra());
         boolean hasRequestCode = request.getExtra().containsKey(Extend.START_ACTIVITY_REQUEST_CODE);
         int requestCode = hasRequestCode? request.getInt(Extend.START_ACTIVITY_REQUEST_CODE) : 1024;
-        if (context instanceof Activity && callback instanceof RouterCallback.ActivityCallback) {
+        if (request.launcher != null) {
+            request.launcher.launch(intent);
+        } else if (context instanceof Activity && callback instanceof RouterCallback.ActivityCallback) {
             ActivityCompat2.startActivityForResult((Activity) context, intent,
                     requestCode, (RouterCallback.ActivityCallback) callback);
         } else if (context instanceof Activity && hasRequestCode) {
