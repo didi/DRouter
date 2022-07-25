@@ -55,7 +55,7 @@ task sourcesJar(type: Jar) {
     from android.sourceSets.main.java.source
 }
 
-version = '2.4.0'
+version = '2.4.2'
 // latest test version: 2.1.0.0.0.1
 
 if (file("${rootProject.projectDir}/upload-maven.gradle").exists()) {
