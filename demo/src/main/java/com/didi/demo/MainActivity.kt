@@ -81,14 +81,14 @@ class MainActivity : AppCompatActivity() {
             }
             R.id.start_activity_for_result ->
                 DRouter.build("/activity/result")
-                    .setActivityLauncher(launcher)
+                    .setActivityResultLauncher(launcher)
                     .start(this@MainActivity)
             R.id.start_activity_result_intent -> {
                 // 兼容通过intent启动Activity
                 val intent = Intent("com.intent.activity")
                 DRouter.build("")
                         .putExtra(Extend.START_ACTIVITY_VIA_INTENT, intent)
-                        .setActivityLauncher(launcher)
+                        .setActivityResultLauncher(launcher)
                         .start(this)
             }
             R.id.start_fragment1 -> DRouter.build("/fragment/first/1").start(this) { result ->

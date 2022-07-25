@@ -58,7 +58,7 @@ public class FragmentSecond extends Fragment {
             @Override
             public void onClick(View v) {
                 DRouter.build("/activity/result")
-                        .setActivityLauncher(launcher)
+                        .setActivityResultLauncher(launcher)
                         .start(getContext());
             }
         });

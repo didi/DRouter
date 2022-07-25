@@ -18,7 +18,7 @@ public interface RouterCallback {
      * You can also assign request code, {@link com.didi.drouter.api.Extend#START_ACTIVITY_REQUEST_CODE}
      *
      * @deprecated use
-     * {@link Request#setActivityLauncher(ActivityResultLauncher)}
+     * {@link Request#setActivityResultLauncher(ActivityResultLauncher)}
      */
     @Deprecated
     abstract class ActivityCallback implements RouterCallback {
