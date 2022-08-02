@@ -63,9 +63,9 @@ api "io.github.didi:drouter-api-process:1.0.0"   // Process
 
 ## 微信交流群
 
-<img src="https://github.com/didi/DRouter/blob/master/img/drouter.png" width="250px" align="center" alt="WeiXin"/>
+[微信群二维码链接](http://p-bim-img.bytedance.net/tos-cn-i-hf6qmptvc7/drouter/drouter.png~tplv-hf6qmptvc7-image.image)
 
-如果二维码到期，请微信搜索作者 gwball (备注DRouter)入群
+或微信搜索作者 gwball (备注DRouter)入群
 
 ## 相关文章
 
