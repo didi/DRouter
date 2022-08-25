@@ -3,7 +3,7 @@
 <div align="center">
  <img src="https://img.shields.io/badge/license-Apache2.0-brightgreen.svg" align=left />
  <img src="https://img.shields.io/badge/drouter--plugin--proxy-1.0.2-red.svg" align=left />
- <img src="https://img.shields.io/badge/drouter--api-2.4.2-blue.svg" align=left />
+ <img src="https://img.shields.io/badge/drouter--api-2.4.3-blue.svg" align=left />
  <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" align=left />
 </div>
 <br/>
@@ -31,7 +31,7 @@ DRouter是18年滴滴乘客端自研的一套Android路由框架，基于平台�
 - 适配AndroidX
 
 ### 技术特点
-1. 插件不依赖gradle版本，支持增量编译，多线程扫描，提升编译效率
+1. 支持增量编译，多线程扫描，提升编译效率
 2. 初始化点对点加载路由表，无反射和遍历，异步加载，提升启动性能
 3. 完整的Router功能
 4. 强大的ServiceLoader实例化和过滤能力
@@ -56,7 +56,7 @@ Process | 跨进程访问Router、Service，共享内存
 ``` java
 /** 最新版本 **/
 classpath "io.github.didi:drouter-plugin-proxy:1.0.2"
-api "io.github.didi:drouter-api:2.4.2"           // Router、Service
+api "io.github.didi:drouter-api:2.4.3"           // Router、Service
 api "io.github.didi:drouter-api-page:1.0.0"      // Page
 api "io.github.didi:drouter-api-process:1.0.0"   // Process
 ```
