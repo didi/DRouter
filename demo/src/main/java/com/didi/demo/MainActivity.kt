@@ -59,8 +59,8 @@ class MainActivity : AppCompatActivity() {
                         .putExtra("key", "value")
                         .start(this) { result ->
                             if (result.isActivityStarted) {
-                                val bundle = result.getExtra()
-                                val value = bundle.getString("key")
+                                //val bundle = result.getExtra()
+                                //val value = bundle.getString("key")
                                 RouterLogger.toast("打开成功")
                             }
                         }
