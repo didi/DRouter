@@ -8,7 +8,7 @@
         android:layout_height="wrap_content">
 
         <Button
-            android:id="@+id/request"
+            android:id="@+id/request_handler"
             android:onClick="onClick"
             android:layout_marginTop="10dp"
             android:layout_width="match_parent"
@@ -16,7 +16,7 @@
             android:text="调用主进程Handler" />
 
         <Button
-            android:id="@+id/service"
+            android:id="@+id/request_service"
             android:onClick="onClick"
             android:layout_marginTop="10dp"
             android:layout_width="match_parent"

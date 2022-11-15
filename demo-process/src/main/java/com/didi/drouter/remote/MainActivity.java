@@ -11,6 +11,7 @@ import com.didi.drouter.api.Strategy;
 import com.didi.drouter.module_base.ParamObject;
 import com.didi.drouter.module_base.remote.IRemoteFunction;
 import com.didi.drouter.module_base.remote.RemoteFeature;
+import com.didi.drouter.process.R;
 
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -18,7 +19,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import com.didi.drouter.process.R;
 
 public class MainActivity extends AppCompatActivity {
     private IRemoteFunction remoteFunction;
@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void onClick(View view) {
 
-        if (view.getId() == R.id.request) {
+        if (view.getId() == R.id.request_handler) {
 
             DRouter.build("/handler/test1")
                     .putExtra("1", 1)
@@ -43,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
                     .start(DRouter.getContext());
         }
 
-        if (view.getId() == R.id.service) {
+        if (view.getId() == R.id.request_service) {
             bindRemote();
             remoteFunction.handle(new ParamObject[]{}, new ParamObject(), 2, this,
                     new IRemoteCallback.Type2<String, Integer>() {

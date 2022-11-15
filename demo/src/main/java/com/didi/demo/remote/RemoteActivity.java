@@ -21,7 +21,6 @@ import com.didi.drouter.router.RouterCallback;
 import com.didi.drouter.utils.RouterExecutor;
 import com.didi.drouter.utils.RouterLogger;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -35,7 +34,8 @@ public class RemoteActivity extends AppCompatActivity {
     private IRemoteFunction remoteFunction;
     private IRemoteFunction resentRemoteFunction;
     private final RouterLifecycle lifecycle = new RouterLifecycle();
-    List<Object> xx = new ArrayList<>();
+    // 极限压力测试
+    private final boolean extremeTesting = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,43 +45,42 @@ public class RemoteActivity extends AppCompatActivity {
 
     public void onClick(View view) {
 
-        if (view.getId() == R.id.request) {
+        if (view.getId() == R.id.request_handler) {
 
-            RouterExecutor.submit(new Runnable() {
-                @Override
-                public void run() {
-//                    while (true) {
-                        DRouter.build("/handler/test1")
-                                .putExtra("1", 1)
-                                .putExtra("2", new Bundle())
-                                .putAddition("3", new ParamObject())
-                                .setLifecycle(RemoteActivity.this.getLifecycle())
-                                .setRemote(new Strategy("com.didi.drouter.remote.demo.host"))
-                                .start(DRouter.getContext(), new RouterCallback() {
-                                    @Override
-                                    public void onResult(@NonNull Result result) {
-                                        RouterLogger.toast("子进程收到主进程的回调");
-                                        RouterLogger.getAppLogger().d("callback 参数 %s %s",
-                                                result.getInt("a"), result.getAddition("b"));
-                                    }
-                                });
-//                        try {
-//                            Thread.sleep(1150);
-//                        } catch (InterruptedException e) {
-//                            e.printStackTrace();
-//                        }
-//                    }
-                }
+            RouterExecutor.submit(() -> {
+                do {
+                    DRouter.build("/handler/test1")
+                            .putExtra("1", 1)
+                            .putExtra("2", new Bundle())
+                            .putAddition("3", new ParamObject())
+                            .setLifecycle(RemoteActivity.this.getLifecycle())
+                            .setRemote(new Strategy("com.didi.drouter.remote.demo.host"))
+                            .start(DRouter.getContext(), new RouterCallback() {
+                                @Override
+                                public void onResult(@NonNull Result result) {
+                                    RouterLogger.toast("子进程收到主进程的回调");
+                                    RouterLogger.getAppLogger().d("callback 参数 %s %s",
+                                            result.getInt("a"), result.getAddition("b"));
+                                }
+                            });
+
+                    if (extremeTesting) {
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                } while (extremeTesting);
             });
         }
 
-        if (view.getId() == R.id.service) {
+        if (view.getId() == R.id.request_service) {
             bindRemote();
             RouterExecutor.submit(new Runnable() {
                 @Override
                 public void run() {
-//                    while (true) {
-                        xx.add(new Object());
+                    do {
                         remoteFunction.handle(new ParamObject[]{}, new ParamObject(), 2, RemoteActivity.this,
                                 new IRemoteCallback.Type2<String, Integer>() {
                                     @Override
@@ -113,15 +112,16 @@ public class RemoteActivity extends AppCompatActivity {
                                     }
                                 });
 
-//                        try {
-//                            Thread.sleep(1100);
-//                        } catch (InterruptedException e) {
-//                            e.printStackTrace();
-//                        }
-//                    }
+                        if (extremeTesting) {
+                            try {
+                                Thread.sleep(1000);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    } while (extremeTesting);
                 }
             });
-
         }
 
         if (view.getId() == R.id.resend_callback) {

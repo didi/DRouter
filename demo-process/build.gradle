@@ -4,7 +4,7 @@ apply plugin: 'kotlin-android'
 apply plugin: 'com.didi.drouter'
 
 android {
-    compileSdkVersion target_sdk_version
+    compileSdkVersion compile_sdk_version
 
     defaultConfig {
         applicationId "com.didi.drouter.process"

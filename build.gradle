@@ -3,7 +3,10 @@
 buildscript {
     ext.kotlin_version = '1.6.21'
     ext.min_support_version = 14
-    ext.target_sdk_version = 31
+
+    // sdk_version(31)需要java11编译
+    ext.compile_sdk_version = 30
+    ext.target_sdk_version = 30
 
     repositories {
         maven { url uri(rootProject.rootDir.path + '/.aar/maven/libs-release')}

@@ -10,7 +10,8 @@ drouter {
 }
 
 android {
-    compileSdkVersion target_sdk_version
+    compileSdkVersion compile_sdk_version
+
     defaultConfig {
         applicationId "com.didi.drouter.demo"
         minSdkVersion min_support_version

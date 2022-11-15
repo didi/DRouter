@@ -67,6 +67,10 @@ public class RouterExecutor {
         threadPool.submit(runnable);
     }
 
+    public static void submit(Runnable runnable, long timeDelay) {
+        mainHandler.postDelayed(() -> threadPool.submit(runnable), timeDelay);
+    }
+
     static class RouterThreadExecutor extends ThreadPoolExecutor {
 
         public RouterThreadExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime,

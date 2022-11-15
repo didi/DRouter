@@ -12,11 +12,13 @@ import androidx.annotation.RequiresApi;
 
 import com.didi.drouter.annotation.Assign;
 import com.didi.drouter.annotation.Service;
+import com.didi.drouter.api.Extend;
 import com.didi.drouter.module_base.ParamObject;
 import com.didi.drouter.module_base.ResultObject;
 import com.didi.drouter.module_base.remote.IRemoteFunction;
 import com.didi.drouter.module_base.remote.RemoteFeature;
 import com.didi.drouter.remote.IRemoteCallback;
+import com.didi.drouter.utils.RouterExecutor;
 import com.didi.drouter.utils.RouterLogger;
 
 import java.nio.ByteBuffer;
@@ -25,13 +27,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * Created by gaowei on 2018/11/2
  */
-@Service(function = IRemoteFunction.class, alias = "remote", feature = RemoteFeature.class)
+@Service(function = IRemoteFunction.class, alias = "remote", feature = RemoteFeature.class, cache = Extend.Cache.SINGLETON)
 public class RemoteFunction implements IRemoteFunction {
 
     @Assign
@@ -40,7 +40,7 @@ public class RemoteFunction implements IRemoteFunction {
     @Assign
     public static final String b = "1";
 
-    ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(5);
+    private final Set<IRemoteCallback> callbacks = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     public RemoteFunction() {
         RouterLogger.getAppLogger().d("RemoteFunction constructor argument");
@@ -57,17 +57,14 @@ public class RemoteFunction implements IRemoteFunction {
     @Override
     public ResultObject handle(ParamObject[] x, ParamObject y, Integer z, Context context, final IRemoteCallback.Type2<String, Integer> callback) {
 
-//        RouterExecutor.main(new Runnable() {
-//            @Override
-//            public void run() {
-//                RouterLogger.toast("主进程RemoteFunction执行成功");
-//            }
-//        });
-//        RouterLogger.getAppLogger().d("RemoteFunction handle: TestBean[] x, String y=%s, int z=%s, %s", y, z, callback);
+        RouterLogger.toast("主进程RemoteFunction执行成功");
+        RouterLogger.getAppLogger().d("RemoteFunction handle: TestBean[] x, String y=%s, int z=%s, %s", y, z, callback);
+
         final ResultObject result = new ResultObject();
         result.a = 100;
         result.i = "100";
 
+        // 监控客户端挂掉
         try {
             callback.asBinder().linkToDeath(new IBinder.DeathRecipient() {
                 @Override
@@ -79,29 +76,13 @@ public class RemoteFunction implements IRemoteFunction {
             e.printStackTrace();
         }
 
-//        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-//            @Override
-//            public void run() {
-//                HashMap<String, Object> map = new HashMap<>();
-//                map.put("result", result);
-//                if (callback.asBinder().isBinderAlive()) {
-//                    callback.callback("aaa", 1);
-//                }
-//            }
-//        }, 3000);
+        // 回调客户端
+        RouterExecutor.submit(() -> {
+            if (callback.asBinder().isBinderAlive()) {
+                callback.callback("aaa", 1);
+            }
+        }, 2000);
 
-//        scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
-//            @Override
-//            public void run() {
-//                HashMap<String, Object> map = new HashMap<>();
-//                map.put("result", result);
-//                try {
-//                    callback.callback(map);
-//                } catch (RemoteException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        }, 0, 3, TimeUnit.SECONDS);
         return result;
     }
 
@@ -137,8 +118,6 @@ public class RemoteFunction implements IRemoteFunction {
 //        });
     }
 
-    private static Set<IRemoteCallback> callbacks = Collections.newSetFromMap(new ConcurrentHashMap<>());
-
     @Override
     public void register(IRemoteCallback.Type0 callback) {
         if (callbacks.contains(callback)) {
@@ -161,11 +140,8 @@ public class RemoteFunction implements IRemoteFunction {
 
     @Override
     public void kill() {
-        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                int i = 1/0;
-            }
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            int i = 1/0;
         }, 2000);
     }
 
