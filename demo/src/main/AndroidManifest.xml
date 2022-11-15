@@ -53,6 +53,7 @@
         <provider
             android:name="com.didi.demo.remote.DemoHostProvider"
             android:authorities="com.didi.drouter.remote.demo.host"
+            android:exported="true"
             android:multiprocess="false" />
         <provider
             android:name="com.didi.demo.remote.DemoRemoteProvider"

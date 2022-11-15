@@ -2,6 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.didi.drouter.process">
 
+    <queries>
+        <provider android:authorities="com.didi.drouter.remote.demo.host" />
+    </queries>
+
     <application
         android:name="com.didi.drouter.remote.RemoteApplication"
         android:allowBackup="true"
