@@ -3,7 +3,7 @@
 <div align="center">
  <img src="https://img.shields.io/badge/license-Apache2.0-brightgreen.svg" align=left />
  <img src="https://img.shields.io/badge/drouter--plugin--proxy-1.0.2-red.svg" align=left />
- <img src="https://img.shields.io/badge/drouter--api-2.4.3-blue.svg" align=left />
+ <img src="https://img.shields.io/badge/drouter--api-2.4.5-blue.svg" align=left />
  <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" align=left />
 </div>
 <br/>
@@ -56,7 +56,7 @@ Process | 跨进程访问Router、Service，共享内存
 ``` java
 /** 最新版本 **/
 classpath "io.github.didi:drouter-plugin-proxy:1.0.2"
-api "io.github.didi:drouter-api:2.4.3"           // Router、Service
+api "io.github.didi:drouter-api:2.4.5"           // Router、Service
 api "io.github.didi:drouter-api-page:1.0.0"      // Page
 api "io.github.didi:drouter-api-process:1.0.0"   // Process
 ```
