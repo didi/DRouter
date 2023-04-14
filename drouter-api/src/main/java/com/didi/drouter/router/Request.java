@@ -77,6 +77,10 @@ public class Request extends DataExtras<Request> {
         return serialNumber;
     }
 
+    public ActivityResultLauncher<Intent> getActivityResultLauncher() {
+        return launcher;
+    }
+
     public Request setActivityResultLauncher(ActivityResultLauncher<Intent> launcher) {
         this.launcher = launcher;
         return this;
