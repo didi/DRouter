@@ -1,7 +1,7 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {
-    ext.kotlin_version = '1.6.21'
+    ext.kotlin_version = '1.8.0'
     ext.min_support_version = 14
 
     // sdk_version(31)需要java11编译
@@ -11,16 +11,18 @@ buildscript {
     repositories {
         maven { url uri(rootProject.rootDir.path + '/.aar/maven/libs-release')}
         maven { url uri('https://s01.oss.sonatype.org/content/repositories/releases/')}
-
+        maven { url uri('https://plugins.gradle.org/m2/')}
         mavenCentral()
         google()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.2.2'
+//        classpath 'com.android.tools.build:gradle:4.2.2'
+        classpath 'com.android.tools.build:gradle:8.0.1'
+        classpath "org.jetbrains.kotlin:kotlin-android-extensions:$kotlin_version"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
 
         // DRouter Plugin
-        classpath 'io.github.didi:drouter-plugin-proxy:1.0.2'
+        classpath 'io.github.didi:drouter-plugin:1.4.0'
     }
 }
 

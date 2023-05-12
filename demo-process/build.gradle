@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 
-apply plugin: 'com.didi.drouter'
+//apply plugin: 'com.didi.drouter'
 
 android {
     compileSdkVersion compile_sdk_version
@@ -37,6 +37,13 @@ android {
             signingConfig signingConfigs.sign
         }
     }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    namespace "com.didi.drouter.process"
 }
 
 dependencies {

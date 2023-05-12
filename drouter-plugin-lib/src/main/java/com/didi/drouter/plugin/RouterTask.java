@@ -4,11 +4,11 @@ import com.didi.drouter.generator.ClassClassify;
 import com.didi.drouter.utils.JarUtils;
 import com.didi.drouter.utils.Logger;
 import com.didi.drouter.utils.StoreUtil;
+import com.didi.drouter.utils.SystemUtil;
 import com.didi.drouter.utils.TextUtil;
 
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.GradleException;
-import org.gradle.api.Project;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -36,14 +36,11 @@ import javassist.CtClass;
  * Created by gaowei on 2018/9/17
  */
 public class RouterTask {
-
-    private final Project project;
     private final Queue<File> compileClassPath;
     private final Set<String> cachePathSet; //.class | .jar | .jar!/class
     private final File wTmpDir;
     private final boolean useCache;
     private final File routerDir;
-    private final RouterSetting.Parse setting;
 
     private ClassPool pool;
     private ClassClassify classClassify;
@@ -51,23 +48,19 @@ public class RouterTask {
     private final int CPU_COUNT = Runtime.getRuntime().availableProcessors();
     private final AtomicInteger count = new AtomicInteger();
 
-    RouterTask(Project project, Queue<File> compileClassPath,
-               Set<String> cachePathSet, boolean useCache,
-               File routerDir, File tmpDir, RouterSetting.Parse setting, boolean isWindow) {
-        this.project = project;
+    public RouterTask(Queue<File> compileClassPath, Set<String> cachePathSet, boolean useCache, File routerDir) {
         this.compileClassPath = compileClassPath;
         this.cachePathSet = cachePathSet;
         this.useCache = useCache;
         this.routerDir = routerDir;
-        this.setting = setting;
-        this.wTmpDir = isWindow ? new File(tmpDir, String.valueOf(System.currentTimeMillis())) : null;
+        this.wTmpDir = SystemUtil.INSTANCE.isWindow() ? new File(SystemUtil.cacheDir, String.valueOf(System.currentTimeMillis())) : null;
     }
 
-    void run() {
+    public void run() {
         StoreUtil.clear();
-        JarUtils.printVersion(project, compileClassPath);
+        JarUtils.INSTANCE.printVersion(compileClassPath);
         pool = new ClassPool();
-        classClassify = new ClassClassify(pool, setting);
+        classClassify = new ClassClassify(pool, SystemUtil.setting);
         startExecute();
     }
 
@@ -88,7 +81,7 @@ public class RouterTask {
             Logger.d("generator router table used: " + (System.currentTimeMillis() - timeStart) + "ms");
             Logger.v("scan class size: " + count.get() + " | router class size: " + cachePathSet.size());
         } catch (Exception e) {
-            JarUtils.check(e);
+            JarUtils.INSTANCE.check(e);
             throw new GradleException("Could not generate d_router table\n" + e.getMessage(), e);
         } finally {
             executor.shutdown();
@@ -106,7 +99,7 @@ public class RouterTask {
     }
 
     private void loadFullPaths(final Queue<File> files) throws ExecutionException, InterruptedException, IOException {
-        if (!RouterSetting.Parse.isDebug()) {
+        if (!RouterSetting.Parse.debug) {
             final List<Future<Void>> taskList = new ArrayList<>();
             for (int i = 0; i < CPU_COUNT; i++) {
                 taskList.add(executor.submit(new Callable<Void>() {

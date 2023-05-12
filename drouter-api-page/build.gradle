@@ -18,6 +18,9 @@ android {
             consumerProguardFiles 'proguard-drouter-process.txt'
         }
     }
+
+    namespace "com.didi.drouter.page"
+
 }
 
 dependencies {
@@ -33,7 +36,7 @@ dependencies {
 }
 
 task sourcesJar(type: Jar) {
-    classifier = 'sources'
+    getArchiveClassifier().set('sources')
     from android.sourceSets.main.java.source
 }
 

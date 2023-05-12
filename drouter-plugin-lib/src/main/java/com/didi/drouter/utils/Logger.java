@@ -13,7 +13,7 @@ public class Logger {
     }
 
     public static void d(Object msg) {
-        if (RouterSetting.Parse.isDebug()) {
+        if (RouterSetting.Parse.debug) {
             System.out.println("\033[37m" + msg + "\033[0m");
         }
     }

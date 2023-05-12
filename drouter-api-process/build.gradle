@@ -19,6 +19,15 @@ android {
             consumerProguardFiles 'proguard-drouter-process.txt'
         }
     }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget=17
+    }
+    namespace "com.didi.drouter.process"
 }
 
 dependencies {
@@ -36,7 +45,7 @@ dependencies {
 }
 
 task sourcesJar(type: Jar) {
-    classifier = 'sources'
+    getArchiveClassifier().set('sources')
     from android.sourceSets.main.java.source
 }
 

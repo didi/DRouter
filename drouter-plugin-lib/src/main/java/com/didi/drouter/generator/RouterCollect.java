@@ -163,7 +163,7 @@ class RouterCollect extends AbsRouterCollect {
                 metaBuilder.append("\"").append(pathValue).append("\"");
                 metaBuilder.append(",");
                 if ("com.didi.drouter.store.RouterMeta.ACTIVITY".equals(type)) {
-                    if (!setting.isUseActivityRouterClass()) {
+                    if (!setting.getUseActivityRouterClass()) {
                         metaBuilder.append("\"").append(routerCc.getName()).append("\"");
                     } else {
                         metaBuilder.append(routerCc.getName()).append(".class");
@@ -253,7 +253,7 @@ class RouterCollect extends AbsRouterCollect {
     @Override
     public boolean include(CtClass ct) {
         boolean r = ct.hasAnnotation(Router.class);
-        if (setting.isSupportNoAnnotationActivity()) {
+        if (setting.getSupportNoAnnotationActivity()) {
             return r || checkSuper(ct, "android.app.Activity");
         }
         return r;

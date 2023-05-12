@@ -15,7 +15,7 @@ import javassist.CtClass;
  */
 public class ClassClassify {
 
-    private List<AbsRouterCollect> classifies = new ArrayList<>();
+    private final List<AbsRouterCollect> classifies = new ArrayList<>();
 
     public ClassClassify(ClassPool pool, RouterSetting.Parse setting) {
         classifies.add(new RouterCollect(pool, setting));

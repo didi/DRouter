@@ -22,6 +22,8 @@ android {
     sourceSets {
         main.resources.srcDirs += new File(buildDir, "/generated/drouter")
     }
+
+    namespace "com.didi.drouter.api"
 }
 
 task generateVersion {
@@ -51,12 +53,11 @@ dependencies {
 }
 
 task sourcesJar(type: Jar) {
-    classifier = 'sources'
+    getArchiveClassifier().set('sources')
     from android.sourceSets.main.java.source
 }
 
 version = '2.4.5'
-// latest test version: 2.1.0.0.0.1
 
 if (file("${rootProject.projectDir}/upload-maven.gradle").exists()) {
     apply from: "${rootProject.projectDir}/upload-maven.gradle"

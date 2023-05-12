@@ -3,71 +3,74 @@ package com.didi.drouter.plugin
 import com.didi.drouter.utils.Logger
 
 /**
- * Created by gaowei on 2018/9/17
+ * Created by gaowei on 2023/5/9
  */
-class RouterSetting {
+open class RouterSetting {
 
-    boolean debug = false
-    boolean incremental = true
-    boolean cache = true
-    boolean useActivityRouterClass = false
-    boolean supportNoAnnotationActivity = false
-    String pluginName
+    var debug = false
+    var incremental = true
+    var cache = true
+    var useActivityRouterClass = false
+    var supportNoAnnotationActivity = false
+    var pluginName = ""
 
     /**
      * For compatible with proxy plugin
      */
-    static class Parse {
+    open class Parse(setting: RouterSetting) {
 
-        static boolean debug
-        boolean incremental
-        boolean cache
-        boolean useActivityRouterClass
-        boolean supportNoAnnotationActivity
-        String pluginName
+        companion object {
+            @JvmField
+            var debug = false
+        }
+        var incremental = true
+        var cache = true
+        var useActivityRouterClass = false
+        var supportNoAnnotationActivity = false
+        var pluginName = ""
 
-        Parse(RouterSetting setting) {
+        init {
             try {
                 debug = setting.debug
-            } catch(Exception e) {
+            } catch(e: Exception) {
                 log(e)
             }
             try {
                 incremental = setting.incremental
-            } catch(Exception e) {
+            } catch(e: Exception) {
                 log(e)
             }
             try {
                 cache = setting.cache
-            } catch(Exception e) {
+            } catch(e: Exception) {
                 log(e)
             }
             try {
                 useActivityRouterClass = setting.useActivityRouterClass
-            } catch(Exception e) {
+            } catch(e: Exception) {
                 log(e)
             }
             try {
                 supportNoAnnotationActivity = setting.supportNoAnnotationActivity
-            } catch(Exception e) {
+            } catch(e: Exception) {
                 log(e)
             }
             try {
                 pluginName = setting.pluginName
-            } catch(Exception e) {
+            } catch(e: Exception) {
                 log(e)
             }
         }
 
-        static void log(Exception e) {
+        private fun log(e: Exception) {
             Logger.d("Please use plugin-proxy >= 1.0.2, err = " + e.message)
         }
 
         @Override
-        String toString() {
+        override fun toString(): String {
             return String.format("Setting = debug:%s | incremental:%s | cache:%s | " +
                     "useActivityRouterClass:%s | supportNoAnnotationActivity:%s",
-                    debug, incremental, cache, useActivityRouterClass, supportNoAnnotationActivity)
+                debug, incremental, cache, useActivityRouterClass, supportNoAnnotationActivity)
         }
     }
 }

@@ -1,4 +1,19 @@
 //apply plugin: 'groovy'
+//apply plugin: 'kotlin'
+//
+//buildscript {
+//    ext.kotlin_version = '1.8.0'
+//    repositories {
+//        mavenCentral()
+//        google()
+//        maven {
+//            url "https://plugins.gradle.org/m2/"
+//        }
+//    }
+//    dependencies {
+//        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+//    }
+//}
 //
 //repositories {
 //    mavenCentral()
@@ -10,20 +25,13 @@
 //
 //    implementation gradleApi()
 //    implementation localGroovy()
-//    implementation 'org.javassist:javassist:3.28.0-GA'
-//    implementation 'com.android.tools.build:gradle:4.2.2'
+//    implementation 'org.javassist:javassist:3.29.2-GA'
+//    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+//    implementation 'commons-io:commons-io:2.11.0'
+//    implementation 'com.android.tools.build:gradle:8.0.0'
 //}
 //
-//sourceSets {
-//    main {
-//        groovy.srcDirs = ['src/main/groovy', '../drouter-plugin/src/main/groovy']
-//        java.srcDirs = ['src/main/java', '../drouter-plugin/src/main/java']
-//        resources.srcDirs = ['src/main/resources', '../drouter-plugin/src/main/resources']
-//    }
-//
-////    main {
-////        groovy.srcDirs = ['src/main/groovy', '../drouter-plugin-proxy/src/main/groovy']
-////        java.srcDirs = ['src/main/java', '../drouter-plugin-proxy/src/main/java']
-////        resources.srcDirs = ['src/main/resources', '../drouter-plugin-proxy/src/main/resources']
-////    }
+//sourceSets.main {
+//    java.srcDirs = ['../drouter-plugin-v8/src/main/java', '../drouter-plugin-lib/src/main/java']
+//    resources.srcDirs = ['../drouter-plugin-v8/src/main/resources']
 //}
