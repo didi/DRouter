@@ -13,6 +13,14 @@ public interface IRouterInterceptor {
 
         void onContinue();
 
+        /**
+         * Return default statusCode {@link Result#INTERCEPT}
+         */
         void onInterrupt();
+
+        /**
+         * @param statusCode Return custom statusCode
+         */
+        void onInterrupt(int statusCode);
     }
 }

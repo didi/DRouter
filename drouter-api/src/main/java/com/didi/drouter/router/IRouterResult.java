@@ -9,5 +9,5 @@ import androidx.annotation.NonNull;
  */
 public interface IRouterResult {
 
-    void onResult(@NonNull Request request, @RouterState int state);
+    void onResult(@NonNull Request request, int StateCode);
 }

@@ -1,5 +1,8 @@
 package com.didi.drouter.router;
 
+import static com.didi.drouter.router.Result.INTERCEPT;
+import static com.didi.drouter.router.Result.NOT_FOUND;
+
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -65,15 +68,17 @@ class RouterLoader {
                 Map<Request, RouterMeta> requestMap = makeRequest();
                 if (requestMap.isEmpty()) {
                     RouterLogger.getCoreLogger().w("warning: there is no request target match");
-                    new Result(primaryRequest, Collections.singleton(primaryRequest), 0, callback);
+                    new Result(primaryRequest, Collections.singleton(primaryRequest), 0, callback).statusCode = NOT_FOUND;
                     ResultAgent.release(primaryRequest, ResultAgent.STATE_NOT_FOUND);
                     return;
                 }
+                // single result for multi request
                 final Result result = new Result(primaryRequest, requestMap.keySet(), requestMap.size(), callback);
                 if (requestMap.size() > 1) {
                     RouterLogger.getCoreLogger().w("warning: request match %s targets", requestMap.size());
                 }
                 final boolean[] stopByRouterTarget = {false};
+                // multi request branch
                 for (final Map.Entry<Request, RouterMeta> entry : requestMap.entrySet()) {
                     if (stopByRouterTarget[0]) {
                         // one by one
@@ -83,6 +88,8 @@ class RouterLoader {
                     InterceptorHandler.handleRelated(entry.getKey(), entry.getValue(), new IRouterInterceptor.IInterceptor() {
                         @Override
                         public void onContinue() {
+                            // request target can also intercept the other request branch
+                            // for example handler target
                             entry.getKey().interceptor = new IRouterInterceptor.IInterceptor() {
                                 @Override
                                 public void onContinue() {
@@ -90,6 +97,11 @@ class RouterLoader {
 
                                 @Override
                                 public void onInterrupt() {
+                                    onInterrupt(INTERCEPT);
+                                }
+
+                                @Override
+                                public void onInterrupt(int statusCode) {
                                     RouterLogger.getCoreLogger().w(
                                             "request \"%s\" stop all remains requests", entry.getKey().getNumber());
                                     stopByRouterTarget[0] = true;
@@ -102,6 +114,12 @@ class RouterLoader {
 
                         @Override
                         public void onInterrupt() {
+                            onInterrupt(INTERCEPT);
+                        }
+
+                        @Override
+                        public void onInterrupt(int statusCode) {
+                            result.statusCode = statusCode;
                             ResultAgent.release(entry.getKey(), ResultAgent.STATE_STOP_BY_INTERCEPTOR);
                         }
                     });
@@ -110,7 +128,12 @@ class RouterLoader {
 
             @Override
             public void onInterrupt() {
-                new Result(primaryRequest, Collections.singleton(primaryRequest), 0, callback);
+                onInterrupt(INTERCEPT);
+            }
+
+            @Override
+            public void onInterrupt(int statusCode) {
+                new Result(primaryRequest, Collections.singleton(primaryRequest), 0, callback).statusCode = statusCode;
                 ResultAgent.release(primaryRequest, ResultAgent.STATE_STOP_BY_INTERCEPTOR);
             }
         });
