@@ -82,8 +82,8 @@ class JarUtils {
     }
 
     static void check(Exception e) {
-        Logger.w("[Wrong message ...]")
-        Logger.e(">>> " + e.getMessage() + " <<<")
+        Logger.e("[Wrong message ...]")
+        e.printStackTrace()
         String min = metaInfo.get("plugin-min-support")
         Logger.w("Please first make sure plugin-version " + metaInfo.get("plugin-version") +
                 "(current) >= " + min + "(min support)")

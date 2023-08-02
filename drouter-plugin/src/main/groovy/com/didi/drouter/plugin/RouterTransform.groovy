@@ -78,8 +78,13 @@ class RouterTransform extends Transform {
         }
         File dest = invocation.outputProvider.getContentLocation("DRouterTable", TransformManager.CONTENT_CLASS,
                 ImmutableSet.of(QualifiedContent.Scope.PROJECT), Format.DIRECTORY)
-        (new RouterTask(project, compilePath, cachePathSet, useCache, dest, tmpDir, setting, isWindow)).run()
-        FileUtils.writeLines(cacheFile, cachePathSet)
+
+        if (!dest.path.contains("/DRouter/androidTest/")) {
+            (new RouterTask(project, compilePath, cachePathSet, useCache, dest, tmpDir, setting, isWindow)).run()
+            FileUtils.writeLines(cacheFile, cachePathSet)
+        } else {
+            Logger.w("Ignore android test task")
+        }
         Logger.v("Link: https://github.com/didi/DRouter")
         Logger.v("DRouterTask done, time used: " + (System.currentTimeMillis() - timeStart) / 1000f  + "s")
     }
