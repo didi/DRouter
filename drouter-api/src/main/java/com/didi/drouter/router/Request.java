@@ -87,7 +87,9 @@ public class Request extends DataExtras<Request> {
     }
 
     /**
-     * can only redirect in global interceptor or before
+     * The router can only redirect in global interceptor or before.
+     * Because target will be identified when related interceptor is reached.
+     * The order of execution of interceptors is all global -> all related interceptor.
      * @param uri new uri
      */
     public Request setRedirect(String uri) {

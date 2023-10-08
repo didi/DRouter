@@ -51,6 +51,13 @@
             android:text="获取ActivityResult, uri= /activity/result" />
 
         <Button
+            android:id="@+id/start_but_intercept"
+            android:onClick="onClick"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="路由拦截" />
+
+        <Button
             android:id="@+id/start_activity_result_intent"
             android:onClick="onClick"
             android:layout_width="match_parent"

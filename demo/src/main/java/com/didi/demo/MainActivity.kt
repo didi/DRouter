@@ -83,6 +83,12 @@ class MainActivity : AppCompatActivity() {
                 DRouter.build("/activity/result")
                     .setActivityResultLauncher(launcher)
                     .start(this@MainActivity)
+            R.id.start_but_intercept -> {
+                DRouter.build("/activity/interceptor")
+                        .start(this) { result ->
+                            Toast.makeText(this@MainActivity, "状态码: ${result.statusCode}", Toast.LENGTH_LONG).show()
+                        }
+            }
             R.id.start_activity_result_intent -> {
                 // 兼容通过intent启动Activity
                 val intent = Intent("com.intent.activity")

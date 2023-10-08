@@ -1,5 +1,7 @@
 package com.didi.drouter.router;
 
+import static com.didi.drouter.router.Result.INTERCEPT;
+
 import androidx.annotation.NonNull;
 
 import com.didi.drouter.store.RouterMeta;
@@ -19,6 +21,7 @@ class InterceptorHandler {
         handleNext(interceptors, request, callback);
     }
 
+    // handle all related interceptor, recursion
     static void handleRelated(Request request,
                               RouterMeta meta,
                               IRouterInterceptor.IInterceptor callback) {
@@ -54,9 +57,14 @@ class InterceptorHandler {
 
             @Override
             public void onInterrupt() {
+                onInterrupt(INTERCEPT);
+            }
+
+            @Override
+            public void onInterrupt(int statusCode) {
                 RouterLogger.getCoreLogger().w("request \"%s\" interrupt by \"%s\"",
                         request.getNumber(), interceptor.getClass().getSimpleName());
-                callback.onInterrupt();
+                callback.onInterrupt(statusCode);
             }
         };
         interceptor.handle(request);
@@ -71,6 +79,11 @@ class InterceptorHandler {
 
         @Override
         public void onInterrupt() {
+
+        }
+
+        @Override
+        public void onInterrupt(int statusCode) {
 
         }
     }

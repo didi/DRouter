@@ -58,7 +58,11 @@ public class RouterTask {
 
     public void run() {
         StoreUtil.clear();
-        JarUtils.INSTANCE.printVersion(compileClassPath);
+        JarUtils.printVersion(project, compileClassPath);
+        // https://github.com/didi/DRouter/issues/56
+        if (wTmpDir != null) {
+            ClassPool.cacheOpenedJarFile = false;
+        }
         pool = new ClassPool();
         classClassify = new ClassClassify(pool, SystemUtil.setting);
         startExecute();

@@ -14,6 +14,12 @@ import java.util.Collection;
  */
 public class Result extends DataExtras<Result> {
 
+    // status code example
+    // Users can customize their own status code
+    public static final int SUCCESS   = 200;
+    public static final int NOT_FOUND = 404;
+    public static final int INTERCEPT = 500;
+
     ResultAgent agent;
 
     Class<?> routerClass;
@@ -21,6 +27,7 @@ public class Result extends DataExtras<Result> {
     Fragment fragment;
     View view;
     int routerSize;
+    int statusCode = SUCCESS;
 
     Result(@NonNull Request primaryRequest,
            @NonNull Collection<Request> branchRequests,
@@ -56,4 +63,7 @@ public class Result extends DataExtras<Result> {
         return routerSize;
     }
 
+    public int getStatusCode() {
+        return statusCode;
+    }
 }
