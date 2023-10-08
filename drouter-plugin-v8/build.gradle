@@ -1,16 +1,13 @@
 apply plugin: 'groovy'
 apply plugin: "kotlin"
+apply plugin: "java-gradle-plugin"
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation gradleApi()
     implementation localGroovy()
     implementation 'org.javassist:javassist:3.29.2-GA'
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-    implementation 'commons-io:commons-io:2.11.0'
-
-    //noinspection GradleDependency
-    compileOnly 'com.android.tools.build:gradle:8.0.0'
+    implementation 'commons-io:commons-io:2.14.0'
 }
 
 sourceSets.main {

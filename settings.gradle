@@ -1,6 +1,0 @@
-include ':drouter-api', ':drouter-api-page', ':drouter-api-process', ':drouter-api-stub'
-include ':drouter-plugin', ':drouter-plugin-proxy'
-include ':demo-base', ':demo-process'
-include ':demo'
-include ':drouter-plugin-v8'
-include ':drouter-plugin-lib'

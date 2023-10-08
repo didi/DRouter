@@ -7,8 +7,6 @@ dependencies {
     implementation gradleApi()
     implementation localGroovy()
     implementation 'org.javassist:javassist:3.28.0-GA'
-    //noinspection GradleDependency
-    compileOnly 'com.android.tools.build:gradle:4.2.2'
 }
 
 task sourcesJar(type: Jar) {

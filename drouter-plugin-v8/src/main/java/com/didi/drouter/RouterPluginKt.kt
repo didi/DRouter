@@ -1,8 +1,5 @@
 package com.didi.drouter
 
-import com.android.build.api.artifact.ScopedArtifact
-import com.android.build.api.variant.AndroidComponentsExtension
-import com.android.build.api.variant.ScopedArtifacts
 import com.didi.drouter.plugin.RouterSetting
 import com.didi.drouter.utils.SystemUtil
 import org.gradle.api.Plugin

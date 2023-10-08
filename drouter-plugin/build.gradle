@@ -6,7 +6,6 @@ dependencies {
     implementation gradleApi()
     implementation localGroovy()
     implementation 'org.javassist:javassist:3.29.2-GA'
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     implementation 'commons-io:commons-io:2.11.0'
 
     //noinspection GradleDependency

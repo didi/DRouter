@@ -1,36 +1,15 @@
-apply plugin: 'com.android.library'
+plugins {
+    id 'com.android.library'
+    id 'routerModuleCommonPlugin'
+}
 
 android {
-    compileSdkVersion compile_sdk_version
-
-    defaultConfig {
-        minSdkVersion min_support_version
-        targetSdkVersion target_sdk_version
-        versionCode 1
-        versionName "1.0"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-    }
-
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            consumerProguardFiles 'proguard-drouter-process.txt'
-        }
-    }
-
     namespace "com.didi.drouter.page"
-
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'com.android.support.test:runner:1.0.2'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
-
-    api 'androidx.fragment:fragment:1.1.0'
-
+    api 'androidx.fragment:fragment:1.6.1'
     api project(":drouter-api")
 //    api 'io.github.didi:drouter-api:2.3.1'
 }

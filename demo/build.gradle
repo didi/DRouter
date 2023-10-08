@@ -1,24 +1,23 @@
-apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
-
-apply plugin: 'com.didi.drouter'
-
-drouter {
-    debug = true
-    //incremental = false
-    //useActivityRouterClass = true
+plugins {
+    id 'com.android.application'
+    id 'kotlin-android'
+    id 'routerModuleCommonPlugin'
 }
+//apply plugin: 'io.john6.sample.plugin.commonAndroidBuildPlugin'
+
+
+//apply plugin: 'com.didi.drouter'
+
+//drouter {
+//    debug = true
+//    //incremental = false
+//    //useActivityRouterClass = true
+//}
 
 android {
-    compileSdkVersion compile_sdk_version
-
+    
     defaultConfig {
         applicationId "com.didi.drouter.demo"
-        minSdkVersion min_support_version
-        targetSdkVersion target_sdk_version
-        versionCode 1
-        versionName "1.0"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
     }
 
@@ -41,32 +40,10 @@ android {
             signingConfig signingConfigs.sign
         }
     }
-
-    allprojects {
-        gradle.projectsEvaluated {
-            tasks.withType(JavaCompile) {
-                options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
-            }
-        }
-    }
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
-    }
-//
-//    kotlinOptions {
-//        jvmTarget=11
-//    }
-
     namespace "com.didi.drouter.demo"
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'com.android.support.test:runner:1.0.2'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.0"
     api project(':demo-base')
 }
