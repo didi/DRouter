@@ -43,7 +43,7 @@ class RouterModuleCommonPlugin: Plugin<Project>{
             project.dependencies{
                 add("testImplementation", "junit:junit:4.13.2")
                 add("androidTestImplementation", "androidx.test:runner:1.5.2")
-                add("androidTestImplementation", "com.android.support.test.espresso:espresso-core:3.5.1")
+                add("androidTestImplementation", "androidx.test.espresso:espresso-core:3.5.1")
             }
         }
     }
