@@ -9,7 +9,7 @@ dependencies {
     implementation 'org.javassist:javassist:3.28.0-GA'
 }
 
-task sourcesJar(type: Jar) {
+tasks.register('sourcesJar', Jar) {
     getArchiveClassifier().set('sources')
     from sourceSets.main.allSource
 }

@@ -1,9 +1,8 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    `java-gradle-plugin`
     `kotlin-dsl`
-    `maven-publish`
+    id("com.gradle.plugin-publish") version "1.0.0"
 }
 
 repositories {
@@ -33,36 +32,25 @@ dependencies {
     compileOnly("com.android.tools.build:gradle:8.0.2")
 }
 
+// 使用 publishPluginMavenPublicationToxxx 发布
+version = "1.4.1"
+group = "io.github.drouter"
+
 gradlePlugin {
     plugins {
-        create("localModuleCommonPlugin") {
-            //添加插件
-            id = "localModuleCommonPlugin"
-            //在根目录创建类 VersionPlugin 继承 Plugin<Project>
-            implementationClass = "LocalModuleCommonPlugin"
-        }
-        create("dRouterPlugin") {
-            //添加插件
+        create("dRouter") {
+            // 仅影响本地模块依赖时的名字以及使用 java-gradle-plugin 插件发布时有影响
+            // 具体参考 https://docs.gradle.org/current/userguide/plugins.html#sec:plugin_markers
             id = "com.didi.drouter"
-            //在根目录创建类 VersionPlugin 继承 Plugin<Project>
             implementationClass = "com.didi.drouter.DRouterPlugin"
         }
     }
 }
 
 publishing {
-    publications {
-        create<MavenPublication>("maven") {
-            groupId = "com.didi.drouter"
-            artifactId = "drouter-plugin"
-            version = "1.0.0"
-            from(components["kotlin"])
-        }
-    }
     repositories {
         mavenLocal()
-        maven {
-//            url = uri("file://${rootProject.projectDir}/.aar/maven")
-        }
+        // TODO 指定上传仓库
+//        mavenCentral()
     }
 }
