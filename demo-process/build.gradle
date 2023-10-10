@@ -1,7 +1,7 @@
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
-    id 'routerModuleCommonPlugin'
+    id 'localModuleCommonPlugin'
 }
 
 //apply plugin: 'com.didi.drouter'

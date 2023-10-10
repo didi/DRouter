@@ -1,21 +1,19 @@
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
-    id 'routerModuleCommonPlugin'
+    id 'localModuleCommonPlugin'
+    id 'com.didi.drouter'
 }
-//apply plugin: 'io.john6.sample.plugin.commonAndroidBuildPlugin'
 
-
-//apply plugin: 'com.didi.drouter'
-
-//drouter {
-//    debug = true
-//    //incremental = false
-//    //useActivityRouterClass = true
-//}
+drouter {
+    debug = true
+    //incremental = false
+    //useActivityRouterClass = true
+}
 
 android {
-    
+    namespace = "com.didi.drouter.demo"
+
     defaultConfig {
         applicationId "com.didi.drouter.demo"
         multiDexEnabled true
@@ -40,7 +38,6 @@ android {
             signingConfig signingConfigs.sign
         }
     }
-    namespace "com.didi.drouter.demo"
 }
 
 dependencies {

@@ -1,14 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.didi.drouter.demo">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <application
-        android:name="com.didi.demo.Application"
+        android:name=".Application"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -16,7 +15,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name="com.didi.demo.MainActivity"
+            android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -25,56 +24,60 @@
             </intent-filter>
         </activity>
 
-        <activity android:name="com.didi.demo.activity.ActivityTest1" />
-        <activity android:name="com.didi.demo.activity.ActivityTest2" />
-        <activity android:name="com.didi.demo.activity.ActivityTest3" />
-        <activity android:name="com.didi.demo.web.WebActivity" />
-        <activity android:name="com.didi.demo.activity.ActivityRemoteTest" />
+        <activity android:name="com.didi.drouter.demo.activity.ActivityTest1" />
+        <activity android:name="com.didi.drouter.demo.activity.ActivityTest2" />
+        <activity android:name="com.didi.drouter.demo.activity.ActivityTest3" />
+        <activity android:name="com.didi.drouter.demo.web.WebActivity" />
+        <activity android:name=".activity.ActivityRemoteTest" />
         <activity
-            android:name="com.didi.demo.activity.ActivityResultActivity"
-            android:exported="false" >
+            android:name="com.didi.drouter.demo.activity.ActivityResultActivity"
+            android:exported="false">
             <intent-filter>
                 <action android:name="com.intent.activity" />
-                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.DEFAULT" />
 
             </intent-filter>
         </activity>
         <activity
-            android:name="com.didi.demo.web.SchemeActivity"
+            android:name="com.didi.drouter.demo.web.SchemeActivity"
             android:exported="true">
             <intent-filter>
                 <data android:scheme="didi" />
                 <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.BROWSABLE" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
 
         <provider
-            android:name="com.didi.demo.remote.DemoHostProvider"
+            android:name="com.didi.drouter.demo.remote.DemoHostProvider"
             android:authorities="com.didi.drouter.remote.demo.host"
-            android:exported="true"
+            android:exported="false"
             android:multiprocess="false" />
         <provider
-            android:name="com.didi.demo.remote.DemoRemoteProvider"
+            android:name="com.didi.drouter.demo.remote.DemoRemoteProvider"
             android:authorities="com.didi.drouter.remote.demo.remote"
+            android:exported="false"
             android:multiprocess="false"
             android:process=":remote" />
 
         <activity
-            android:name="com.didi.demo.remote.RemoteActivity"
+            android:name="com.didi.drouter.demo.remote.RemoteActivity"
             android:process=":remote" />
         <activity
-            android:name="com.didi.demo.remote.RemoteMemoryActivity"
+            android:name="com.didi.drouter.demo.remote.RemoteMemoryActivity"
             android:process=":remote" />
+
         <service
-            android:name="com.didi.demo.remote.RemoteService"
+            android:name="com.didi.drouter.demo.remote.RemoteService"
             android:process=":remote" />
-        <service android:name="com.didi.demo.activity.ActivityRemoteTest$MyService"/>
-        <activity android:name="com.didi.demo.handler.DynamicActivity" />
-        <activity android:name="com.didi.demo.fragment.RouterPageViewPagerActivity" />
-        <activity android:name="com.didi.demo.fragment.RouterPageSingleActivity" />
-        <activity android:name="com.didi.demo.fragment.RouterPageStackActivity" />
+        <service android:name=".activity.ActivityRemoteTest$MyService" />
+
+        <activity android:name="com.didi.drouter.demo.handler.DynamicActivity" />
+        <activity android:name="com.didi.drouter.demo.fragment.RouterPageViewPagerActivity" />
+        <activity android:name="com.didi.drouter.demo.fragment.RouterPageSingleActivity" />
+        <activity android:name="com.didi.drouter.demo.fragment.RouterPageStackActivity" />
     </application>
 
 </manifest>
