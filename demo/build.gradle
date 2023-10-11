@@ -43,4 +43,5 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     api project(':demo-base')
+    androidTestImplementation("io.github.didi:drouter-api:2.4.6")
 }

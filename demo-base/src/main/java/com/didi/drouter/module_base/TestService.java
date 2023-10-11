@@ -9,7 +9,7 @@ import com.didi.drouter.module_base.service.IServiceTest;
 @Service(function = IServiceTest.class)
 public class TestService implements IServiceTest {
     @Override
-    public void test() {
-
+    public int test() {
+        return 0;
     }
 }

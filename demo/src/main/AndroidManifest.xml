@@ -32,7 +32,7 @@
         <activity android:name=".activity.ActivityRemoteTest" />
         <activity
             android:name="com.didi.drouter.demo.activity.ActivityResultActivity"
-            android:exported="false">
+            android:exported="true">
             <intent-filter>
                 <action android:name="com.intent.activity" />
                 <category android:name="android.intent.category.DEFAULT" />

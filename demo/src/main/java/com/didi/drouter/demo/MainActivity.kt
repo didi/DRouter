@@ -11,6 +11,7 @@ import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -31,11 +32,16 @@ class MainActivity : AppCompatActivity() {
 
     var launcher: ActivityResultLauncher<Intent>? = null
 
+    private lateinit var toolbar: Toolbar
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
         val contentView = LayoutInflater.from(this).inflate(R.layout.activity_main, null)
         setContentView(contentView)
+
+        toolbar = findViewById(R.id.toolbar)
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             ViewCompat.setOnApplyWindowInsetsListener(contentView) { v, windowInsets ->
                 val systemBar = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -52,6 +58,7 @@ class MainActivity : AppCompatActivity() {
         launcher = registerForActivityResult(MyResultContract()) {
             it?.let {
                 RouterLogger.toast(it)
+                appendToToolbarTitle(it)
             }
         }
     }
@@ -67,6 +74,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun onClick(view: View) {
+        resetToolbarTitle()
         when (view.id) {
             R.id.start_activity1 -> DRouter.build("/activity/Test1_Value1_Value2?Arg3=Value3")
                 .putExtra("Arg4", "Value4")
@@ -95,6 +103,7 @@ class MainActivity : AppCompatActivity() {
                 .putExtra("b", "我是b")
                 .start(this) { result ->
                     if (result.isActivityStarted) {
+                        appendToToolbarTitle("hold")
                         Toast.makeText(
                             this@MainActivity,
                             "hold activity is started", Toast.LENGTH_LONG
@@ -104,6 +113,7 @@ class MainActivity : AppCompatActivity() {
 
             R.id.start_activity_no -> DRouter.build("/activity/no").start(this) { result ->
                 if (!result.isActivityStarted) {
+                    appendToToolbarTitle("router not found")
                     Toast.makeText(this@MainActivity, "router not found", Toast.LENGTH_LONG).show()
                 }
             }
@@ -126,7 +136,9 @@ class MainActivity : AppCompatActivity() {
 
             R.id.start_activity_result_intent -> {
                 // 兼容通过intent启动Activity
-                val intent = Intent("com.intent.activity")
+                val intent = Intent("com.intent.activity").apply {
+                }
+                startActivity(intent)
                 DRouter.build("")
                     .putExtra(Extend.START_ACTIVITY_VIA_INTENT, intent)
                     .setActivityResultLauncher(launcher)
@@ -135,6 +147,7 @@ class MainActivity : AppCompatActivity() {
 
             R.id.start_fragment1 -> DRouter.build("/fragment/first/1").start(this) { result ->
                 if (result.fragment != null) {
+                    appendToToolbarTitle("获取FirstFragment成功")
                     Toast.makeText(
                         DRouter.getContext(),
                         "获取FirstFragment成功",
@@ -169,39 +182,50 @@ class MainActivity : AppCompatActivity() {
                 .putExtra("url", "file:///android_asset/scheme-test.html")
                 .start(this)
 
-            R.id.start_service -> DRouter.build(IServiceTest::class.java).setAlias("test1")
-                .getService().test()
+            R.id.start_service -> {
+                val res = DRouter.build(IServiceTest::class.java).setAlias("test1")
+                    .getService().test()
+                appendToToolbarTitle(res.toString())
+            }
 
             R.id.start_service_feature -> {
-                val bean = ServiceFeature()
-                bean.a = 1
-                bean.a1 = 2
-                bean.b = 3
-                bean.c = 1
-                bean.d = 2
-                bean.e = '3'
-                bean.e1 = '1'
-                bean.f = 1f
-                bean.g = 2.0
-                bean.h = true
-                bean.i = "1"
-                bean.j = "2"
-                DRouter.build(IServiceTest::class.java)
+                val bean = ServiceFeature().apply {
+                    a = 1
+                    a1 = 2
+                    b = 3
+                    c = 1
+                    d = 2
+                    e = '3'
+                    e1 = '1'
+                    f = 1f
+                    g = 2.0
+                    h = true
+                    i = "1"
+                    j = "2"
+                }
+                val res = DRouter.build(IServiceTest::class.java)
                     .setAlias("test2")
                     .setFeature(bean)
                     .getService(3, "a", booleanArrayOf(true), this)
                     .test()
+                appendToToolbarTitle(res.toString())
             }
 
-            R.id.start_service_call -> DRouter.build(ICallService::class.java)
-                .setAlias("login")
-                .getService()
-                .call<Any>(ParamObject(), 3)
+            R.id.start_service_call -> {
+                val res = DRouter.build(ICallService::class.java)
+                    .setAlias("login")
+                    .getService()
+                    .call<Any>(ParamObject(), 3)
+                appendToToolbarTitle(res.toString())
+            }
 
-            R.id.start_service_any -> DRouter.build(IServiceTest2::class.java)
-                .setAlias("name1")
-                .getService()
-                .test2()
+            R.id.start_service_any -> {
+                val res= DRouter.build(IServiceTest2::class.java)
+                    .setAlias("name1")
+                    .getService()
+                    .test2()
+                appendToToolbarTitle(res.toString())
+            }
 
             R.id.start_dynamic_register -> DRouter.build("/activity/dynamic").putExtra("type", 2)
                 .start(this)
@@ -210,6 +234,14 @@ class MainActivity : AppCompatActivity() {
             else -> {
             }
         }
+    }
+
+    private fun resetToolbarTitle() {
+        toolbar.title = getString(R.string.app_name)
+    }
+
+    private fun appendToToolbarTitle(text: String) {
+        toolbar.title = "${toolbar.title}$text"
     }
 
 }

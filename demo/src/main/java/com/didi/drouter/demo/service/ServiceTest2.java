@@ -55,8 +55,9 @@ public class ServiceTest2 implements IServiceTest {
     }
 
     @Override
-    public void test() {
+    public int test() {
         RouterLogger.getAppLogger().d("ServiceTest2 test");
         RouterLogger.toast("获取带有过滤器和带参构造器的Service成功");
+        return 2;
     }
 }

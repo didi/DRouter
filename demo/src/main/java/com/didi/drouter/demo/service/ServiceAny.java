@@ -13,12 +13,14 @@ import com.didi.drouter.utils.RouterLogger;
 public class ServiceAny implements IServiceTest, IServiceTest2 {
 
     @Override
-    public void test() {
+    public int test() {
         RouterLogger.toast("执行ServiceAny test成功");
+        return 0;
     }
 
     @Override
-    public void test2() {
+    public int test2() {
         RouterLogger.toast("执行ServiceAny test2成功");
+        return 4;
     }
 }

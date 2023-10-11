@@ -27,7 +27,8 @@ public class ServiceTest1 implements IServiceTest {
     }
 
     @Override
-    public void test() {
+    public int test() {
         RouterLogger.toast("执行ServiceTest1成功");
+        return 1;
     }
 }

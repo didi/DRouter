@@ -1,14 +1,25 @@
 package com.didi.drouter.demo
 
+import android.content.Context
+import android.view.KeyEvent
 import androidx.test.espresso.Espresso.onView
+import androidx.test.espresso.Espresso.pressBack
 import androidx.test.espresso.action.ViewActions
+import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.intent.Intents
+import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
+import androidx.test.espresso.matcher.ViewMatchers.isRoot
 import androidx.test.espresso.matcher.ViewMatchers.withId
+import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.didi.drouter.api.DRouter
 import com.didi.drouter.demo.activity.ActivityTest1
 import com.didi.drouter.demo.activity.ActivityTest2
 import com.didi.drouter.demo.activity.ActivityTest3
+import com.didi.drouter.router.RouterHelper
+import org.hamcrest.CoreMatchers
+import org.hamcrest.core.Is.`is`
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
@@ -21,7 +32,7 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class ActivityTest {
 
-//    /**
+    //    /**
 //     * Use [ActivityScenarioRule] to create and launch the activity under test before each test,
 //     * and close it after each test. This is a replacement for
 //     * [androidx.test.rule.ActivityTestRule].
@@ -31,7 +42,7 @@ class ActivityTest {
     var mainActivityTestRule = ActivityScenarioRule(MainActivity::class.java)
 
     @Test
-    fun test_ActivityTest1(){
+    fun test_ActivityTest1PassArgs() {
         Intents.init()
         onView(withId(R.id.start_activity1)).perform(ViewActions.click())
 
@@ -48,7 +59,7 @@ class ActivityTest {
     }
 
     @Test
-    fun test_ActivityTest2(){
+    fun test_ActivityTest2PassThroughScheme() {
         Intents.init()
 
         onView(withId(R.id.start_activity2)).perform(ViewActions.click())
@@ -58,31 +69,67 @@ class ActivityTest {
 
         val extras = intent.extras
         Assert.assertTrue(extras?.getString("key") == "value")
-
-
-
         Intents.release()
-        // TODO test toast is showing
     }
 
     @Test
-    fun test_ActivityTest3() {
+    fun test_ActivityTest3Hold() {
+        var context: Context? = null
+        mainActivityTestRule.scenario.onActivity { att->
+            context = att
+        }
         Intents.init()
         onView(withId(R.id.start_activity3)).perform(ViewActions.click())
 
         val intent = Intents.getIntents()[0]
         Assert.assertEquals(intent.component?.className, ActivityTest3::class.java.name)
-
-        val extras = intent.extras
-        Assert.assertTrue(extras?.getString("a") == "我是a")
-        Assert.assertTrue(extras?.getString("b") == "我是b")
-
-
+        intent.extras.apply {
+            Assert.assertTrue(this?.getString("a") == "我是a")
+            Assert.assertTrue(this?.getString("b") == "我是b")
+        }
         Intents.release()
 
+        onView(withId(R.id.test3_text)).check(matches(isDisplayed()))
+        Thread.sleep(1000L)
 
-        // TODO test toast is showing
-//        Thread.sleep(2000L)
-//        onView(withText("hold activity is started")).check(matches(isDisplayed()))
+        EspressoTestUtil.matchToolbarTitle(`is`(context?.getString(R.string.app_name)))
+        Thread.sleep(2000L)
+        // FIXME nor work
+        onView(isRoot()).perform(ViewActions.pressBack())
+        EspressoTestUtil.matchToolbarTitle(CoreMatchers.endsWith("hold"))
+    }
+
+    @Test
+    fun testActivityRouterNotFound() {
+        onView(withId(R.id.start_activity_no)).perform(ViewActions.click())
+        EspressoTestUtil.matchToolbarTitle(CoreMatchers.endsWith("router not found"))
+    }
+
+    @Test
+    fun testStartActivityForResultByLauncher() {
+        onView(withId(R.id.start_activity_for_result)).perform(ViewActions.click())
+        onView(withText("返回结果")).check(matches(isDisplayed()))
+
+        onView(withText("返回结果")).perform(ViewActions.click())
+        EspressoTestUtil.matchToolbarTitle(CoreMatchers.containsString("成功获取到ActivityResult"))
+    }
+
+    @Test
+    fun testStartActivityButIntercept() {
+        mainActivityTestRule.scenario.onActivity { att ->
+            DRouter.build("/activity/interceptor")
+                .start(att) { result ->
+                    Assert.assertEquals(result.statusCode, 404)
+                }
+        }
+    }
+
+    @Test
+    fun testStartActivityForResultByIntent() {
+        onView(withId(R.id.start_activity_result_intent)).perform(ViewActions.click())
+        onView(withText("返回结果")).check(matches(isDisplayed()))
+
+        onView(withText("返回结果")).perform(ViewActions.click())
+        EspressoTestUtil.matchToolbarTitle(CoreMatchers.containsString("成功获取到ActivityResult"))
     }
 }

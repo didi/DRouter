@@ -5,5 +5,5 @@ package com.didi.drouter.module_base.service;
  */
 public interface IServiceTest2 {
 
-    void test2();
+    int test2();
 }

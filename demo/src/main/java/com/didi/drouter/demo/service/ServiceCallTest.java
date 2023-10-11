@@ -15,6 +15,6 @@ public class ServiceCallTest implements ICallService.Type2<ParamObject, Integer,
     public String call(ParamObject argumentBean, Integer i) {
         RouterLogger.getAppLogger().d("ServiceCallTest call");
         RouterLogger.toast("ServiceCallTest call success");
-        return null;
+        return "3";
     }
 }
