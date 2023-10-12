@@ -7,11 +7,13 @@ import android.os.Bundle;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.didi.drouter.annotation.Router;
 import com.didi.drouter.demo.R;
 
 @Router(path = "/activity/webview")
-public class WebActivity extends Activity {
+public class WebActivity extends AppCompatActivity {
 
     WebView webview;
 

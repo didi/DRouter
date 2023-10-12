@@ -7,11 +7,14 @@ import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
+import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContract
+import androidx.appcompat.app.ActionBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -30,9 +33,9 @@ import com.didi.drouter.utils.RouterLogger
  */
 class MainActivity : AppCompatActivity() {
 
-    var launcher: ActivityResultLauncher<Intent>? = null
+    private var launcher: ActivityResultLauncher<Intent>? = null
 
-    private lateinit var toolbar: Toolbar
+    private lateinit var toolbar: ActionBar
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,18 +43,20 @@ class MainActivity : AppCompatActivity() {
         val contentView = LayoutInflater.from(this).inflate(R.layout.activity_main, null)
         setContentView(contentView)
 
-        toolbar = findViewById(R.id.toolbar)
+        toolbar = supportActionBar!!
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            ViewCompat.setOnApplyWindowInsetsListener(contentView) { v, windowInsets ->
-                val systemBar = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
-                v.setPaddingRelative(
-                    systemBar.left,
-                    systemBar.top,
-                    systemBar.right,
-                    0
-                )
-                windowInsets
+            (window.decorView as? FrameLayout)?.getChildAt(0)?.also {
+                ViewCompat.setOnApplyWindowInsetsListener(it) { v, windowInsets ->
+                    val systemBar = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+                    v.setPaddingRelative(
+                        0,
+                        systemBar.top,
+                        0,
+                        0
+                    )
+                    WindowInsetsCompat.CONSUMED
+                }
             }
         }
 
