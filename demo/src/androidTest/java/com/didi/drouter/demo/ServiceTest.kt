@@ -3,15 +3,11 @@ package com.didi.drouter.demo
 
 import androidx.test.espresso.Espresso
 import androidx.test.espresso.action.ViewActions
-import androidx.test.espresso.assertion.ViewAssertions
 import androidx.test.espresso.matcher.ViewMatchers
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.didi.drouter.api.DRouter
-import com.didi.drouter.module_base.service.IServiceTest
+import com.didi.drouter.demo.util.EspressoTestUtil
 import org.hamcrest.CoreMatchers
-import org.junit.Assert
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith

@@ -136,9 +136,7 @@ class MainActivity : AppCompatActivity() {
 
             R.id.start_activity_result_intent -> {
                 // 兼容通过intent启动Activity
-                val intent = Intent("com.intent.activity").apply {
-                }
-                startActivity(intent)
+                val intent = Intent("com.intent.activity")
                 DRouter.build("")
                     .putExtra(Extend.START_ACTIVITY_VIA_INTENT, intent)
                     .setActivityResultLauncher(launcher)
@@ -158,6 +156,7 @@ class MainActivity : AppCompatActivity() {
 
             R.id.start_view1 -> DRouter.build("/view/headview").start(this) { result ->
                 if (result.view != null) {
+                    appendToToolbarTitle("获取HeadView成功")
                     Toast.makeText(DRouter.getContext(), "获取HeadView成功", Toast.LENGTH_SHORT)
                         .show()
                 }

@@ -1,9 +1,8 @@
 package com.didi.drouter.demo
 
+import android.app.Activity
 import android.content.Context
-import android.view.KeyEvent
 import androidx.test.espresso.Espresso.onView
-import androidx.test.espresso.Espresso.pressBack
 import androidx.test.espresso.action.ViewActions
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.intent.Intents
@@ -17,6 +16,7 @@ import com.didi.drouter.api.DRouter
 import com.didi.drouter.demo.activity.ActivityTest1
 import com.didi.drouter.demo.activity.ActivityTest2
 import com.didi.drouter.demo.activity.ActivityTest3
+import com.didi.drouter.demo.util.EspressoTestUtil
 import com.didi.drouter.router.RouterHelper
 import org.hamcrest.CoreMatchers
 import org.hamcrest.core.Is.`is`
@@ -40,6 +40,7 @@ class ActivityTest {
 //    @get:Rule var activityScenarioRule = activityScenarioRule<MainActivity>()
     @get:Rule
     var mainActivityTestRule = ActivityScenarioRule(MainActivity::class.java)
+
 
     @Test
     fun test_ActivityTest1PassArgs() {
@@ -74,10 +75,6 @@ class ActivityTest {
 
     @Test
     fun test_ActivityTest3Hold() {
-        var context: Context? = null
-        mainActivityTestRule.scenario.onActivity { att->
-            context = att
-        }
         Intents.init()
         onView(withId(R.id.start_activity3)).perform(ViewActions.click())
 
@@ -87,26 +84,27 @@ class ActivityTest {
             Assert.assertTrue(this?.getString("a") == "我是a")
             Assert.assertTrue(this?.getString("b") == "我是b")
         }
+        onView(withId(R.id.test3_text)).check(matches(isDisplayed()))
         Intents.release()
 
-        onView(withId(R.id.test3_text)).check(matches(isDisplayed()))
+        // Test hold time not arrive
         Thread.sleep(1000L)
+        Assert.assertNotNull(RouterHelper.getRequest("0"))
 
-        EspressoTestUtil.matchToolbarTitle(`is`(context?.getString(R.string.app_name)))
+        // Test hold time is arrived
         Thread.sleep(2000L)
-        // FIXME nor work
         onView(isRoot()).perform(ViewActions.pressBack())
         EspressoTestUtil.matchToolbarTitle(CoreMatchers.endsWith("hold"))
     }
 
     @Test
-    fun testActivityRouterNotFound() {
+    fun test_ActivityRouterNotFound() {
         onView(withId(R.id.start_activity_no)).perform(ViewActions.click())
         EspressoTestUtil.matchToolbarTitle(CoreMatchers.endsWith("router not found"))
     }
 
     @Test
-    fun testStartActivityForResultByLauncher() {
+    fun test_StartActivityForResultByLauncher() {
         onView(withId(R.id.start_activity_for_result)).perform(ViewActions.click())
         onView(withText("返回结果")).check(matches(isDisplayed()))
 
@@ -115,7 +113,7 @@ class ActivityTest {
     }
 
     @Test
-    fun testStartActivityButIntercept() {
+    fun test_StartActivityButIntercept() {
         mainActivityTestRule.scenario.onActivity { att ->
             DRouter.build("/activity/interceptor")
                 .start(att) { result ->
@@ -125,7 +123,7 @@ class ActivityTest {
     }
 
     @Test
-    fun testStartActivityForResultByIntent() {
+    fun test_StartActivityForResultByIntent() {
         onView(withId(R.id.start_activity_result_intent)).perform(ViewActions.click())
         onView(withText("返回结果")).check(matches(isDisplayed()))
 
