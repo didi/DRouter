@@ -7,8 +7,8 @@ pluginManagement {
         maven(url = "https://s01.oss.sonatype.org/content/repositories/releases/")
 //        maven(url = "https://plugins.gradle.org/m2/")
     }
-    includeBuild("plugins/commonLocal")
-    includeBuild("plugins/drouter")
+    includeBuild("plugins/commonLocalModule-plugin")
+    includeBuild("plugins/drouter-plugin")
 }
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)

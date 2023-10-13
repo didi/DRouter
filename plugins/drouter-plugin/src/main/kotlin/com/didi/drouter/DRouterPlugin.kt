@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package com.didi.drouter
 
 import com.android.build.api.artifact.ScopedArtifact

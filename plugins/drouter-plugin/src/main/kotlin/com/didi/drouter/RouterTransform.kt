@@ -73,7 +73,9 @@ abstract class RouterTransform @Inject constructor(
     }
 
     private fun packOutputJar() {
-        val jarOutput = JarOutputStream(BufferedOutputStream(FileOutputStream(output.get().asFile)))
+        val file = output.get().asFile
+        Logger.v("file:$file")
+        val jarOutput = JarOutputStream(BufferedOutputStream(FileOutputStream(file)))
         val insertTag = mutableSetOf<String>()
         inputFiles.forEach { input ->
             if (input.isFile && input.name.lowercase().endsWith(".jar")) {

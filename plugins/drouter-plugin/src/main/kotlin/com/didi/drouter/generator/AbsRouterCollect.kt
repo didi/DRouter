@@ -135,7 +135,6 @@ abstract class AbsRouterCollect(var pool: ClassPool, var setting: Parse) {
                 tempCtClass = tempCtClass.superclass
             }
         } catch (e: NotFoundException) {
-            println("❌ ct is ${e.message}")
             return classNames.contains(e.message)
         }
         return false

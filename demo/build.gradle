@@ -2,11 +2,11 @@ plugins {
     id 'com.android.application'
     id 'kotlin-android'
     id 'localModuleCommonPlugin'
-    id 'com.didi.drouter'
+    id 'io.github.didi.drouter'
 }
 
 drouter {
-    debug = true
+    debug = false
     //incremental = false
     //useActivityRouterClass = true
 }

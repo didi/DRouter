@@ -36,7 +36,8 @@ class RouterTask(
     private val useCache: Boolean,
     private val routerDir: File
 ) {
-    private val wTmpDir: File? = if (isWindow) File(SystemUtil.cacheDir, System.currentTimeMillis().toString()) else null
+    private val wTmpDir: File? =
+        if (isWindow) File(SystemUtil.cacheDir, System.currentTimeMillis().toString()) else null
     private var pool: ClassPool? = null
     private var classClassify: ClassClassify? = null
     private val executor = Executors.newCachedThreadPool()
@@ -98,18 +99,23 @@ class RouterTask(
     @Throws(ExecutionException::class, InterruptedException::class, IOException::class)
     private fun loadFullPaths(files: Queue<File>) {
         if (!RouterSetting.Parse.debug) {
-            val taskList: MutableList<Future<Void>> = ArrayList()
+            val taskList = ArrayList<Future<Int>>()
             for (i in 0 until cpuCount) {
                 taskList.add(executor.submit(Callable {
-                    var file: File
-                    while ((files.poll().also { file = it }) != null) {
-                        loadFullPath(file)
+                    var file: File? = null
+                    var loadCount = 0
+                    while ((files.poll()?.also { file = it }) != null) {
+                        file?.also{
+                            loadFullPath(it)
+                            loadCount++
+                        }
                     }
-                    null
+                    loadCount
                 }))
             }
-            for (task: Future<Void> in taskList) {
+            for (task: Future<Int> in taskList) {
                 task.get()
+//                Logger.v("load full count: ${task.get()")
             }
         } else {
             Logger.d("start load full:")
@@ -171,7 +177,7 @@ class RouterTask(
             stream.close()
         }
 
-        if(ctClass == null) return
+        if (ctClass == null) return
 
         if (!TextUtil.excludePackageClass(ctClass.name)) {
             if (classClassify?.doClassify(ctClass) == true) {

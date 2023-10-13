@@ -2,6 +2,7 @@ package com.didi.drouter.demo
 
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -42,6 +43,8 @@ class MainActivity : AppCompatActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         val contentView = LayoutInflater.from(this).inflate(R.layout.activity_main, null)
         setContentView(contentView)
+        WindowCompat.getInsetsController(window, contentView)?.isAppearanceLightNavigationBars =
+            resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_NO
 
         toolbar = supportActionBar!!
 
@@ -49,12 +52,7 @@ class MainActivity : AppCompatActivity() {
             (window.decorView as? FrameLayout)?.getChildAt(0)?.also {
                 ViewCompat.setOnApplyWindowInsetsListener(it) { v, windowInsets ->
                     val systemBar = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
-                    v.setPaddingRelative(
-                        0,
-                        systemBar.top,
-                        0,
-                        0
-                    )
+                    v.setPaddingRelative(0, systemBar.top, 0, 0)
                     WindowInsetsCompat.CONSUMED
                 }
             }

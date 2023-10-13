@@ -19,7 +19,7 @@ object JarUtils {
 
     private fun grabApiMetaInfo(files: Collection<File>) {
         for (file in files) {
-            if (!file.exists() ||!file.name.endsWith(".jar")) {
+            if (!file.exists() || !file.name.endsWith(".jar")) {
                 continue
             }
             val zipFile = ZipFile(file)
@@ -58,7 +58,7 @@ object JarUtils {
             inputStream = URL(filePath).openStream()
             val manifest = Manifest(inputStream)
             val attributes = manifest.mainAttributes
-            metaInfo["plugin-version"] = attributes.getValue("plugin-version") ?: "null"
+            metaInfo["plugin-version"] = attributes.getValue("Implementation-Version") ?: "null"
         } catch (e: Exception) {
             e.printStackTrace()
         } finally {
@@ -88,7 +88,7 @@ object JarUtils {
         Logger.e(">>> " + e.message + " <<<")
         val min = metaInfo["plugin-min-support"]
         Logger.w(
-            "Please first make sure plugin-version " + metaInfo.get("plugin-version") +
+            "Please first make sure plugin-version " + metaInfo["plugin-version"] +
                     "(current) >= " + min + "(min support)"
         )
         Logger.w("Any question you can call \"GaoWei\" from weixin \"gwball\"")

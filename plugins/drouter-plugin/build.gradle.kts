@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.com.intellij.openapi.vfs.StandardFileSystems.jar
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -34,14 +35,24 @@ dependencies {
 
 // 使用 publishPluginMavenPublicationToxxx 发布
 version = "1.4.1"
-group = "io.github.drouter"
+group = "io.github.didi.drouter"
+
+tasks.withType<Jar> {
+    manifest {
+        attributes(
+            "Implementation-Title" to "DRouter-plugin",
+            "Implementation-Version" to version,
+            "Created-By" to "gwball"
+        )
+    }
+}
 
 gradlePlugin {
     plugins {
         create("dRouter") {
             // 仅影响本地模块依赖时的名字以及使用 java-gradle-plugin 插件发布时有影响
             // 具体参考 https://docs.gradle.org/current/userguide/plugins.html#sec:plugin_markers
-            id = "com.didi.drouter"
+            id = "io.github.didi.drouter"
             implementationClass = "com.didi.drouter.DRouterPlugin"
         }
     }
