@@ -36,3 +36,5 @@ proguard/
 
 upload-*.gradle
 *.gpg
+
+release/

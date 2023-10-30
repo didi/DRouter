@@ -30,7 +30,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.10")
     implementation("org.javassist:javassist:3.29.2-GA")
     implementation("commons-io:commons-io:2.14.0")
-    compileOnly("com.android.tools.build:gradle:8.0.2")
+    compileOnly("com.android.tools.build:gradle:8.1.2")
 }
 
 // 使用 publishPluginMavenPublicationToxxx 发布

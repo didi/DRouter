@@ -198,7 +198,7 @@ internal class RouterCollect(pool: ClassPool, setting: Parse) : AbsRouterCollect
                                 routerCc.name
                             )
                             generatorClass(
-                                routerDir!!,
+                                routerDir,
                                 proxyCc,
                                 method1,
                                 AbsRouterCollect.Companion.METHOD2
@@ -249,13 +249,13 @@ Cause: ${e.message}""", e
                 )
             }
         }
-        Collections.sort(items)
+        items.sort()
         for (item in items) {
             builder.append(item)
         }
         builder.append("}")
         Logger.d("\nclass RouterLoader\n$builder")
-        generatorClass(routerDir!!, ctClass, builder.toString())
+        generatorClass(routerDir, ctClass, builder.toString())
     }
 
     override fun include(superCt: CtClass): Boolean {
