@@ -1,4 +1,3 @@
-import org.jetbrains.kotlin.com.intellij.openapi.vfs.StandardFileSystems.jar
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -14,13 +13,13 @@ repositories {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
 }
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {
-        jvmTarget = "17"
+        jvmTarget = "11"
     }
 }
 
@@ -34,7 +33,7 @@ dependencies {
 }
 
 // 使用 publishPluginMavenPublicationToxxx 发布
-version = "1.4.1"
+version = "1.4.2"
 group = "io.github.didi.drouter"
 
 tasks.withType<Jar> {

@@ -6,16 +6,26 @@ import com.didi.drouter.utils.Logger
 import com.didi.drouter.utils.SystemUtil
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFile
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.tasks.Classpath
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
+import java.io.BufferedOutputStream
 import java.io.File
+import java.io.FileOutputStream
 import java.nio.file.Files
 import java.util.Queue
 import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.jar.JarEntry
+import java.util.jar.JarFile
+import java.util.jar.JarOutputStream
 import javax.inject.Inject
 import kotlin.io.path.Path
 
@@ -32,9 +42,6 @@ abstract class RouterTransform @Inject constructor(
 
     @get:Classpath
     abstract val allDirectories: ConfigurableFileCollection
-
-//    @get:OutputFile
-//    abstract val output: RegularFileProperty
 
     @get:OutputDirectory
     abstract val outputJars: DirectoryProperty
