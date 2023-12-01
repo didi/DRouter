@@ -12,7 +12,6 @@ import javassist.bytecode.annotation.ArrayMemberValue
 import javassist.bytecode.annotation.ClassMemberValue
 import javassist.bytecode.annotation.StringMemberValue
 import java.io.File
-import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
 import java.util.regex.Pattern
 

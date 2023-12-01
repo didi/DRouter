@@ -1,40 +1,32 @@
 package com.didi.drouter
 
 import com.android.build.api.AndroidPluginVersion
+import com.didi.drouter.plugin.RouterSetting
 import com.didi.drouter.plugin.RouterTask
 import com.didi.drouter.utils.Logger
-import com.didi.drouter.utils.SystemUtil
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFile
-import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.tasks.Classpath
-import org.gradle.api.tasks.InputFiles
-import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
-import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
-import java.io.BufferedOutputStream
 import java.io.File
-import java.io.FileOutputStream
 import java.nio.file.Files
 import java.util.Queue
 import java.util.concurrent.ConcurrentLinkedQueue
-import java.util.jar.JarEntry
-import java.util.jar.JarFile
-import java.util.jar.JarOutputStream
 import javax.inject.Inject
-import kotlin.io.path.Path
 
 /**
  * Created by gaowei on 2023/5/8
  */
 abstract class RouterTransform @Inject constructor(
     private val androidBootClasspath: ListProperty<RegularFile>,
-    private val pluginVersion: AndroidPluginVersion
+    private val pluginVersion: AndroidPluginVersion,
+    private val cacheDir: File,
+    private val isWindows: Boolean,
+    private val dRouterSettings: RouterSetting,
 ) : DefaultTask() {
 
     @get:Classpath
@@ -49,14 +41,18 @@ abstract class RouterTransform @Inject constructor(
     abstract val outputClasses: DirectoryProperty
 
     private val inputFiles = mutableSetOf<File>()
-    private val routerDir = File(SystemUtil.cacheDir, "router")
+    private val routerDir = File(cacheDir, "router")
 
     @TaskAction
     fun taskAction() {
         val timeStart = System.currentTimeMillis()
         Logger.v("DRouterTask start | AndroidGradlePlugin version: ${pluginVersion.run { "$major.$minor.$micro" }}")
         // 入口
-        RouterTask(assembleAllFile(), mutableSetOf(), false, routerDir).run(androidBootClasspath)
+        RouterTask(
+            assembleAllFile(), mutableSetOf(), dRouterSettings.cache, routerDir,
+            isWindows, cacheDir,
+            dRouterSettings,
+        ).run(androidBootClasspath)
 //        val time = System.currentTimeMillis()
         // 测试耗时 31 ms
         copyToOutput()

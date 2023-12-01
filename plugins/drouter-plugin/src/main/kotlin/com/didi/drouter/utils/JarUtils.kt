@@ -1,7 +1,6 @@
 package com.didi.drouter.utils
 
 import com.android.build.gradle.AppExtension
-import com.didi.drouter.utils.SystemUtil.project
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStream
@@ -73,14 +72,6 @@ object JarUtils {
         val pluginVersion = metaInfo["plugin-version"]
         val apiVersion = metaInfo["api-version"]
         Logger.v("current plugin-version: $pluginVersion | api-version: $apiVersion")
-
-        val appIds = HashSet<String>()
-        project.extensions.findByType(AppExtension::class.java)?.applicationVariants?.all { variant ->
-            appIds.add(variant.applicationId)
-        }
-//        Thread.start {
-//            sendRequest(Arrays.toString(appIds.toArray()), pluginVersion, apiVersion)
-//        }
     }
 
     fun check(e: Exception) {

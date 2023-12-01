@@ -5,10 +5,7 @@ import com.didi.drouter.utils.JarUtils.check
 import com.didi.drouter.utils.JarUtils.printVersion
 import com.didi.drouter.utils.Logger
 import com.didi.drouter.utils.StoreUtil
-import com.didi.drouter.utils.SystemUtil
-import com.didi.drouter.utils.SystemUtil.isWindow
 import com.didi.drouter.utils.TextUtil
-import javassist.ClassPath
 import javassist.ClassPool
 import javassist.CtClass
 import org.apache.commons.io.FileUtils
@@ -34,10 +31,13 @@ class RouterTask(
     private val compileClassPath: Queue<File>, //.class | .jar | .jar!/class
     private val cachePathSet: MutableSet<String>,
     private val useCache: Boolean,
-    private val routerDir: File
+    private val routerDir: File,
+    isWindows: Boolean,
+    cacheDir: File,
+    private val dRouterSettings: RouterSetting,
 ) {
     private val wTmpDir: File? =
-        if (isWindow) File(SystemUtil.cacheDir, System.currentTimeMillis().toString()) else null
+        if (isWindows) File(cacheDir, System.currentTimeMillis().toString()) else null
     private var pool: ClassPool? = null
     private var classClassify: ClassClassify? = null
     private val executor = Executors.newCachedThreadPool()
@@ -54,7 +54,7 @@ class RouterTask(
         pool = ClassPool().also {
             // 添加 android.jar
             it.appendClassPath(bootClasspath.get()[0].toString())
-            classClassify = ClassClassify(it, SystemUtil.setting)
+            classClassify = ClassClassify(it, RouterSetting.Parse(dRouterSettings))
         }
         startExecute()
     }

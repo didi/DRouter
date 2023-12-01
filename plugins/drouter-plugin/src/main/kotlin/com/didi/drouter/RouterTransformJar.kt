@@ -1,11 +1,12 @@
 package com.didi.drouter
 
 import com.android.build.api.AndroidPluginVersion
+import com.didi.drouter.plugin.RouterSetting
 import com.didi.drouter.plugin.RouterTask
 import com.didi.drouter.utils.Logger
-import com.didi.drouter.utils.SystemUtil
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.Directory
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.ListProperty
@@ -27,7 +28,10 @@ import javax.inject.Inject
  */
 abstract class RouterTransformJar @Inject constructor(
     private val androidBootClasspath: ListProperty<RegularFile>,
-    private val pluginVersion: AndroidPluginVersion
+    private val pluginVersion: AndroidPluginVersion,
+    private val cacheDir: File,
+    private val isWindows: Boolean,
+    private val dRouterSettings: RouterSetting,
 ) : DefaultTask() {
 
     @get:InputFiles
@@ -40,7 +44,7 @@ abstract class RouterTransformJar @Inject constructor(
     abstract val output: RegularFileProperty
 
     private val inputFiles = mutableSetOf<File>()
-    private val routerDir = File(SystemUtil.cacheDir, "router")
+    private val routerDir = File(cacheDir, "router")
 
     @TaskAction
     fun taskAction() {
@@ -48,7 +52,15 @@ abstract class RouterTransformJar @Inject constructor(
         Logger.v("DRouterTask start | AndroidGradlePlugin version: ${pluginVersion.run { "$major.$minor.$micro" }}")
 
         // 入口
-        RouterTask(assembleAllFile(), mutableSetOf(), false, routerDir).run(androidBootClasspath)
+        RouterTask(
+            assembleAllFile(),
+            mutableSetOf(),
+            dRouterSettings.cache,
+            routerDir,
+            isWindows,
+            cacheDir,
+            dRouterSettings
+        ).run(androidBootClasspath)
         inputFiles.add(routerDir)
         packOutputJar()
 
