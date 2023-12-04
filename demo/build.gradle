@@ -6,8 +6,8 @@ plugins {
 }
 
 drouter {
-    debug = true
-    incremental = false
+    debug = false
+    incremental = true
     cache = true
     //useActivityRouterClass = true
 }
