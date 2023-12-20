@@ -55,7 +55,7 @@ Process | 跨进程访问Router、Service，共享内存
 
 ``` java
 /** 插件 **/
-classpath "io.github.didi:drouter-plugin:1.3.4"      // agp 1.x - 7.x
+classpath "io.github.didi:drouter-plugin:1.3.5"      // agp 1.x - 7.x
 classpath "io.github.didi:drouter-plugin:1.4.0"      // agp 8.x以上
 
 /** 依赖库 **/

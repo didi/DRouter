@@ -20,7 +20,7 @@ buildscript {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
 
         // DRouter Plugin
-        classpath 'io.github.didi:drouter-plugin:1.3.4'   // apg 1.x-7.x
+        classpath 'io.github.didi:drouter-plugin:1.3.5'   // apg 1.x-7.x
 //        classpath 'io.github.didi:drouter-plugin:1.4.0'   // agp 8.x
     }
 }
