@@ -212,7 +212,6 @@ public class RouterTask {
                                     " jar=" + file.getAbsolutePath() +
                                     " entry=" + entry.getName() +
                                     " exception=" + e.getMessage());
-                            throw e;
                         }
                     }
                 }

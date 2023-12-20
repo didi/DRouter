@@ -79,6 +79,7 @@ class RouterTransform extends Transform {
         File dest = invocation.outputProvider.getContentLocation("DRouterTable", TransformManager.CONTENT_CLASS,
                 ImmutableSet.of(QualifiedContent.Scope.PROJECT), Format.DIRECTORY)
 
+        Logger.d("Dest: ${dest.absolutePath}")
         if (!dest.path.contains("/DRouter/androidTest/")) {
             (new RouterTask(project, compilePath, cachePathSet, useCache, dest, tmpDir, setting, isWindow)).run()
             FileUtils.writeLines(cacheFile, cachePathSet)
